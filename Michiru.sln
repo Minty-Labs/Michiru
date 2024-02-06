@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Michiru", "Michiru\Michiru.csproj", "{1FAD3F8A-F3E6-4AC6-9D30-EB67D9438ADE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FAD3F8A-F3E6-4AC6-9D30-EB67D9438ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FAD3F8A-F3E6-4AC6-9D30-EB67D9438ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FAD3F8A-F3E6-4AC6-9D30-EB67D9438ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FAD3F8A-F3E6-4AC6-9D30-EB67D9438ADE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
