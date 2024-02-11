@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Discord.Commands;
 using Michiru.Utils;
 
@@ -23,7 +23,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         var output = await process.StandardOutput.ReadToEndAsync();
         await process.WaitForExitAsync();
         
-        var weh = StringUtils.SplitMessage(output, 1900);
+        var weh = output.SplitMessage(1900);
         foreach (var chuck in weh)
             await ReplyAsync($"```\n{chuck}```");
     }

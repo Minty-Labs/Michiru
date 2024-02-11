@@ -173,10 +173,10 @@ public static class StringUtils {
     /// <param name="append">Text to add after the first and all new split messages</param>
     /// <returns>List of strings to be used in a for or foreach loop to send messages</returns>
     /// <exception cref="Exception">Provided string was empty, nothing to split</exception>
-    public static List<string> SplitMessage(string text, int maxLength = 2000, string charSeparator = "\n", string prepend = "", string append = "") {
+    public static List<string> SplitMessage(this string text, int maxLength = 2000, string charSeparator = "\n", string prepend = "", string append = "") {
         text = VerifyString(text);
 
-        if (text.Length <= maxLength) return new List<string> { text };
+        if (text.Length <= maxLength) return [ text ];
 
         var messages = new List<string>();
         var msg = "";
@@ -253,7 +253,7 @@ public static class StringUtils {
     /// <param name="input">this string</param>
     /// <returns>string with only letters and numbers used for hex color codes</returns>
     public static string ValidateHexColor(this string input) {
-        char[] allowedChars = { 'a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        char[] allowedChars = ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         return new string(input.ToLower().ToCharArray().Where(c => allowedChars.Contains(c)).ToArray());;
     }
     
