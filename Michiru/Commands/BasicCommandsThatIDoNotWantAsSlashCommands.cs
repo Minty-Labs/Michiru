@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Discord.Commands;
 using Michiru.Utils;
 
@@ -27,4 +27,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         foreach (var chuck in weh)
             await ReplyAsync($"```\n{chuck}```");
     }
+    
+    [Command("ping")]
+    public async Task Ping() => await ReplyAsync("Pong! | " + Context.Client.Latency + "ms");
 }
