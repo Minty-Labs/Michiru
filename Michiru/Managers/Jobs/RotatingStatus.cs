@@ -3,11 +3,11 @@ using Michiru.Configuration;
 using Michiru.Utils;
 using Quartz;
 
-namespace Michiru.Managers.Jobs; 
+namespace Michiru.Managers.Jobs;
 
 public static class RotatingStatus {
     private static int _listEntry;
-    
+
     public static async Task Update() {
         if (!Config.Base.RotatingStatus.Enabled) return;
 

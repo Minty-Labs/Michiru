@@ -24,6 +24,7 @@ public class Program {
     public DiscordSocketClient Client { get; set; }
     private CommandService Commands { get; set; }
     private InteractionService GlobalInteractions { get; set; }
+    private InteractionService MintyLabsInteractions { get; set; }
     public SocketTextChannel? GeneralLogChannel { get; set; }
     public SocketTextChannel? ErrorLogChannel { get; set; }
 
@@ -94,6 +95,12 @@ public class Program {
             DefaultRunMode = Discord.Interactions.RunMode.Async,
             ThrowOnError = true
         });
+        
+        MintyLabsInteractions = new InteractionService(Client, new InteractionServiceConfig {
+            LogLevel = Vars.IsWindows ? LogSeverity.Verbose : LogSeverity.Debug, //Info,
+            DefaultRunMode = Discord.Interactions.RunMode.Async,
+            ThrowOnError = true
+        });
 
         Client.Log += msg => {
             var dnLogger = Log.ForContext("SourceContext", "DNET");
@@ -142,10 +149,12 @@ public class Program {
         await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
+        await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
 
         Client.InteractionCreated += async arg => {
             var iLogger = Log.ForContext("SourceContext", "Interaction");
             await GlobalInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
+            await MintyLabsInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
             iLogger.Debug("{0} ran a command in guild {1}", arg.User.Username, arg.GuildId);
         };
         
@@ -167,8 +176,11 @@ public class Program {
         crLogger.Information("Current OS         = " + (Vars.IsWindows ? "Windows" : "Linux"));
         crLogger.Information("Token              = " + Config.Base.BotToken!.Redact());
         crLogger.Information("ActivityType       = " + $"{Config.Base.ActivityType}");
+        crLogger.Information("Rotating Statuses  = " + $"{Config.Base.RotatingStatus.Enabled}");
+        if (Config.Base.RotatingStatus.Enabled)
+            crLogger.Information("Statuses =         " + $"{string.Join(" | ", Config.Base.RotatingStatus.Statuses.Select(x => x.ActivityType + " - " + x.UserStatus + " - " + x.ActivityText).ToArray())}");
         crLogger.Information("Game               = " + $"{Config.Base.ActivityText}");
-        crLogger.Information("Number of Commands = " + $"{GlobalInteractions.SlashCommands.Count + Commands.Commands.Count()}");
+        crLogger.Information("Number of Commands = " + $"{GlobalInteractions.SlashCommands.Count + Commands.Commands.Count() + MintyLabsInteractions.SlashCommands.Count}");
 
         if (Vars.IsWindows) {
             var temp1 = Config.Base.ActivityText!.Equals("(insert game here)") || string.IsNullOrWhiteSpace(Config.Base.ActivityText!);
@@ -191,6 +203,7 @@ public class Program {
             .AddField("Build Time", $"<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Start Time", $"<t:{UtcNow.GetSecondsFromUtcUnixTime()}:F>\n<t:{UtcNow.GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Discord.NET Version", Vars.DNetVer)
+            .AddField(".NET Version", Environment.Version)
             .Build();
 
         if (!Config.Base.ErrorLogsChannel.IsZero())
@@ -202,18 +215,25 @@ public class Program {
 
         await GlobalInteractions.RegisterCommandsGloballyAsync();
         crLogger.Information("Registered global slash commands.");
+        try {
+            await MintyLabsInteractions.RegisterCommandsToGuildAsync(Vars.SupportServerId);
+            crLogger.Information("Registered Owner slash commands for {0} ({1}).", "Minty Labs",  Vars.SupportServerId);
+        }
+        catch (Exception e) {
+            crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
+        }
     }
 
 
-    private static bool IsUrlWhitelisted(string url, ICollection<string> list) {
+    private bool IsUrlWhitelisted(string url, ICollection<string> list) {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
         return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
     }
 
-    private static bool IsFileExtWhitelisted(string extension, ICollection<string> list)
+    private bool IsFileExtWhitelisted(string extension, ICollection<string> list)
         => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
 
-    private static Task BangerListener(SocketMessage args) {
+    private Task BangerListener(SocketMessage args) {
         var socketUserMessage = (SocketUserMessage)args;
         var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == args.Channel.Id);
         if (conf is null) {
