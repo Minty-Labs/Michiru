@@ -7,10 +7,10 @@ public static class Vars {
     public static string DNetVer { get; } = Assembly.GetAssembly(typeof(DiscordSocketClient))!.GetName().Version!.ToString(3);
     public const string Name = "Michiru";
     public const ulong ClientId = 477202627285876756;
-    public const int TargetConfigVersion = 1;
+    public const int TargetConfigVersion = 2;
     
-    public const string Version = "1.1.0" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor
-    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 2, 11, 11, 31, 00);
+    public const string Version = "1.2.0" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor
+    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 3, 08, 14, 46, 00);
     public const bool IsDebug = false;
     public static string BuildDate { get; } = $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
