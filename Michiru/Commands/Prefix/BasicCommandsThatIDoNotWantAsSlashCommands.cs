@@ -80,7 +80,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}")
             .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}")
             .AddField("Build Time", $"<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:R>")
-            .AddField("Start Time", $"<t:{DateTime.UtcNow.GetSecondsFromUtcUnixTime()}:F>\n<t:{DateTime.UtcNow.GetSecondsFromUtcUnixTime()}:R>")
+            .AddField("Start Time", $"<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Discord.NET Version", Vars.DNetVer)
             .AddField("System .NET Version", Environment.Version)
             .AddField("Links", $"[GitHub](https://github.com/Minty-Labs/Giver-of-Head-Pats) | " +
