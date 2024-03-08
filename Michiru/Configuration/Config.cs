@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Michiru.Configuration.Classes;
 using Serilog;
 
@@ -66,7 +66,15 @@ public static class Config {
             ErrorLogsChannel = 0,
             Banger = [ banger ],
             PersonalizedMember = [ personalizedMember ],
-            PennysGuildWatcher = pennyGuildWatcher
+            PennysGuildWatcher = pennyGuildWatcher,
+            Api = new Api {
+                ApiKeys = new ApiKeys {
+                    UnsplashAccessKey = "",
+                    UnsplashSecretKey = "",
+                    CookieClientApiKey = "",
+                    FluxpointApiKey = ""
+                }
+            }
         };
         
         bool update;

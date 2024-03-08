@@ -14,6 +14,7 @@ using Serilog.Events;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
 using static System.DateTime;
+using fluxpoint_sharp;
 
 namespace Michiru;
 
@@ -209,7 +210,7 @@ public class Program {
             .AddField("Build Time", $"<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Start Time", $"<t:{UtcNow.GetSecondsFromUtcUnixTime()}:F>\n<t:{UtcNow.GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Discord.NET Version", Vars.DNetVer)
-            .AddField(".NET Version", Environment.Version)
+            .AddField("System .NET Version", Environment.Version)
             .Build();
 
         if (!Config.Base.ErrorLogsChannel.IsZero())

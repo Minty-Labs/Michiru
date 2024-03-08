@@ -15,3 +15,17 @@ public class RequireToBeSpecial : PreconditionAttribute {
         };
     }
 }
+
+public static class UserExtensions {
+    public static bool IsSpecial(this IUser user, IGuild guild) {
+        if (guild.OwnerId == user.Id)
+            return true;
+        return guild.Id switch {
+            977705960544014407 when user.Id is 875251523641294869 or 167335587488071682 => true,
+            1149332156313768007 when user.Id is 723217987774971975 or 927059361514291260 or 167335587488071682 => true,
+            _ => false
+        };
+    }
+    
+    public static bool IsBotOwner(this IUser user) => user.Id == 167335587488071682;
+}
