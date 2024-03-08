@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -147,6 +147,7 @@ public class Program {
         var serviceCollection = new ServiceCollection();
 
         await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
+        await Commands.AddModuleAsync<HelpCmd>(null);
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
