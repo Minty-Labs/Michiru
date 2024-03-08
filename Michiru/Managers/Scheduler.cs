@@ -19,7 +19,7 @@ public class Scheduler {
             .WithIdentity("StatusLoop", Vars.Name)
             .StartNow()
             .WithSimpleSchedule(x => x
-                .WithIntervalInMinutes(10)
+                .WithIntervalInMinutes(5)
                 .RepeatForever())
             .Build();
         await scheduler.ScheduleJob(statusLoop, statusLoopTrigger);
