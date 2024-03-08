@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Michiru.Configuration.Classes;
 
@@ -15,4 +15,5 @@ public class Base {
     [JsonPropertyName("Banger System")] public List<Banger> Banger { get; set; } = [];
     [JsonPropertyName("Personalized Members")] public List<PersonalizedMember> PersonalizedMember { get; set; } = [];
     [JsonPropertyName("Penny's Guild Watcher")] public PennysGuildWatcher PennysGuildWatcher { get; set; } = new();
+    [JsonPropertyName("Api")] public Api Api { get; set; } = new();
 }

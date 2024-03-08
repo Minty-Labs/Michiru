@@ -2,7 +2,8 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Michiru.Commands;
+using Michiru.Commands.Slash;
+using Michiru.Commands.Prefix;
 using Michiru.Configuration;
 using Michiru.Managers;
 using Michiru.Utils;
@@ -27,6 +28,7 @@ public class Program {
     private InteractionService MintyLabsInteractions { get; set; }
     public SocketTextChannel? GeneralLogChannel { get; set; }
     public SocketTextChannel? ErrorLogChannel { get; set; }
+    public FluxpointClient FluxpointClient { get; set; }
 
     public static async Task Main(string[] args) {
         Vars.IsWindows = Environment.OSVersion.ToString().Contains("windows", StringComparison.CurrentCultureIgnoreCase);
@@ -139,6 +141,9 @@ public class Program {
                 argPos: argPos,
                 services: null);
         };
+        
+        if (!string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.FluxpointApiKey!))
+            FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
 
         Client.Ready += ClientOnReady;
         Client.MessageReceived += BangerListener;
