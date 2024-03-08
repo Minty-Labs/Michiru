@@ -4,7 +4,7 @@ using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 
-namespace Michiru.Commands; 
+namespace Michiru.Commands.Slash; 
 
 public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
@@ -129,14 +129,14 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Downvote emoji {(enabled ? "will show" : "will not show")} on banger posts.");
         }
         
-        [SlashCommand("usecustomupvote", "Sets a custom upvote emoji")]
+        [SlashCommand("usecustomupvote", "Use a custom upvote emoji")]
         public async Task UseCustomUpvote([Summary("toggle", "Enable or disable")] bool enabled) {
             Config.GetGuildBanger(Context.Guild.Id).UseCustomUpvoteEmoji = enabled;
             Config.Save();
             await RespondAsync($"Custom upvote emoji {(enabled ? "will show" : "will not show")} on banger posts.");
         }
         
-        [SlashCommand("usecustomdownvote", "Sets a custom downvote emoji")]
+        [SlashCommand("usecustomdownvote", "Use a custom downvote emoji")]
         public async Task UseCustomDownvote([Summary("toggle", "Enable or disable")] bool enabled) {
             Config.GetGuildBanger(Context.Guild.Id).UseCustomDownvoteEmoji = enabled;
             Config.Save();

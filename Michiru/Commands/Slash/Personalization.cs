@@ -5,7 +5,7 @@ using Michiru.Configuration;
 using Michiru.Configuration.Classes;
 using Michiru.Utils;
 
-namespace Michiru.Commands; 
+namespace Michiru.Commands.Slash; 
 
 public class Personalization : InteractionModuleBase<SocketInteractionContext> {
     private static bool _IsInChannel(SocketInteractionContext context, ulong guildId) => context.Channel.Id == Config.GetGuildPersonalizedMember(guildId).ChannelId;
@@ -193,6 +193,14 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Set default role to {role.Mention}.");
         }
         
+        [SlashCommand("removedefaultrole", "Removes the default role for your personalized role system"), RequireToBeSpecial]
+        public async Task RemoveDefaultRole() {
+            var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
+            personalData.DefaultRoleId = 0;
+            Config.Save();
+            await RespondAsync("Removed default role.");
+        }
+        
         [SlashCommand("setresettime", "Sets the time in seconds for when a user's personalized role is reset"), RequireToBeSpecial]
         public async Task SetResetTime([Summary("time", "Time in seconds")] int time) {
             var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
@@ -201,7 +209,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Set reset time to {time} seconds.");
         }
         
-        [SlashCommand("addroleto", "Adds a role to the personalized members list"), RequireToBeSpecial]
+        [SlashCommand("addroleto", "Adds a role to the user as well as the personalized role system"), RequireToBeSpecial]
         public async Task AddRoleToGetGuildPersonalizedMembers(
             [Summary("user", "User to add the role to")] IUser user,
             [Summary("role", "Role to add to the personalized members list")] IRole role) {
@@ -222,7 +230,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Added **{role.Name}** to the personalized system for **{discordMember.DisplayName}**.");
         }
         
-        [SlashCommand("removerolefrom", "Removes a role from the personalized members list"), RequireToBeSpecial]
+        [SlashCommand("removerolefrom", "Removes a role from the user as well as the personalized role system"), RequireToBeSpecial]
         public async Task RemoveRoleFromGetGuildPersonalizedMembers(
             [Summary("user", "User to remove the role from")] IUser user) {
             var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);

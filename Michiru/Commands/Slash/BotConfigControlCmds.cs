@@ -4,7 +4,7 @@ using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Configuration.Classes;
 
-namespace Michiru.Commands;
+namespace Michiru.Commands.Slash;
 
 public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionContext> {
     
