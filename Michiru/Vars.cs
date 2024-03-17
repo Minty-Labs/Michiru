@@ -10,7 +10,7 @@ public static class Vars {
     public const int TargetConfigVersion = 2;
     
     public const string Version = "1.3.0" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor
-    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 3, 17, 16, 30, 00);
+    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 3, 17, 16, 45, 00);
     public const bool IsDebug = false;
     public static string BuildDate { get; } = $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
