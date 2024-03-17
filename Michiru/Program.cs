@@ -30,6 +30,7 @@ public class Program {
     public SocketTextChannel? GeneralLogChannel { get; set; }
     public SocketTextChannel? ErrorLogChannel { get; set; }
     public FluxpointClient FluxpointClient { get; set; }
+    private ModalProcessor _modalProcessor;
 
     public static async Task Main(string[] args) {
         Vars.IsWindows = Environment.OSVersion.ToString().Contains("windows", StringComparison.CurrentCultureIgnoreCase);
@@ -149,8 +150,10 @@ public class Program {
         Client.Ready += ClientOnReady;
         Client.MessageReceived += BangerListener;
         Client.GuildUpdated += OnGuildUpdated;
+        Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
 
         var serviceCollection = new ServiceCollection();
+        _modalProcessor = new ModalProcessor();
 
         await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
         await Commands.AddModuleAsync<HelpCmd>(null);
@@ -230,7 +233,6 @@ public class Program {
             crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
         }
     }
-
 
     private bool IsUrlWhitelisted(string url, ICollection<string> list) {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;

@@ -14,7 +14,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
 
         [SlashCommand("createrole", "Creates a personalized role for you")]
-        public async Task CreateRole([Summary("color", "Role Color (hex)")] string colorHex) {
+        public async Task CreateRole() {
             var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
             if (!personalData.Enabled) {
                 await RespondAsync("Personalized Roles is not enabled.", ephemeral: true);
@@ -24,33 +24,37 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
                 await RespondAsync($"You can only use this command in <#{personalData.ChannelId}>", ephemeral: true);
                 return;
             }
-            var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == Context.User.Id);
             
-            if (guildPersonalizedMember is null) {
-                var memberRole = await Context.Guild.CreateRoleAsync(Context.User.Username.Left(15).Trim(), options: new RequestOptions {AuditLogReason = "Personalized Member - User"});
-                var newColorString = colorHex.ValidateHexColor().Left(6);
-                await Task.Delay(TimeSpan.FromSeconds(0.5f));
-                var guildPersonalizedMemberData = new Member {
-                    userId = Context.User.Id,
-                    roleId = memberRole.Id,
-                    roleName = Context.User.Username.Left(15).Trim(),
-                    colorHex = newColorString,
-                    epochTime = currentEpoch
-                };
-                personalData.Members!.Add(guildPersonalizedMemberData);
-                Config.Save();
-                var discordMember = Context.User as IGuildUser;
-                await discordMember!.AddRoleAsync(memberRole, new RequestOptions {AuditLogReason = "Personalized Member - User: " + Context.User.Username});
-                if (personalData.DefaultRoleId != 0) {
-                    var defaultRole = Context.Guild.GetRole(personalData.DefaultRoleId);
-                    await discordMember!.RemoveRoleAsync(defaultRole, new RequestOptions {AuditLogReason = "Personalized Member - User: " + Context.User.Username});
+            var modal = new ModalBuilder {
+                    Title = "New Personal Role",
+                    CustomId = "personalization_createrole",
                 }
-                await RespondAsync("Successfully created your personalized member role.");
+                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name", style: TextInputStyle.Short)
+                .AddTextInput("Color (Hex)", "colorHex", required: true, placeholder: "#abc123", style: TextInputStyle.Short);
+
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
+        }
+        
+        [SlashCommand("updaterole", "Updates your personalized role")]
+        public async Task UpdateRole() {
+            var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
+            if (!personalData.Enabled) {
+                await RespondAsync("Personalized Roles is not enabled.", ephemeral: true);
                 return;
             }
+            if (!_IsInChannel(Context, Context.Guild.Id)) {
+                await RespondAsync($"You can only use this command in <#{personalData.ChannelId}>", ephemeral: true);
+                return;
+            }
+            var personalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == Context.User.Id);
+            var modal = new ModalBuilder {
+                    Title = "Update Personal Role",
+                    CustomId = "personalization_updaterole"
+                }
+                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name", style: TextInputStyle.Short, value: personalizedMember?.roleName)
+                .AddTextInput("Color (Hex)", "colorHex", required: false, placeholder: "#abc123", style: TextInputStyle.Short, value: personalizedMember?.colorHex);
 
-            await RespondAsync("You already have a personalized role.", ephemeral: true);
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
 
         [SlashCommand("deleterole", "Removes your personalized role")]
@@ -84,85 +88,6 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
                 await discordMember!.AddRoleAsync(defaultRole, new RequestOptions { AuditLogReason = "Personalized Member - User: " + Context.User.Username });
             }
             await RespondAsync("Successfully removed your personalized member role.");
-        }
-
-        [SlashCommand("updatecolor", "Updates your personalized role's color")]
-        public async Task UpdateColor([Summary("color", "Role Color (hex)")] string colorHex) {
-            var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
-            if (!personalData.Enabled) {
-                await RespondAsync("Personalized Roles is not enabled.", ephemeral: true);
-                return;
-            }
-            if (!_IsInChannel(Context, Context.Guild.Id)) {
-                await RespondAsync($"You can only use this command in <#{personalData.ChannelId}>", ephemeral: true);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(colorHex)) {
-                await RespondAsync("Color string cannot be empty.", ephemeral: true);
-                return;
-            }
-            var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == Context.User.Id);
-            if (guildPersonalizedMember is null) {
-                await RespondAsync("You need to create a personalized role first.\nRun the following command to create one:\n`/personalization createrole`", ephemeral: true);
-                return;
-            }
-            if (guildPersonalizedMember!.epochTime + personalData.ResetTimer > currentEpoch) {
-                await RespondAsync($"You need to wait {guildPersonalizedMember.epochTime + personalData.ResetTimer - currentEpoch} seconds before you can use this command again.", ephemeral: true);
-                return;
-            }
-            var memberRole = Context.Guild.GetRole(guildPersonalizedMember.roleId);
-            var newColorString = colorHex.ValidateHexColor().Left(6);
-            if (guildPersonalizedMember.colorHex == newColorString) {
-                await RespondAsync("Your personalized member role color is already set to that.", ephemeral: true);
-                return;
-            }
-            guildPersonalizedMember.colorHex = newColorString;
-            Config.Save();
-            await memberRole!.ModifyAsync(x => x.Color = Colors.HexToColor(newColorString), new RequestOptions {AuditLogReason = "Personalized Member - User: " + Context.User.Username});
-            await RespondAsync("Successfully updated your personalized member role color.");
-        }
-
-        [SlashCommand("updatename", "Updates your personalized role's name")]
-        public async Task UpdateName([Summary("name", "Name of your role")] string name) {
-            var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
-            if (!personalData.Enabled) {
-                await RespondAsync("Personalized Roles is not enabled.", ephemeral: true);
-                return;
-            }
-            if (!_IsInChannel(Context, Context.Guild.Id)) {
-                await RespondAsync($"You can only use this command in <#{personalData.ChannelId}>", ephemeral: true);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(name)) {
-                await RespondAsync("Name string cannot be empty.", ephemeral: true);
-                return;
-            }
-            if (name.Length > 15) {
-                await RespondAsync("Name string is longer than 15 characters, only the first 15 will be used.", ephemeral: true);
-            }
-            var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == Context.User.Id);
-            if (guildPersonalizedMember is null) {
-                await RespondAsync("You need to create a personalized role first.\nRun the following command to create one:\n`/personalization createrole`", ephemeral: true);
-                return;
-            }
-            if (guildPersonalizedMember!.epochTime + personalData.ResetTimer > currentEpoch) {
-                await RespondAsync($"You need to wait {guildPersonalizedMember.epochTime + personalData.ResetTimer - currentEpoch} seconds before you can use this command again.", ephemeral: true);
-                return;
-            }
-            var newRoleName = name.Sanitize().Left(15).Trim();
-            if (guildPersonalizedMember.roleName == newRoleName) {
-                await RespondAsync("Your personalized member role name is already set to that.", ephemeral: true);
-                return;
-            }
-            var memberRole = Context.Guild.GetRole(guildPersonalizedMember.roleId);
-            guildPersonalizedMember.roleName = newRoleName;
-            Config.Save();
-            await memberRole!.ModifyAsync(x => x.Name = newRoleName, new RequestOptions {AuditLogReason = "Personalized Member - User: " + Context.User.Username});
-            await RespondAsync("Successfully updated your personalized member role name.");
         }
     }
 

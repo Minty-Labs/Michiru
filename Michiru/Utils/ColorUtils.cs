@@ -11,6 +11,8 @@ public static class Colors {
         }
     }
     
+    public static string RandomColorHex => ColorToHex(Random);
+    
     public static readonly Discord.Color MichiruPink = new(187, 107, 121);
     
     private static Discord.Color ConvertColor(Color color) {

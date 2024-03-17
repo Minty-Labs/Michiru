@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
@@ -8,7 +9,7 @@ namespace Michiru.Commands.Slash;
 
 public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionContext> {
     
-    [Group("config", "Configuration Commands"), EnabledInDm(false), RequireToBeSpecial]
+    [Group("config", "Configuration Commands"), EnabledInDm(false), RequireOwner]
     public class ConfigControl : InteractionModuleBase<SocketInteractionContext> {
         public enum RotatingStatusPreAction {
             [ChoiceDisplay("Enable")] Enable = 1,
@@ -93,6 +94,18 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
             }
         
             Config.Save();
+        }
+        
+        [SlashCommand("setapikey", "Changes API keys")]
+        public async Task SetApiKey() {
+            var modal = new ModalBuilder {
+                    Title = "API Key",
+                    CustomId = "setapikey"
+                }
+                .AddTextInput("API Type", "apiType", required: true, placeholder: "fluxpoint, cookie, unsplashsecret, unsplashaccess", style: TextInputStyle.Short, value:"fluxpoint")
+                .AddTextInput("Key", "apiKey", required: true, placeholder: "", style: TextInputStyle.Paragraph);
+
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
     }
     
