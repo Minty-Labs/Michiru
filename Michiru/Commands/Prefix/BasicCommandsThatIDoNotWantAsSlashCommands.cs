@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Discord;
 using Discord.Commands;
+using fluxpoint_sharp.Responses;
 using Michiru.Configuration;
 using Michiru.Utils;
 
@@ -29,36 +30,6 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         foreach (var chuck in weh)
             await ReplyAsync($"```\n{chuck}```");
     }
-    
-    [RequireOwner, Command("setapikey")]
-    public async Task SetApiKey(string api, string key) {
-        switch (api.ToLower()) {
-            case "fluxpoint":
-                Config.Base.Api.ApiKeys.FluxpointApiKey = key;
-                Config.Save();
-                Program.Instance.FluxpointClient = new fluxpoint_sharp.FluxpointClient(Vars.Name, key);
-                await ReplyAsync("Fluxpoint API Key set!");
-                break;
-            case "cookie":
-                Config.Base.Api.ApiKeys.CookieClientApiKey = key;
-                Config.Save();
-                await ReplyAsync("Cookie API Key set!\nNo library found for this API key to be used.");
-                break;
-            case "unsplashsecret":
-                Config.Base.Api.ApiKeys.UnsplashSecretKey = key;
-                Config.Save();
-                await ReplyAsync("Unsplash Access Key set!\nNo library found for this API key to be used.");
-                break;
-            case "unsplashaccess":
-                Config.Base.Api.ApiKeys.UnsplashAccessKey = key;
-                Config.Save();
-                await ReplyAsync("Unsplash Access Key set!\nNo library found for this API key to be used.");
-                break;
-            default:
-                await ReplyAsync("Invalid API key type!");
-                break;
-        }
-    }
 
     [Command("ping")]
     public async Task Ping() => await ReplyAsync("Pong! | " + Context.Client.Latency + "ms");
@@ -75,14 +46,14 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
                 },
                 Timestamp = DateTime.Now
             }
-            .AddField("OS", Vars.IsWindows ? "Windows" : "Linux")
-            .AddField("Bangers", $"{Config.GetBangerNumber()}")
-            .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}")
-            .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}")
+            .AddField("OS", Vars.IsWindows ? "Windows" : "Linux", true)
+            .AddField("Bangers", $"{Config.GetBangerNumber()}", true)
+            .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}", true)
+            .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}", true)
             .AddField("Build Time", $"<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:R>")
             .AddField("Start Time", $"<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:R>")
-            .AddField("Discord.NET Version", Vars.DNetVer)
-            .AddField("System .NET Version", Environment.Version)
+            .AddField("Discord.NET Version", Vars.DNetVer, true)
+            .AddField("System .NET Version", Environment.Version, true)
             .AddField("Links", $"[GitHub](https://github.com/Minty-Labs/Giver-of-Head-Pats) | " +
                                $"[Privacy Policy](https://mintylabs.dev/gohp/privacy-policy) | [Terms of Service](https://mintylabs.dev/gohp/terms) | " +
                                $"[Donate](https://ko-fi.com/MintLily) | [Patreon](https://www.patreon.com/MintLily)");
@@ -96,7 +67,15 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             return;
         }
 
-        var mcServer = await Program.Instance.FluxpointClient.Minecraft.GetMinecraftServerAsync("mc.mili.lgbt");
+        MinecraftServerResponse? mcServer;
+        try {
+            mcServer = await Program.Instance.FluxpointClient.Minecraft.GetMinecraftServerAsync("mc.mili.lgbt");
+        }
+        catch (Exception e) {
+            await ReplyAsync($"An error occurred while trying to get the server status: {e.Message}");
+            return;
+        }
+        
         var embed = new EmbedBuilder {
                 Title = "Minecraft Server",
                 Description = $"Server is currently {(mcServer.online ? "online" : "offline")}",
