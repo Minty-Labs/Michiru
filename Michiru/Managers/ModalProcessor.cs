@@ -83,8 +83,8 @@ public class ModalProcessor {
 
         if (guildPersonalizedMember is null) {
             var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
-            var memberRole = await guild.CreateRoleAsync(roleName ?? modal.User.Username.Left(15).Trim(), options: new RequestOptions {AuditLogReason = "Personalized Member - User"});
             var newColorString = colorHexString.ValidateHexColor().Left(6);
+            var memberRole = await guild.CreateRoleAsync(roleName ?? modal.User.Username.Left(15).Trim(), color: Colors.HexToColor(newColorString), options: new RequestOptions {AuditLogReason = "Personalized Member - User"});
             await Task.Delay(TimeSpan.FromSeconds(0.5f));
             var guildPersonalizedMemberData = new Member {
                 userId = modal.User.Id,
