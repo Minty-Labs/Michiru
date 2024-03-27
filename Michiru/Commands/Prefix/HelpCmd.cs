@@ -32,7 +32,7 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
             embed.AddField("Banger Admin Commands", "```/banger toggle <true|false> - Toggles the banger system\n" +
                                                     "/banger setchannel <channel> - Sets the banger channel\n" +
                                                     "/banger addurl <url> - Adds a URL to the banger whitelist\n" +
-                                                    "/banger removeurl <url> - Removes a URL from the banger whitelist" +
+                                                    "/banger removeurl <url> - Removes a URL from the banger whitelist\n" +
                                                     "/banger addext <ext> - Adds a file extension to the banger whitelist\n" +
                                                     "/banger removeext <ext> - Removes a file extension from the banger whitelist\n" +
                                                     "/banger addupvote <true|false> - Adds an upvote reaction to a banger post\n" +
@@ -48,9 +48,8 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
 
         if (Config.Base.PersonalizedMember.Any(x => x.Guilds!.Any(y => y.GuildId == Context.Guild.Id)) || Context.User.IsBotOwner()) {
             embed.AddField("Personalized Member Commands", "```/personalization createrole <hexColor> - Creates a personalized role for you\n" +
-                                                           "/personalization deleterole - Removes your personalized role\n" +
-                                                           "/personalization updatecolor <newHexColor> - Updates your personalized role's color\n" +
-                                                           "/personalization updatename <newName> - Updates your personalized role's name```");
+                                                           "/personalization updaterole - Updates your personalized role\n" +
+                                                           "/personalization deleterole - Removes your personalized role```");
             
             if (Context.User.IsSpecial(Context.Guild) || Context.User.IsBotOwner()) {
                 embed.AddField("Personalized Members Admin Commands", "```/personalizationadmin toggle <true|false> - Toggles the personalized members system\n" +
