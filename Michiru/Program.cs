@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -45,7 +45,7 @@ public class Program {
                 .MinimumLevel.ControlledBy(new LoggingLevelSwitch(
                     initialMinimumLevel: LogEventLevel.Debug))
                 .WriteTo.Console(new ExpressionTemplate(
-                    template: "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'unset')}] {@m}\n{@x}",
+                    template: "[{@t:HH:mm:ss} {@l:u3} {Coalesce(Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1),'Discord Bot')}] {@m}\n{@x}",
                     theme: TemplateTheme.Literate))
                 .WriteTo.File(Path.Combine(Environment.CurrentDirectory, "Logs", "start_.log"),
                     rollingInterval: RollingInterval.Day,
@@ -196,7 +196,8 @@ public class Program {
         if (Vars.IsWindows) {
             var temp1 = Config.Base.ActivityText!.Equals("(insert game here)") || string.IsNullOrWhiteSpace(Config.Base.ActivityText!);
             Console.Title = $"{Vars.Name} v{Vars.Version} | Logged in as {Client.CurrentUser.Username} - " +
-                            $"Currently in {Client.Guilds.Count} Guilds - {Config.GetBangerNumber()} bangers posted -" +
+                            $"Currently in {Client.Guilds.Count} Guilds - {Config.GetBangerNumber()} bangers posted - " +
+                            $"Managing {Config.GetPersonalizedMemberCount()} personal roles - " +
                             $"{Config.Base.ActivityType} {(temp1 ? "unset" : Config.Base.ActivityText)}";
         }
 
