@@ -158,6 +158,7 @@ public class Program {
         await Commands.AddModuleAsync<HelpCmd>(null);
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
+        await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
 
         Client.InteractionCreated += async arg => {
