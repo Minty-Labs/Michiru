@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Configuration;
@@ -139,14 +139,18 @@ public class ModalProcessor {
             var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
             var memberRole = guild.GetRole(guildPersonalizedMember.roleId);
             var newColorString = colorHexString.ValidateHexColor().Left(6);
+            var modifyingName = !string.IsNullOrWhiteSpace(roleName);
+            var modifyingColor = !string.IsNullOrWhiteSpace(colorHexString);
             await Task.Delay(TimeSpan.FromSeconds(0.5f));
-            guildPersonalizedMember.roleName = roleName ?? modal.User.Username.Left(15).Trim();
-            guildPersonalizedMember.colorHex = newColorString;
+            if (modifyingName)
+                guildPersonalizedMember.roleName = roleName;
+            if (modifyingColor)
+                guildPersonalizedMember.colorHex = newColorString;
             guildPersonalizedMember.epochTime = currentEpoch;
             Config.Save();
             await memberRole!.ModifyAsync(x => {
-                x.Name = roleName ?? modal.User.Username.Left(15).Trim();
-                x.Color = Colors.HexToColor(newColorString);
+                x.Name = modifyingName ? roleName : memberRole.Name;
+                x.Color = modifyingColor ? Colors.HexToColor(newColorString) : memberRole.Color;
             }, new RequestOptions {AuditLogReason = "Personalized Member - User: " + modal.User.Username});
             await modal.RespondAsync("Successfully updated your personalized member role.");
             return;
