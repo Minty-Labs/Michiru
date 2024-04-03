@@ -22,7 +22,6 @@ public class Program {
     public static Program Instance { get; private set; }
     private static readonly ILogger Logger = Log.ForContext("SourceContext", "Michiru");
     private static readonly ILogger UtilLogger = Log.ForContext("SourceContext", "Util");
-    private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "Banger");
     public DiscordSocketClient Client { get; set; }
     private CommandService Commands { get; set; }
     private InteractionService GlobalInteractions { get; set; }
@@ -148,8 +147,8 @@ public class Program {
             FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
 
         Client.Ready += ClientOnReady;
-        Client.MessageReceived += BangerListener;
-        Client.GuildUpdated += OnGuildUpdated;
+        Client.MessageReceived += Events.BangerListener.BangerListenerEvent;
+        Client.GuildUpdated += Events.GuildUpdated.OnGuildUpdated;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
 
         var serviceCollection = new ServiceCollection();
@@ -227,100 +226,11 @@ public class Program {
         crLogger.Information("Registered global slash commands.");
         try {
             await MintyLabsInteractions.RegisterCommandsToGuildAsync(Vars.SupportServerId);
-            crLogger.Information("Registered Owner slash commands for {0} ({1}).", "Minty Labs",  Vars.SupportServerId);
+            crLogger.Information("Registered Owner slash commands for {0} ({1}).", "Minty Labs", Vars.SupportServerId);
         }
         catch (Exception e) {
             crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
         }
-    }
-
-    private bool IsUrlWhitelisted(string url, ICollection<string> list) {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
-        return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
-    }
-
-    private bool IsFileExtWhitelisted(string extension, ICollection<string> list)
-        => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
-
-    private Task BangerListener(SocketMessage args) {
-        var socketUserMessage = (SocketUserMessage)args;
-        var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == args.Channel.Id);
-        if (conf is null) {
-            // BangerLogger.Error("Banger config for guild does not exist!");
-            // await ErrorSending.SendErrorToLoggingChannelAsync("Banger config for guild does not exist! Guild: " + GetGuildFromChannel(args.Channel.Id)!.Name);
-            return Task.CompletedTask;
-        }
-
-        if (!conf!.Enabled) return Task.CompletedTask;
-        if (args.Author.IsBot) return Task.CompletedTask;
-
-        var messageContent = args.Content;
-        if (messageContent.StartsWith('.')) return Task.CompletedTask; // can technically be exploited but whatever
-        var attachments = args.Attachments;
-        var stickers = args.Stickers;
-        var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
-        var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
-
-        var urlGood = IsUrlWhitelisted(messageContent, conf.WhitelistedUrls!);
-        if (urlGood) {
-            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
-                socketUserMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
-                socketUserMessage.AddReactionAsync(downVote);
-            conf.SubmittedBangers++;
-            Config.Save();
-            return Task.CompletedTask;
-        }
-
-        if (conf.SpeakFreely) return Task.CompletedTask;
-        BangerLogger.Information("Sent Bad URL Response");
-        args.Channel.SendMessageAsync(conf.UrlErrorResponseMessage).DeleteAfter(5);
-        args.DeleteAsync();
-
-        if (!string.IsNullOrEmpty(messageContent) || (attachments.Count == 0 && stickers.Count == 0)) return Task.CompletedTask;
-        var extGood = IsFileExtWhitelisted(attachments.First().Filename.Split('.').Last(), conf.WhitelistedFileExtensions!);
-        if (extGood || (urlGood && extGood)) {
-            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
-                socketUserMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
-                socketUserMessage.AddReactionAsync(downVote);
-            conf.SubmittedBangers++;
-            Config.Save();
-            return Task.CompletedTask;
-        }
-
-        if (conf.SpeakFreely) return Task.CompletedTask;
-        BangerLogger.Information("Sent Bad File Extension Response");
-        args.Channel.SendMessageAsync(conf.FileErrorResponseMessage).DeleteAfter(5);
-        args.DeleteAsync();
-
-        return Task.CompletedTask;
-    }
-    
-    private ulong _pennysGuildWatcherChannelId = 0;
-    private ulong _pennysGuildWatcherGuildId = 0;
-    private Task OnGuildUpdated(SocketGuild arg1, SocketGuild arg2) {
-        if (arg1.Name == arg2.Name) return Task.CompletedTask;
-        
-        if (_pennysGuildWatcherGuildId == 0) _pennysGuildWatcherGuildId = Config.Base.PennysGuildWatcher.GuildId;
-        if (arg1.Id != _pennysGuildWatcherGuildId) return Task.CompletedTask;
-        
-        if (_pennysGuildWatcherChannelId == 0) _pennysGuildWatcherChannelId = Config.Base.PennysGuildWatcher.ChannelId;
-        var channel = arg1.GetTextChannel(_pennysGuildWatcherChannelId);
-        if (channel is null) return Task.CompletedTask;
-        
-        var daysNumber = UtcNow.Subtract(Config.Base.PennysGuildWatcher.LastUpdateTime.UnixTimeStampToDateTime()).Days;
-        var embed = new EmbedBuilder {
-            Title = "Guild Name Updated",
-            Description = $"It has been {(daysNumber < 1 ? "less than a day" : (daysNumber == 1 ? "1 day" : $"{daysNumber} days"))} since the last time the guild name was updated.",
-            Color = Colors.HexToColor("0091FF")
-        }
-            .AddField("Old Name", arg1.Name)
-            .AddField("New Name", arg2.Name);
-        channel.SendMessageAsync(embed: embed.Build());
-        Config.Base.PennysGuildWatcher.LastUpdateTime = UtcNow.ToUniversalTime().GetSecondsFromUtcUnixTime();
-        Config.Save();
-        return Task.CompletedTask;
     }
 
     public SocketTextChannel? GetChannel(ulong guildId, ulong id) {
