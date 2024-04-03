@@ -160,6 +160,7 @@ public class Program {
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
+        // await GlobalInteractions.AddModuleAsync<GiveAwayCmds>(null);
 
         Client.InteractionCreated += async arg => {
             var iLogger = Log.ForContext("SourceContext", "Interaction");

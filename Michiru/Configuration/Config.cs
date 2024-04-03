@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Michiru.Configuration.Classes;
 using Serilog;
 
@@ -128,4 +128,13 @@ public static class Config {
     public static int GetBangerNumber() => Base.Banger.Sum(guild => guild.SubmittedBangers);
 
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
+    
+    /*public static GiveAway GetGuildGiveAway(ulong id) {
+        var giveAway = Base.GiveAways!.FirstOrDefault(g => g.GuildId == id);
+        if (giveAway is not null) return giveAway;
+        giveAway = new GiveAway {GuildId = id};
+        Base.GiveAways!.Add(giveAway);
+        Save();
+        return giveAway;
+    }*/
 }
