@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord.WebSocket;
 
 namespace Michiru;
@@ -7,7 +7,7 @@ public static class Vars {
     public static string DNetVer { get; } = Assembly.GetAssembly(typeof(DiscordSocketClient))!.GetName().Version!.ToString(3);
     public const string Name = "Michiru";
     public const ulong ClientId = 477202627285876756;
-    public const int TargetConfigVersion = 2;
+    public const int TargetConfigVersion = 3;
     
     public const string Version = "1.3.1" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor
     public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 3, 27, 19, 36, 00);

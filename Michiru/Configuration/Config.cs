@@ -20,6 +20,7 @@ public static class Config {
         
         var rotatingStatus = new RotatingStatus {
             Enabled = false,
+            MinutesPerStatus = 2,
             Statuses = [
                 new Status {
                     Id = 0,

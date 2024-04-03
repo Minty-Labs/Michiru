@@ -1,4 +1,5 @@
-﻿using Michiru.Managers.Jobs;
+﻿using Michiru.Configuration;
+using Michiru.Managers.Jobs;
 using Quartz;
 using Serilog;
 
@@ -6,23 +7,26 @@ namespace Michiru.Managers;
 
 public class Scheduler {
     private static readonly ILogger Logger = Log.ForContext(typeof(Scheduler));
+    public static IScheduler TheScheduler { get; set; } = null!;
+    public static IJobDetail StatusLoopJob { get; set; } = null!;
+    public static ITrigger StatusLoopTrigger { get; set; } = null!;
 
     public static async Task Initialize() {
         Logger.Information("Creating and Building...");
-        var scheduler = await SchedulerBuilder.Create()
+        TheScheduler = await SchedulerBuilder.Create()
             .UseDefaultThreadPool(x => x.MaxConcurrency = 1)
             .BuildScheduler();
-        await scheduler.Start();
+        await TheScheduler.Start();
 
-        var statusLoop = JobBuilder.Create<RotatingStatusJob>().Build();
-        var statusLoopTrigger = TriggerBuilder.Create()
+        StatusLoopJob = JobBuilder.Create<RotatingStatusJob>().Build();
+        StatusLoopTrigger = TriggerBuilder.Create()
             .WithIdentity("StatusLoop", Vars.Name)
             .StartNow()
             .WithSimpleSchedule(x => x
-                .WithIntervalInMinutes(2)
+                .WithIntervalInMinutes(Config.Base.RotatingStatus.MinutesPerStatus)
                 .RepeatForever())
             .Build();
-        await scheduler.ScheduleJob(statusLoop, statusLoopTrigger);
+        await TheScheduler.ScheduleJob(StatusLoopJob, StatusLoopTrigger);
         
         Logger.Information("Initialized!");
     }

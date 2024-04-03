@@ -2,6 +2,7 @@
 
 public class RotatingStatus {
     public bool Enabled { get; set; } = false;
+    public int MinutesPerStatus { get; set; } = 2;
     public List<Status> Statuses { get; set; } = [];
 }
 

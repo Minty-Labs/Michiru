@@ -1,15 +1,15 @@
-using System.Text;
+﻿using System.Text;
 using Discord;
 using Discord.Interactions;
-using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Configuration.Classes;
+using Michiru.Managers;
 
 namespace Michiru.Commands.Slash;
 
 public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionContext> {
     
-    [Group("config", "Configuration Commands"), EnabledInDm(false), RequireOwner]
+    [Group("config", "Configuration Commands"), RequireOwner]
     public class ConfigControl : InteractionModuleBase<SocketInteractionContext> {
         public enum RotatingStatusPreAction {
             [ChoiceDisplay("Enable")] Enable = 1,
@@ -94,6 +94,25 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
             }
         
             Config.Save();
+        }
+        
+        [SlashCommand("rotatingstatusinterval", "Changes the interval between rotating statuses")]
+        public async Task RotatingStatusInterval([Summary(description: "Minutes between status changes")] int minutes) {
+            Config.Base.RotatingStatus.MinutesPerStatus = minutes;
+            await RespondAsync($"Rotating Status Interval set to {minutes} minutes", ephemeral: true);
+            Config.Save();
+            await RespondAsync("Attempting to restart and update the Scheduler", ephemeral: true);
+            try {
+                await Scheduler.TheScheduler.Shutdown();
+                Scheduler.TheScheduler = null!;
+                Scheduler.StatusLoopJob = null!;
+                Scheduler.StatusLoopTrigger = null!;
+                await Scheduler.Initialize();
+                await RespondAsync("Scheduler Restarted", ephemeral: true);
+            }
+            catch (Exception e) {
+                await RespondAsync($"Error restarting Scheduler: ```\n{e.Message}```", ephemeral: true);
+            }
         }
         
         [SlashCommand("setapikey", "Changes API keys")]
