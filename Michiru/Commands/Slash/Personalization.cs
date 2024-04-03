@@ -29,7 +29,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
                     Title = "New Personal Role",
                     CustomId = "personalization_createrole",
                 }
-                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name", style: TextInputStyle.Short)
+                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name (15 characters)", style: TextInputStyle.Short)
                 .AddTextInput("Color (Hex)", "colorHex", required: true, placeholder: "#abc123", style: TextInputStyle.Short);
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
@@ -46,12 +46,19 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
                 await RespondAsync($"You can only use this command in <#{personalData.ChannelId}>", ephemeral: true);
                 return;
             }
+            
             var personalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == Context.User.Id);
+            var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (personalizedMember is not null && personalizedMember.epochTime + personalData.ResetTimer > currentEpoch) {
+                await RespondAsync($"You need to wait {personalizedMember.epochTime + personalData.ResetTimer - currentEpoch} seconds before you can use this command again.", ephemeral: true);
+                return;
+            }
+            
             var modal = new ModalBuilder {
                     Title = "Update Personal Role",
                     CustomId = "personalization_updaterole"
                 }
-                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name", style: TextInputStyle.Short, value: personalizedMember?.roleName)
+                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name (15 characters)", style: TextInputStyle.Short, value: personalizedMember?.roleName)
                 .AddTextInput("Color (Hex)", "colorHex", required: false, placeholder: "#abc123", style: TextInputStyle.Short, value: personalizedMember?.colorHex);
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
