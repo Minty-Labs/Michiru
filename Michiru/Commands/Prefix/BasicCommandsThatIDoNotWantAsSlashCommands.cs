@@ -36,9 +36,10 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
 
     [Command("stats"), Alias("status")]
     public async Task Stats() {
+        var desc = Context.User.Id == 167335587488071682 ? "Penny is cute!" : $"{Context.User.Mention} is cute!\nPenny is also cute!";
         var embed = new EmbedBuilder {
                 Title = "Bot Stats",
-                Description = $"{Context.User.Mention} is cute!\nPenny is also cute!",
+                Description = desc,
                 Color = Colors.HexToColor("9fffe3"),
                 ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl(),
                 Footer = new EmbedFooterBuilder {
@@ -56,7 +57,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             .AddField("System .NET Version", Environment.Version, true)
             .AddField("Links", $"[GitHub](https://github.com/Minty-Labs/Michiru) | " +
                                $"[Privacy Policy](https://mintylabs.dev/gohp/privacy-policy) | [Terms of Service](https://mintylabs.dev/gohp/terms) | " +
-                               $"[Donate](https://ko-fi.com/MintLily) | [Patreon](https://www.patreon.com/MintLily)\n" +
+                               $"[Donate](https://ko-fi.com/MintLily) | [Patreon](https://www.patreon.com/MintLily) | [Developer Server]({Vars.SupportServer})\n" +
                                $"*Privacy Policy & ToS is inherited from the Giver of Head Pats Bot*");
         await ReplyAsync(embed: embed.Build());
     }

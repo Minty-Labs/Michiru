@@ -20,7 +20,8 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                 },
                 Timestamp = DateTime.Now
             }
-            .AddField("Basic Commands", "```-ping\n-stats\n-minecraft```");
+            .AddField("Basic Commands", "```\n-ping\n-stats\n-minecraft```")
+            .AddField("Basic Slash Commands", "```/serverinfo```");
         if (Context.User.IsBotOwner()) {
             embed.AddField("Owner Commands", "```-setapikey <api> <key>\n-exec <command>```\n" +
                                              "*Only available in Minty Labs guild*\n" +

@@ -34,7 +34,7 @@ public class RotatingStatusJob : IJob {
             await RotatingStatus.Update();
         }
         catch (Exception err) {
-            await ErrorSending.SendErrorToLoggingChannelAsync($"Rotating Status:\n{err}");
+            await ErrorSending.SendErrorToLoggingChannelAsync($"Rotating Status:\n{err}", null);
         }
     }
 }
