@@ -79,8 +79,8 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
                 }
                 .AddField("IP", "mc.mili.lgbt")
                 .AddField("Player Count", $"{mcServer.playersOnline} / {mcServer.playersMax}")
-                .AddField("Version", mcServer.version)
-                .AddField("MOTD", mcServer.motd)
+                .AddField("Version", $"{mcServer.version}")
+                .AddField("MOTD", $"{mcServer.motd}")
                 .AddField("Available Platforms", "Java Edition, Bedrock Edition (Xbox, PlayStation, Switch, iOS, Android, Windows 10/11)")
                 .AddField("Players", $"{(mcServer.players.Length > 0 ? string.Join(", ", mcServer.players)[..512] : "No players online")}")
                 .AddField("Miscellaneous Info", $"code:{mcServer.code}|success:{mcServer.success}|message:{mcServer.message}");
