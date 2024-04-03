@@ -72,7 +72,11 @@ public static class Config {
                     UnsplashAccessKey = "",
                     UnsplashSecretKey = "",
                     CookieClientApiKey = "",
-                    FluxpointApiKey = ""
+                    FluxpointApiKey = "",
+                    Spotify = new SpotifyApi {
+                        SpotifyClientId = "",
+                        SpotifyClientSecret = ""
+                    }
                 }
             }
         };

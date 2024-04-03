@@ -10,4 +10,10 @@ public class ApiKeys {
     [JsonPropertyName("Unsplash Secret Key")] public string? UnsplashSecretKey { get; set; } = "";
     [JsonPropertyName("CookieAPI Key")] public string? CookieClientApiKey { get; set; } = "";
     [JsonPropertyName("FluxpointAPI Key")] public string? FluxpointApiKey { get; set; } = "";
+    [JsonPropertyName("Spotify")] public SpotifyApi Spotify { get; set; } = new();
+}
+
+public class SpotifyApi {
+    [JsonPropertyName("Spotify Client ID")] public string? SpotifyClientId { get; set; } = "";
+    [JsonPropertyName("Spotify Client Secret")] public string? SpotifyClientSecret { get; set; } = "";
 }

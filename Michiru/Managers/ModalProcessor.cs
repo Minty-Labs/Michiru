@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Configuration;
@@ -66,6 +66,18 @@ public class ModalProcessor {
                 await modal.RespondAsync("Invalid API key type!");
                 break;
         }
+    }
+
+    [ModalAction("setspotifyapikeys")]
+    private static async Task SetSpotifyApiKey(SocketModal modal) {
+        var components = modal.Data.Components.ToList();
+        var spotClient = components.First(x => x.CustomId == "spotclient").Value;
+        var spotSecret = components.First(x => x.CustomId == "spotsecret").Value;
+        
+        Config.Base.Api.ApiKeys.Spotify.SpotifyClientId = spotClient;
+        Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret = spotSecret;
+        Config.Save();
+        await modal.RespondAsync("Spotify API Keys set!", ephemeral: true);
     }
 
     [ModalAction("personalization_createrole")]

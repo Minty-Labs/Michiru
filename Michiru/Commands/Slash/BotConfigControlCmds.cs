@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
@@ -107,10 +107,17 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
+        
+        [SlashCommand("setspotifyapikeys", "Changes Spotify API keys")]
+        public async Task SetSpotifyApiKey() {
+            var modal = new ModalBuilder {
+                    Title = "Spotify API Keys",
+                    CustomId = "setspotifyapikey"
+                }
+                .AddTextInput("Client", "spotclient", required: true, placeholder: "Elly Is", style: TextInputStyle.Short)
+                .AddTextInput("Secret", "spotsecret", required: true, placeholder: "Ultra Cute", style: TextInputStyle.Short);
+
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
+        }
     }
-    
-    // [Group("bot", "Bot Commands"), EnabledInDm(false), RequireToBeSpecial]
-    // public class BotControl : InteractionModuleBase<SocketInteractionContext> {
-    //     // 
-    // }
 }
