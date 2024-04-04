@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Michiru.Configuration;
-using Serilog;
+using Michiru.Utils;
 
 namespace Michiru.Commands.Slash;
 
@@ -26,10 +26,12 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         // embed.AddField("Admins", $"{string.Join(", ", Context.Guild.Users.Where(x => x.GuildPermissions.Administrator && x.Id != Context.Guild.OwnerId).Select(x => x.Mention))[..256]}", true);
         embed.AddField("Members", $"{Context.Guild.MemberCount}", true);
         embed.AddField("Created At", $"{Context.Guild.CreatedAt.UtcDateTime} (UTC)", true);
-        embed.AddField($"Roles ({Context.Guild.Roles.Count})", $"{string.Join(", ", Context.Guild.Roles.Select(x => x.Mention))[..512]}");
-        embed.AddField("Bot Features", $"{(pmData.Enabled ? "\u2705" : "\u274e")} Personalized Roles\n" +
-                                       $"{(bangerData.Enabled ? "\u2705" : "\u274e")} Banger System\n" +
-                                       $"{(isPennyGuild ? "\u2705 Guild Update Notices" : "")}");
+        embed.AddField("Roles", $"{Context.Guild.Roles.Count}");
+        var check = EmojiUtils.GetCustomEmoji("checked_box", 1225518363871023165) ?? Emote.Parse("<:checked_box:1225518363871023165>") ?? Emote.Parse(":white_check_mark:");
+        var uncheck = EmojiUtils.GetCustomEmoji("unchecked_box", 1225518365137698817) ?? Emote.Parse("<:unchecked_box:1225518365137698817>") ?? Emote.Parse(":x_checked_box:");
+        embed.AddField("Bot Features", $"{(pmData.Enabled ? check.ToString() : uncheck.ToString())} Personalized Roles\n" +
+                                       $"{(bangerData.Enabled ? check.ToString() : uncheck.ToString())} Banger System\n" +
+                                       $"{(isPennyGuild ? check.ToString() + " Guild Update Notices" : "")}");
         if (bangerData.Enabled)
             embed.AddField("Bangers", $"{bangerData.SubmittedBangers}", true);
         if (pmData.Enabled)
