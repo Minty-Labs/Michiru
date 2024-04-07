@@ -36,7 +36,7 @@ public static class BangerListener {
         var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
 
         var urlGood = IsUrlWhitelisted(messageContent, conf.WhitelistedUrls!);
-        if (urlGood) {
+        if (urlGood || conf.SpeakFreely) {
             if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
                 await socketUserMessage.AddReactionAsync(upVote);
             if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
@@ -81,14 +81,13 @@ public static class BangerListener {
             return;
         }
 
-        if (conf.SpeakFreely) return;
         BangerLogger.Information("Sent Bad URL Response");
         await messageArg.Channel.SendMessageAsync(conf.UrlErrorResponseMessage).DeleteAfter(5);
         await messageArg.DeleteAsync();
 
         if (!string.IsNullOrEmpty(messageContent) || (attachments.Count == 0 && stickers.Count == 0)) return;
         var extGood = IsFileExtWhitelisted(attachments.First().Filename.Split('.').Last(), conf.WhitelistedFileExtensions!);
-        if (extGood || (urlGood && extGood)) {
+        if (extGood || (urlGood && extGood) || conf.SpeakFreely) {
             if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
                 await socketUserMessage.AddReactionAsync(upVote);
             if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
@@ -98,7 +97,6 @@ public static class BangerListener {
             return;
         }
 
-        if (conf.SpeakFreely) return;
         BangerLogger.Information("Sent Bad File Extension Response");
         await messageArg.Channel.SendMessageAsync(conf.FileErrorResponseMessage).DeleteAfter(5);
         await messageArg.DeleteAsync();
