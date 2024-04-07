@@ -8,7 +8,7 @@ namespace Michiru.Commands.Slash;
 
 public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
-    [Group("banger", "Banger Commands"), EnabledInDm(false), RequireToBeSpecial]
+    [Group("banger", "Banger Commands"), RequireToBeSpecial]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("toggle", "Toggles the banger system")]
@@ -179,5 +179,13 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         [SlashCommand("getbangercount", "Gets the number of bangers submitted in this guild")]
         public async Task GetBangerCount()
             => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.");
+        
+        [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies the number of bangers submitted in this guild"), RequireOwner]
+        public async Task ModifyBangerCount([Summary("number", "Number of bangers to add or remove")] int number) {
+            var banger = Config.GetGuildBanger(Context.Guild.Id);
+            banger.SubmittedBangers += number;
+            Config.Save();
+            await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}");
+        }
     }
 }
