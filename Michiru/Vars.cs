@@ -9,8 +9,8 @@ public static class Vars {
     public const ulong ClientId = 477202627285876756;
     public const int TargetConfigVersion = 3;
     
-    public const string Version = "1.4.2" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor/Bugfix.Hotfix
-    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 4, 4, 14, 58, 00);
+    public const string Version = "1.4.3" + (IsDebug ? "-dev" : ""); // Major.Feature.Minor/Bugfix.Hotfix
+    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 4, 7, 10, 39, 00);
     public const bool IsDebug = false;
     public static string BuildDate { get; } = $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
