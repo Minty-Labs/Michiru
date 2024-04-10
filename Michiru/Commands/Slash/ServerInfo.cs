@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
@@ -31,10 +31,11 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
                                        $"{(isPennyGuild ? check.ToString() + " Guild Update Notices" : "")}");
         var gloablBangerData = Config.GetBangerNumber();
         var serverToGlobalBangerPercentage = (float)bangerData.SubmittedBangers / gloablBangerData * 100;
+        var pmtoMemberCountPercentage = (float)pmData.Members!.Count / Context.Guild.MemberCount * 100;
         if (bangerData.Enabled)
             embed.AddField("Bangers (Server/Global)", $"{bangerData.SubmittedBangers} / {gloablBangerData} | {serverToGlobalBangerPercentage:F1}%", true);
         if (pmData.Enabled)
-            embed.AddField("Personalized Members", $"{pmData.Members!.Count}", true);
+            embed.AddField("Personalized Members", $"{pmData.Members!.Count} | {pmtoMemberCountPercentage:00}%", true);
         await RespondAsync(embed: embed.Build());
     }
 }
