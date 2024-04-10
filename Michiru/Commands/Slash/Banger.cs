@@ -177,15 +177,15 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         }
         
         [SlashCommand("getbangercount", "Gets the number of bangers submitted in this guild")]
-        public async Task GetBangerCount()
-            => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.");
+        public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
+            => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.", ephemeral: ephemeral);
         
         [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies the number of bangers submitted in this guild"), RequireOwner]
-        public async Task ModifyBangerCount([Summary("number", "Number of bangers to add or remove")] int number) {
+        public async Task ModifyBangerCount([Summary("number", "Number of bangers to add or remove")] int number, [Summary("ephemeral", "Ephemeral response")] bool ephemeral = false) {
             var banger = Config.GetGuildBanger(Context.Guild.Id);
             banger.SubmittedBangers += number;
             Config.Save();
-            await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}");
+            await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
         }
     }
 }
