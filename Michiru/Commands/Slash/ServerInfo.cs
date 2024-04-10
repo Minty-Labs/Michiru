@@ -29,8 +29,10 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         embed.AddField("Bot Features", $"{(pmData.Enabled ? check.ToString() : uncheck.ToString())} Personalized Roles\n" +
                                        $"{(bangerData.Enabled ? check.ToString() : uncheck.ToString())} Banger System\n" +
                                        $"{(isPennyGuild ? check.ToString() + " Guild Update Notices" : "")}");
+        var gloablBangerData = Config.GetBangerNumber();
+        var serverToGlobalBangerPercentage = (float)bangerData.SubmittedBangers / gloablBangerData * 100;
         if (bangerData.Enabled)
-            embed.AddField("Bangers", $"{bangerData.SubmittedBangers}", true);
+            embed.AddField("Bangers (Server/Global)", $"{bangerData.SubmittedBangers} / {gloablBangerData} | {serverToGlobalBangerPercentage:F1}%", true);
         if (pmData.Enabled)
             embed.AddField("Personalized Members", $"{pmData.Members!.Count}", true);
         await RespondAsync(embed: embed.Build());
