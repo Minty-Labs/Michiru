@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Discord;
 using Discord.Commands;
 using fluxpoint_sharp.Responses;
@@ -55,9 +55,9 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             .AddField("OS", Vars.IsWindows ? "Windows" : "Linux", true)
             .AddField("Discord.NET Version", Vars.DNetVer, true)
             .AddField("System .NET Version", Environment.Version, true)
-            .AddField("Links", $"[GitHub](https://github.com/Minty-Labs/Michiru) | " +
-                               $"[Privacy Policy](https://mintylabs.dev/gohp/privacy-policy) | [Terms of Service](https://mintylabs.dev/gohp/terms) | " +
-                               $"[Donate](https://ko-fi.com/MintLily) | [Patreon](https://www.patreon.com/MintLily) | [Developer Server]({Vars.SupportServer})\n" +
+            .AddField("Links", $"{MarkdownUtils.MakeLink("GitHub", "https://github.com/Minty-Labs/Michiru")} | " +
+                               $"{MarkdownUtils.MakeLink("Privacy Policy", "https://mintylabs.dev/gohp/privacy-policy")} | {MarkdownUtils.MakeLink("Terms of Service", "https://mintylabs.dev/gohp/terms")} | " +
+                               $"{MarkdownUtils.MakeLink("Donate", "https://ko-fi.com/MintLily")} | {MarkdownUtils.MakeLink("Patreon", "https://www.patreon.com/MintLily")} | {MarkdownUtils.MakeLink("Developer Server", Vars.SupportServer)}\n" +
                                $"*Privacy Policy & ToS is inherited from the Giver of Head Pats Bot*");
         await ReplyAsync(embed: embed.Build());
     }

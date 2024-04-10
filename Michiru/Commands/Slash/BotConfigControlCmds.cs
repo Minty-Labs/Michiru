@@ -4,6 +4,7 @@ using Discord.Interactions;
 using Michiru.Configuration;
 using Michiru.Configuration.Classes;
 using Michiru.Managers;
+using Michiru.Utils;
 
 namespace Michiru.Commands.Slash;
 
@@ -111,7 +112,7 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Scheduler Restarted", ephemeral: true);
             }
             catch (Exception e) {
-                await RespondAsync($"Error restarting Scheduler: ```\n{e.Message}```", ephemeral: true);
+                await RespondAsync($"Error restarting Scheduler: " + MarkdownUtils.ToCodeBlockMultiline(e.Message), ephemeral: true);
             }
         }
         
