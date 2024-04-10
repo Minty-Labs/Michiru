@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Discord;
 using Discord.Commands;
 using fluxpoint_sharp.Responses;
@@ -50,8 +50,8 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             .AddField("Bangers", $"{Config.GetBangerNumber()}", true)
             .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}", true)
             .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}", true)
-            .AddField("Build Time", $"<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.BuildTime.ToUniversalTime().GetSecondsFromUtcUnixTime()}:R>")
-            .AddField("Start Time", $"<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:F>\n<t:{Vars.StartTime.GetSecondsFromUtcUnixTime()}:R>")
+            .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
+            .AddField("Start Time", $"{Vars.StartTime.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.StartTime.ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
             .AddField("OS", Vars.IsWindows ? "Windows" : "Linux", true)
             .AddField("Discord.NET Version", Vars.DNetVer, true)
             .AddField("System .NET Version", Environment.Version, true)

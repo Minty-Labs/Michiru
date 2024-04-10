@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Interactions;
 using Michiru.Configuration;
 using Michiru.Utils;
@@ -25,7 +25,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         embed.AddField("Owner", $"{Context.Guild.Owner.Mention}", true);
         // embed.AddField("Admins", $"{string.Join(", ", Context.Guild.Users.Where(x => x.GuildPermissions.Administrator && x.Id != Context.Guild.OwnerId).Select(x => x.Mention))[..256]}", true);
         embed.AddField("Members", $"{Context.Guild.MemberCount}", true);
-        embed.AddField("Created At", $"{Context.Guild.CreatedAt.UtcDateTime} (UTC)", true);
+        embed.AddField("Created At", $"{Context.Guild.CreatedAt.UtcDateTime.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}", true);
         embed.AddField("Roles", $"{Context.Guild.Roles.Count}");
         var check = EmojiUtils.GetCustomEmoji("checked_box", 1225518363871023165) ?? Emote.Parse("<:checked_box:1225518363871023165>") ?? Emote.Parse(":white_check_mark:");
         var uncheck = EmojiUtils.GetCustomEmoji("unchecked_box", 1225518365137698817) ?? Emote.Parse("<:unchecked_box:1225518365137698817>") ?? Emote.Parse(":x_checked_box:");
