@@ -4,13 +4,6 @@ using System.Globalization;
 namespace Michiru.Utils; 
 
 public static class Colors {
-    public static Discord.Color Random {
-        get {
-            Random rnd = new();
-            return ConvertColor(Color.FromArgb(rnd.Next(255), rnd.Next(255), rnd.Next(255)));
-        }
-    }
-    
     public static string RandomColorHex => ColorToHex(Random);
     
     public static readonly Discord.Color MichiruPink = new(187, 107, 121);
@@ -20,6 +13,13 @@ public static class Colors {
         byte.TryParse(color.G.ToString(), out var g);
         byte.TryParse(color.B.ToString(), out var b);
         return new Discord.Color(r, g, b);
+    }
+    
+    private static Discord.Color Random {
+        get {
+            Random rnd = new();
+            return ConvertColor(Color.FromArgb(rnd.Next(255), rnd.Next(255), rnd.Next(255)));
+        }
     }
     
     public static Discord.Color HexToColor(string hexColor) {
@@ -32,11 +32,11 @@ public static class Colors {
         return new Discord.Color((float)num1, num2, num3);
     }
     
-    public static string ColorToHex(Color baseColor, bool hash = false) {
+    public static string ColorToHex(Color baseColor, bool addHash = false) {
         var str = Convert.ToInt32(baseColor.R * byte.MaxValue).ToString("X2") +
                   Convert.ToInt32(baseColor.G * byte.MaxValue).ToString("X2") +
                   Convert.ToInt32(baseColor.B * byte.MaxValue).ToString("X2");
-        if (hash) str = "#" + str;
+        if (addHash) str = "#" + str;
         return str;
     }
 
