@@ -35,28 +35,24 @@ public static class BangerListener {
         var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
         var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
 
+        bool didUrl = false, didExt = false;
         var urlGood = IsUrlWhitelisted(messageContent, conf.WhitelistedUrls!);
-        if (urlGood || conf.SpeakFreely) {
-            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
-                await socketUserMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
-                await socketUserMessage.AddReactionAsync(downVote);
-            
-            var spotifyFaulted = false;
-            var youtubeFaulted = false;
+        if (urlGood) {
+            bool doSpotifyAlbumCount = false, doYoutTubePlaylistCount = false;
             try {
                 if (messageContent.Contains("spotify.com") && messageContent.Contains("album")) {
                     BangerLogger.Information("Found URL to be a Spotify Album");
                     var entryId = messageContent.Split('/').Last();
                     var album = await SpotifyApiJson.GetAlbumData(entryId);
                     conf.SubmittedBangers += album!.total_tracks;
+                    doSpotifyAlbumCount = true;
                     await Program.Instance.GeneralLogChannel!.SendMessageAsync($"Banger: Added {album.total_tracks} bangers from Spotify album {album.name}");
                 }
             }
             catch (Exception ex) {
                 BangerLogger.Error("Failed to get album data from Spotify API");
-                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get album data from Spotify API", _object: ex);
-                spotifyFaulted = true;
+                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get album data from Spotify API", obj: ex);
+                doSpotifyAlbumCount = false;
             }
 
             try {
@@ -66,39 +62,45 @@ public static class BangerListener {
                     var youtube = new YoutubeClient();
                     var youtubePlaylist = await youtube.Playlists.GetVideosAsync(uri == null ? messageContent : uri!.AbsoluteUri);
                     conf.SubmittedBangers += youtubePlaylist.Count;
+                    doYoutTubePlaylistCount = true;
                     await Program.Instance.GeneralLogChannel!.SendMessageAsync($"Banger: Added {youtubePlaylist.Count} bangers from YouTube playlist {messageContent}");
                 }
             }
             catch (Exception ex) {
                 BangerLogger.Error("Failed to get playlist data from YouTube API");
-                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get playlist data from YouTube API", _object: ex);
-                youtubeFaulted = true;
+                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get playlist data from YouTube API", obj: ex);
+                doYoutTubePlaylistCount = false;
             }
 
-            if (spotifyFaulted || youtubeFaulted)
+            if (!doSpotifyAlbumCount || !doYoutTubePlaylistCount)
                 conf.SubmittedBangers++;
             Config.Save();
-            return;
-        }
-
-        BangerLogger.Information("Sent Bad URL Response");
-        await messageArg.Channel.SendMessageAsync(conf.UrlErrorResponseMessage).DeleteAfter(5);
-        await messageArg.DeleteAsync();
-
-        if (!string.IsNullOrEmpty(messageContent) || (attachments.Count == 0 && stickers.Count == 0)) return;
-        var extGood = IsFileExtWhitelisted(attachments.First().Filename.Split('.').Last(), conf.WhitelistedFileExtensions!);
-        if (extGood || (urlGood && extGood) || conf.SpeakFreely) {
+            
             if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
                 await socketUserMessage.AddReactionAsync(upVote);
             if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
                 await socketUserMessage.AddReactionAsync(downVote);
-            conf.SubmittedBangers++;
-            Config.Save();
-            return;
+            didUrl = true;
         }
 
-        BangerLogger.Information("Sent Bad File Extension Response");
-        await messageArg.Channel.SendMessageAsync(conf.FileErrorResponseMessage).DeleteAfter(5);
-        await messageArg.DeleteAsync();
+        if (attachments.Count == 0 && stickers.Count == 0) return;
+        var extGood = IsFileExtWhitelisted(attachments.First().Filename.Split('.').Last(), conf.WhitelistedFileExtensions!);
+        if (extGood || (urlGood && extGood)) {
+            conf.SubmittedBangers++;
+            Config.Save();
+            
+            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                await socketUserMessage.AddReactionAsync(upVote);
+            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                await socketUserMessage.AddReactionAsync(downVote);
+            didExt = true;
+        }
+
+        if ((didUrl || didExt) && (!urlGood || !extGood)) {
+            if (conf.SpeakFreely) return;
+            BangerLogger.Information($"Sent Bad {(didUrl ? "URL" : "File Extension")} Response");
+            await messageArg.Channel.SendMessageAsync(didUrl ? conf.UrlErrorResponseMessage : conf.FileErrorResponseMessage).DeleteAfter(5);
+            await messageArg.DeleteAsync();
+        }
     }
 }
