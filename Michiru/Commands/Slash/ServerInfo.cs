@@ -1,18 +1,15 @@
 using Discord;
 using Discord.Interactions;
+using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Utils;
 
 namespace Michiru.Commands.Slash;
 
 public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
-    // private DateTime _timeLastRan = new(2000, 01, 01, 01, 01, 01);
+    [RateLimit(10, 20)]
     [SlashCommand("serverinfo", "Get information about the server")]
     public async Task ServerInfoCommand() {
-        // if (_timeLastRan.AddMinutes(10) > DateTime.UtcNow) {
-        //     await RespondAsync("Please wait 10 minutes between running this command.", ephemeral: true);
-        //     return;
-        // }
         var pmData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
         var bangerData = Config.GetGuildBanger(Context.Guild.Id);
         var isPennyGuild = Context.Guild.Id == Config.Base.PennysGuildWatcher.GuildId;
