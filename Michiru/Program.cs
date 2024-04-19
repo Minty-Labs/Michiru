@@ -15,6 +15,7 @@ using Serilog.Templates;
 using Serilog.Templates.Themes;
 using static System.DateTime;
 using fluxpoint_sharp;
+using Michiru.Commands.ContextMenu;
 
 namespace Michiru;
 
@@ -160,6 +161,7 @@ public class Program {
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
+        await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
         // await GlobalInteractions.AddModuleAsync<GiveAwayCmds>(null);
 
