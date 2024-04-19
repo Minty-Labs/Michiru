@@ -11,7 +11,7 @@ public static class Vars {
     public const int TargetConfigVersion = 4;
 
     public static readonly string VersionStr = VersionObj.ToString(3) + (IsDebug ? "-dev" : "");
-    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 4, 10, 16, 59, 00);
+    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 4, 19, 17, 05, 00);
     public const bool IsDebug = false;
     public static string BuildDate => $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
