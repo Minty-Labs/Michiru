@@ -11,14 +11,16 @@ using YoutubeExplode.Common;
 namespace Michiru.Events;
 
 public static class BangerListener {
-    private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "Banger");
-    private static bool IsUrlWhitelisted(string url, ICollection<string> list) {
+    private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "EVENT:BangerListener");
+    public static bool IsUrlWhitelisted(string url, ICollection<string> list) {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
         return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
     }
 
     private static bool IsFileExtWhitelisted(string extension, ICollection<string> list)
         => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
+    
+    public static List<ulong> BangerMessageIds = new();
 
     public static async Task BangerListenerEvent(SocketMessage messageArg) {
         var socketUserMessage = (SocketUserMessage)messageArg;
@@ -95,9 +97,13 @@ public static class BangerListener {
                 await socketUserMessage.AddReactionAsync(downVote);
             didExt = true;
         }
+        
+        BangerMessageIds.Add(messageArg.Id);
+        
+        if (conf.SpeakFreely)
+            return;
 
         if ((didUrl || didExt) && (!urlGood || !extGood)) {
-            if (conf.SpeakFreely) return;
             BangerLogger.Information($"Sent Bad {(didUrl ? "URL" : "File Extension")} Response");
             await messageArg.Channel.SendMessageAsync(didUrl ? conf.UrlErrorResponseMessage : conf.FileErrorResponseMessage).DeleteAfter(5);
             await messageArg.DeleteAsync();

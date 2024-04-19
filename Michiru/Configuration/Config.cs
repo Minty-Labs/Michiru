@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Michiru.Configuration.Classes;
 using Serilog;
 
@@ -65,6 +65,7 @@ public static class Config {
             OwnerIds = new List<ulong>(),
             BotLogsChannel = 0,
             ErrorLogsChannel = 0,
+            ExtraBangerCount = 0,
             Banger = [ banger ],
             PersonalizedMember = [ personalizedMember ],
             PennysGuildWatcher = pennyGuildWatcher,
@@ -125,7 +126,7 @@ public static class Config {
         return pm.Guilds!.First();
     }
     
-    public static int GetBangerNumber() => Base.Banger.Sum(guild => guild.SubmittedBangers);
+    public static int GetBangerNumber() => Base.Banger.Sum(guild => guild.SubmittedBangers) + Base.ExtraBangerCount;
 
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
     

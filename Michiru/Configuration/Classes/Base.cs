@@ -12,6 +12,7 @@ public class Base {
     [JsonPropertyName("Owner IDs")] public List<ulong>? OwnerIds { get; set; } = [];
     [JsonPropertyName("Bot Logs Channel")] public ulong BotLogsChannel { get; set; } = 0;
     [JsonPropertyName("Error Logs Channel")] public ulong ErrorLogsChannel { get; set; } = 0;
+    [JsonPropertyName("Extra Banger Count")] public int ExtraBangerCount { get; set; } = 0;
     [JsonPropertyName("Banger System")] public List<Banger> Banger { get; set; } = [];
     [JsonPropertyName("Personalized Members")] public List<PersonalizedMember> PersonalizedMember { get; set; } = [];
     [JsonPropertyName("Penny's Guild Watcher")] public PennysGuildWatcher PennysGuildWatcher { get; set; } = new();
