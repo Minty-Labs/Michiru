@@ -17,7 +17,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         var embed = new EmbedBuilder();
         embed.WithTitle($"{Context.Guild.Name} ({Context.Guild.Id})");
         embed.WithThumbnailUrl(Context.Guild.IconUrl ?? "https://i.mintlily.lgbt/null.jpg");
-        embed.WithFooter($"Michiru Bot | v{Vars.Version}");
+        embed.WithFooter($"Michiru Bot | v{Vars.VersionStr}");
         embed.WithColor(Context.Guild.Roles.ElementAt(new Random().Next(Context.Guild.Roles.Count)).Color);
         embed.AddField("Owner", $"{Context.Guild.Owner.Mention}", true);
         // embed.AddField("Admins", $"{string.Join(", ", Context.Guild.Users.Where(x => x.GuildPermissions.Administrator && x.Id != Context.Guild.OwnerId).Select(x => x.Mention))[..256]}", true);
@@ -35,7 +35,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         if (bangerData.Enabled)
             embed.AddField("Bangers (Server/Global)", $"{bangerData.SubmittedBangers} / {gloablBangerData} | {serverToGlobalBangerPercentage:F1}%", true);
         if (pmData.Enabled)
-            embed.AddField("Personalized Members", $"{pmData.Members!.Count} | {pmtoMemberCountPercentage:00}%", true);
+            embed.AddField("Personalized Members", $"{pmData.Members!.Count} {pmtoMemberCountPercentage:00}%", true);
         await RespondAsync(embed: embed.Build());
     }
 }

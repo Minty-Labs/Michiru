@@ -14,7 +14,7 @@ public static class ErrorSending {
             Color = Color.Red,
             Description = exception != null ? $"{MarkdownUtils.ToCodeBlockMultiline(finalMsg)}\n{MarkdownUtils.ToCodeBlockMultiline(exception.ToString() ?? "empty exception")}" : MarkdownUtils.ToCodeBlockMultiline(finalMsg),
             Footer = new EmbedFooterBuilder {
-                Text = Vars.Version
+                Text = Vars.VersionStr
             },
             Timestamp = DateTime.Now
         };

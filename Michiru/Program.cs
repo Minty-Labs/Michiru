@@ -33,7 +33,7 @@ public class Program {
 
     public static async Task Main(string[] args) {
         Vars.IsWindows = Environment.OSVersion.ToString().Contains("windows", StringComparison.CurrentCultureIgnoreCase);
-        Console.Title = $"{Vars.Name} v{Vars.Version} | Starting...";
+        Console.Title = $"{Vars.Name} v{Vars.VersionStr} | Starting...";
         Logger.Information($"{Vars.Name} Bot is starting . . .");
         await new Program().MainAsync();
     }
@@ -182,24 +182,25 @@ public class Program {
     private async Task ClientOnReady() {
         var crLogger = Log.ForContext("SourceContext", "ClientReady");
         Vars.StartTime = UtcNow;
-        crLogger.Information("Bot Version        = " + Vars.Version);
+        var conf = Config.Base;
+        crLogger.Information("Bot Version        = " + Vars.VersionStr);
         crLogger.Information("Process ID         = " + Environment.ProcessId);
         crLogger.Information("Build Date         = " + Vars.BuildDate);
         crLogger.Information("Current OS         = " + (Vars.IsWindows ? "Windows" : "Linux"));
-        crLogger.Information("Token              = " + Config.Base.BotToken!.Redact());
-        crLogger.Information("ActivityType       = " + $"{Config.Base.ActivityType}");
-        crLogger.Information("Rotating Statuses  = " + $"{Config.Base.RotatingStatus.Enabled}");
-        if (Config.Base.RotatingStatus.Enabled)
-            crLogger.Information("Statuses =         " + $"{string.Join(" | ", Config.Base.RotatingStatus.Statuses.Select(x => x.ActivityType + " - " + x.UserStatus + " - " + x.ActivityText).ToArray())}");
-        crLogger.Information("Game               = " + $"{Config.Base.ActivityText}");
+        crLogger.Information("Token              = " + conf.BotToken!.Redact());
+        crLogger.Information("ActivityType       = " + $"{conf.ActivityType}");
+        crLogger.Information("Rotating Statuses  = " + $"{conf.RotatingStatus.Enabled}");
+        if (conf.RotatingStatus.Enabled)
+            crLogger.Information("Statuses =         " + $"{string.Join(" | ", conf.RotatingStatus.Statuses.Select(x => x.ActivityType + " - " + x.UserStatus + " - " + x.ActivityText).ToArray())}");
+        crLogger.Information("Game               = " + $"{conf.ActivityText}");
         crLogger.Information("Number of Commands = " + $"{GlobalInteractions.SlashCommands.Count + Commands.Commands.Count() + MintyLabsInteractions.SlashCommands.Count}");
 
         if (Vars.IsWindows) {
-            var temp1 = Config.Base.ActivityText!.Equals("(insert game here)") || string.IsNullOrWhiteSpace(Config.Base.ActivityText!);
-            Console.Title = $"{Vars.Name} v{Vars.Version} | Logged in as {Client.CurrentUser.Username} - " +
+            var temp1 = conf.ActivityText!.Equals("(insert game here)") || string.IsNullOrWhiteSpace(conf.ActivityText!);
+            Console.Title = $"{Vars.Name} v{Vars.VersionStr} | Logged in as {Client.CurrentUser.Username} - " +
                             $"Currently in {Client.Guilds.Count} Guilds - {Config.GetBangerNumber()} bangers posted - " +
                             $"Managing {Config.GetPersonalizedMemberCount()} personal roles - " +
-                            $"{Config.Base.ActivityType} {(temp1 ? "unset" : Config.Base.ActivityText)}";
+                            $"{conf.ActivityType} {(temp1 ? "unset" : conf.ActivityText)}";
         }
 
         var startEmbed = new EmbedBuilder {
@@ -208,7 +209,7 @@ public class Program {
                               $"Currently in {Client.Guilds.Count} Guilds\n" +
                               $"Currently listening to {Config.GetBangerNumber()} bangers",
                 Footer = new EmbedFooterBuilder {
-                    Text = $"v{Vars.Version}",
+                    Text = $"v{Vars.VersionStr}",
                     IconUrl = Client.CurrentUser.GetAvatarUrl()
                 },
                 Timestamp = Now
@@ -219,10 +220,10 @@ public class Program {
             .AddField("System .NET Version", Environment.Version)
             .Build();
 
-        if (!Config.Base.ErrorLogsChannel.IsZero())
-            ErrorLogChannel = GetChannel(Vars.SupportServerId, Config.Base.ErrorLogsChannel);
-        if (!Config.Base.BotLogsChannel.IsZero()) {
-            GeneralLogChannel = GetChannel(Vars.SupportServerId, Config.Base.BotLogsChannel);
+        if (!conf.ErrorLogsChannel.IsZero())
+            ErrorLogChannel = GetChannel(Vars.SupportServerId, conf.ErrorLogsChannel);
+        if (!conf.BotLogsChannel.IsZero()) {
+            GeneralLogChannel = GetChannel(Vars.SupportServerId, conf.BotLogsChannel);
             await GeneralLogChannel!.SendMessageAsync(embed: startEmbed);
         }
 

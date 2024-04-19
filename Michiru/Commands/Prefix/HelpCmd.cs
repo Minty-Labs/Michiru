@@ -16,7 +16,7 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                 Color = Colors.HexToColor("9fffe3"),
                 ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl(),
                 Footer = new EmbedFooterBuilder {
-                    Text = $"v{Vars.Version}"
+                    Text = $"v{Vars.VersionStr}"
                 },
                 Timestamp = DateTime.Now
             }
