@@ -10,7 +10,7 @@ namespace Michiru.Commands.Slash;
 
 public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionContext> {
     
-    [Group("config", "Configuration Commands"), RequireOwner]
+    [Group("config", "Configuration Commands"), RequireOwner, IntegrationType(ApplicationIntegrationType.GuildInstall)]
     public class ConfigControl : InteractionModuleBase<SocketInteractionContext> {
         public enum RotatingStatusPreAction {
             [ChoiceDisplay("Enable")] Enable = 1,

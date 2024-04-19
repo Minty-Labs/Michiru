@@ -7,8 +7,7 @@ using Michiru.Utils;
 namespace Michiru.Commands.Slash;
 
 public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
-    [RateLimit(10, 20)]
-    [SlashCommand("serverinfo", "Get information about the server")]
+    [SlashCommand("serverinfo", "Get information about the server"), RateLimit(10, 20), IntegrationType(ApplicationIntegrationType.GuildInstall)]
     public async Task ServerInfoCommand() {
         var pmData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
         var bangerData = Config.GetGuildBanger(Context.Guild.Id);

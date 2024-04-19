@@ -8,7 +8,7 @@ namespace Michiru.Commands.Slash;
 
 public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
-    [Group("banger", "Banger Commands"), RequireToBeSpecial]
+    [Group("banger", "Banger Commands"), RequireToBeSpecial, IntegrationType(ApplicationIntegrationType.GuildInstall)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("toggle", "Toggles the banger system")]

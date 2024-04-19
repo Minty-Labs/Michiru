@@ -10,7 +10,7 @@ namespace Michiru.Commands.Slash;
 public class Personalization : InteractionModuleBase<SocketInteractionContext> {
     private static bool _IsInChannel(SocketInteractionContext context, ulong guildId) => context.Channel.Id == Config.GetGuildPersonalizedMember(guildId).ChannelId;
 
-    [Group("personalization", "Personalized Members Commands"), EnabledInDm(false)]
+    [Group("personalization", "Personalized Members Commands"), IntegrationType(ApplicationIntegrationType.GuildInstall), CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
 
         [SlashCommand("createrole", "Creates a personalized role for you")]
