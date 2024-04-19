@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Michiru.Configuration.Classes;
 using Serilog;
 
@@ -104,9 +104,14 @@ public static class Config {
         Logger.Information("{0} {1}", update ? "Updated" : hasFile ? "Loaded" : "Created", file);
         Base = baseConfig ?? config;
     }
-    
-    public static void Save() 
-        => File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "Michiru.Bot.config.json"), JsonSerializer.Serialize(Base, new JsonSerializerOptions {WriteIndented = true}));
+
+    public static bool ShouldUpdateConfigFile { get; private set; }
+    public static void Save() => ShouldUpdateConfigFile = true;
+
+    public static void SaveFile() {
+        File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "Michiru.Bot.config.json"), JsonSerializer.Serialize(Base, new JsonSerializerOptions {WriteIndented = true}));
+        ShouldUpdateConfigFile = false;
+    }
 
     public static Banger GetGuildBanger(ulong id) {
         var banger = Base.Banger!.FirstOrDefault(b => b.GuildId == id);
