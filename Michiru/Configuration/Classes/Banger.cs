@@ -6,7 +6,7 @@ public class Banger {
     [JsonPropertyName("Guild ID")] public ulong GuildId { get; set; }
     [JsonPropertyName("Channel ID")] public ulong ChannelId { get; set; }
     public int SubmittedBangers { get; set; } = 0;
-    [JsonPropertyName("Whitelisted Music URLs")] public List<string>? WhitelistedUrls { get; set; }
+    // [JsonPropertyName("Whitelisted Music URLs")] public List<string>? WhitelistedUrls { get; set; }
     [JsonPropertyName("Whitelisted Music File Extensions")] public List<string>? WhitelistedFileExtensions { get; set; }
     [JsonPropertyName("URL Error Response Message")] public string? UrlErrorResponseMessage { get; set; }
     [JsonPropertyName("File Error Response Message")] public string? FileErrorResponseMessage { get; set; }

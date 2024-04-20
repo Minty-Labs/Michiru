@@ -40,7 +40,7 @@ public static class Config {
             GuildId = 0,
             ChannelId = 0,
             SubmittedBangers = 0,
-            WhitelistedUrls = [ "open.spotify.com", "youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be", "deezer.com", "tidal.com", "bandcamp.com", "music.apple.com", "soundcloud.com" ],
+            // WhitelistedUrls = [ "open.spotify.com", "youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be", "deezer.com", "tidal.com", "bandcamp.com", "music.apple.com", "soundcloud.com" ],
             WhitelistedFileExtensions = [ "mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma" ],
             UrlErrorResponseMessage = "This URL is not whitelisted.",
             FileErrorResponseMessage = "This file type is not whitelisted.",

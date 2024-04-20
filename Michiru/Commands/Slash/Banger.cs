@@ -3,6 +3,7 @@ using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
+using Michiru.Events;
 
 namespace Michiru.Commands.Slash; 
 
@@ -48,28 +49,31 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("addurl", "Adds a URL to the whitelist")]
         public async Task AddUrl([Summary("url", "URL to whitelist")] string url) {
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedUrls ??= [];
-            if (_doesItExist(url, configBanger.WhitelistedUrls)) {
-                await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
-                return;
-            }
-            configBanger.WhitelistedUrls.Add(url);
-            Config.Save();
-            await RespondAsync($"Added {url} to the whitelist.");
+            await RespondAsync("This command is disabled, please contact Lily to add a URL to the whitelist.", ephemeral: true);
+            
+            // var configBanger = Config.GetGuildBanger(Context.Guild.Id);
+            // configBanger.WhitelistedUrls ??= [];
+            // if (_doesItExist(url, configBanger.WhitelistedUrls)) {
+            //     await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
+            //     return;
+            // }
+            // configBanger.WhitelistedUrls.Add(url);
+            // Config.Save();
+            // await RespondAsync($"Added {url} to the whitelist.");
         }
         
         [SlashCommand("removeurl", "Removes a URL from the whitelist")]
         public async Task RemoveUrl([Summary("url", "URL to remove from the whitelist")] string url) {
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedUrls ??= [];
-            if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
-                await RespondAsync("URL does not exist in the whitelist.", ephemeral: true);
-                return;
-            }
-            configBanger.WhitelistedUrls.Remove(url);
-            Config.Save();
-            await RespondAsync($"Removed {url} from the whitelist.");
+            await RespondAsync("This command is disabled, please contact Lily to remove a URL from the whitelist.", ephemeral: true);
+            // var configBanger = Config.GetGuildBanger(Context.Guild.Id);
+            // configBanger.WhitelistedUrls ??= [];
+            // if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
+            //     await RespondAsync("URL does not exist in the whitelist.", ephemeral: true);
+            //     return;
+            // }
+            // configBanger.WhitelistedUrls.Remove(url);
+            // Config.Save();
+            // await RespondAsync($"Removed {url} from the whitelist.");
         }
         
         [SlashCommand("addext", "Adds a file extension to the whitelist")]
@@ -106,8 +110,9 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         public async Task ListUrls() {
             var sb = new StringBuilder();
             sb.AppendLine("```");
-            sb.AppendLine("Whitelisted URLs:");
-            Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
+            sb.AppendLine("Whitelisted URLs (RegEx form):");
+            // Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
+            BangerListener.WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
             sb.AppendLine();
             sb.AppendLine("Whitelisted File Extensions:");
             Config.GetGuildBanger(Context.Guild.Id).WhitelistedFileExtensions!.ForEach(s => sb.AppendLine($"- {s}"));
@@ -186,6 +191,15 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             banger.SubmittedBangers += number;
             Config.Save();
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
+        }
+        
+        [SlashCommand("testregex", "Tests a URL against the whitelist"), RequireOwner]
+        public async Task TestRegex([Summary("url", "URL to test")] string url, bool ephemeral = false) {
+            var sb = new StringBuilder();
+            sb.AppendLine($"URL: <{url}>");
+            sb.AppendLine($"Group 1: <{BangerListener.GetFirstGroupFromUrl(url)}>");
+            sb.AppendLine($"Is URL Whitelisted: {BangerListener.IsUrlWhitelisted(url)}");
+            await RespondAsync(sb.ToString(), ephemeral: ephemeral);
         }
     }
 }
