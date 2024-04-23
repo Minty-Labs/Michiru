@@ -27,8 +27,8 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
         }
         var isMessageFromWithinGuild = message.Channel is IGuildChannel;
         var conf = isMessageFromWithinGuild ? Config.Base.Banger.FirstOrDefault(x => x.ChannelId == message.Channel.Id) : Config.Base.Banger.FirstOrDefault(x => x.ChannelId == 805663181170802719);
-        var url = BangerListener.GetFirstGroupFromUrl(contents);
-        var isUrlGood = BangerListener.IsUrlWhitelisted(url!/*, conf!.WhitelistedUrls!*/);
+        // var url = BangerListener.FindMatchedUrl(contents);
+        var isUrlGood = BangerListener.IsUrlWhitelisted(contents!, conf!.WhitelistedUrls!);
         
         // check if url is white listed
         if (isUrlGood) {
@@ -38,7 +38,7 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
                 if (contents.Contains("spotify.com") && contents.Contains("album")) {
                     BangerLogger.Information("Found URL to be a Spotify Album");
                     var entryId = contents.Split('/').Last();
-                    var album = await SpotifyApiJson.GetAlbumData(entryId);
+                    var album = await SpotifyAlbumApiJson.GetAlbumData(entryId);
                     if (isMessageFromWithinGuild)
                         conf!.SubmittedBangers += album!.total_tracks;
                     else
@@ -65,8 +65,8 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
         
         // if url is not good, throw fail message
         var errorCode = StringUtils.GetRandomString(7).ToUpper();
-        await RespondAsync($"This URL: <{url}> is not whitelisted. If you think this is an issue, please contact Lily with this message and the URL.\n" +
+        await RespondAsync($"This URL: <{contents}> is not whitelisted. If you think this is an issue, please contact Lily with this message and the URL.\n" +
                            $"Error: `{errorCode}`", ephemeral: true);
-        await ErrorSending.SendErrorToLoggingChannelAsync("Banger URL not whitelisted", obj: $"Error: {errorCode}\nURL: {url}\nMessage Contents: {message.Content}");
+        await ErrorSending.SendErrorToLoggingChannelAsync("Banger URL not whitelisted", obj: $"Error: {errorCode}\nURL: {contents}\nMessage Contents: {message.Content}");
     }
 }

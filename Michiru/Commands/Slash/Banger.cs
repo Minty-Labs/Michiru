@@ -4,12 +4,15 @@ using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Events;
+using Michiru.Utils;
 
 namespace Michiru.Commands.Slash; 
 
 public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
-    [Group("banger", "Banger Commands"), RequireToBeSpecial, IntegrationType(ApplicationIntegrationType.GuildInstall)]
+    [Group("banger", "Banger Commands"), RequireToBeSpecial,
+     // RequireUserPermission((GuildPermission.SendMessages & GuildPermission.ManageMessages & GuildPermission.ManageGuild) | GuildPermission.Administrator),
+     IntegrationType(ApplicationIntegrationType.GuildInstall)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("toggle", "Toggles the banger system")]
@@ -65,6 +68,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         [SlashCommand("removeurl", "Removes a URL from the whitelist")]
         public async Task RemoveUrl([Summary("url", "URL to remove from the whitelist")] string url) {
             await RespondAsync("This command is disabled, please contact Lily to remove a URL from the whitelist.", ephemeral: true);
+            
             // var configBanger = Config.GetGuildBanger(Context.Guild.Id);
             // configBanger.WhitelistedUrls ??= [];
             // if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
@@ -111,8 +115,8 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             var sb = new StringBuilder();
             sb.AppendLine("```");
             sb.AppendLine("Whitelisted URLs (RegEx form):");
-            // Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
-            BangerListener.WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
+            Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
+            // BangerListener.WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
             sb.AppendLine();
             sb.AppendLine("Whitelisted File Extensions:");
             Config.GetGuildBanger(Context.Guild.Id).WhitelistedFileExtensions!.ForEach(s => sb.AppendLine($"- {s}"));
@@ -181,7 +185,14 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Users {(enabled ? "can" : "cannot")} speak freely in the banger channel.");
         }
         
-        [SlashCommand("getbangercount", "Gets the number of bangers submitted in this guild")]
+        [SlashCommand("offertoreplace", "Offer to replace Spotify track with a YouTube link")]
+        public async Task OfferReplace([Summary("toggle", "Enable or disable")] bool enabled) {
+            Config.GetGuildBanger(Context.Guild.Id).OfferToReplaceSpotifyTrack = enabled;
+            Config.Save();
+            await RespondAsync($"Offer to replace Spotify track with YouTube {(enabled ? "enabled" : "disabled")}.");
+        }
+        
+        [SlashCommand("getbangercount", "Gets the number of bangers submitted in this guild"), RequireUserPermission(GuildPermission.SendMessages)]
         public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
             => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.", ephemeral: ephemeral);
         
@@ -196,9 +207,9 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         [SlashCommand("testregex", "Tests a URL against the whitelist"), RequireOwner]
         public async Task TestRegex([Summary("url", "URL to test")] string url, bool ephemeral = false) {
             var sb = new StringBuilder();
+            
             sb.AppendLine($"URL: <{url}>");
-            sb.AppendLine($"Group 1: <{BangerListener.GetFirstGroupFromUrl(url)}>");
-            sb.AppendLine($"Is URL Whitelisted: {BangerListener.IsUrlWhitelisted(url)}");
+            sb.AppendLine($"Is URL Whitelisted: {BangerListener.IsUrlWhitelisted(url, Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!)}");
             await RespondAsync(sb.ToString(), ephemeral: ephemeral);
         }
     }

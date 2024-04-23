@@ -16,6 +16,7 @@ using Serilog.Templates.Themes;
 using static System.DateTime;
 using fluxpoint_sharp;
 using Michiru.Commands.ContextMenu;
+using Michiru.Events;
 
 namespace Michiru;
 
@@ -238,6 +239,8 @@ public class Program {
         catch (Exception e) {
             crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
         }
+        
+        Config.FixGuildWhiteListUrls();
     }
 
     public SocketTextChannel? GetChannel(ulong guildId, ulong id) {
