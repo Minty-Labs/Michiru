@@ -6,8 +6,8 @@ using Serilog;
 
 namespace Michiru.Utils.ThirdPartyApiJsons;
 
-public class SpotifyApiJson {
-    private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyApiJson");
+public class SpotifyAlbumApiJson {
+    private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyAlbumApiJson");
     private const string AlbumApiUrl = "https://api.spotify.com/v1/albums/";
     private const string AccountApiUrl = "https://accounts.spotify.com/api/token";
     private static string? BearerToken { get; set; }

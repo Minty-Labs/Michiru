@@ -76,7 +76,7 @@ public class ModalProcessor {
         
         Config.Base.Api.ApiKeys.Spotify.SpotifyClientId = spotClient;
         Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret = spotSecret;
-        Config.Save();
+        Config.SaveFile();
         await modal.RespondAsync("Spotify API Keys set!", ephemeral: true);
     }
 
@@ -106,7 +106,7 @@ public class ModalProcessor {
                 epochTime = currentEpoch
             };
             personalData.Members!.Add(guildPersonalizedMemberData);
-            Config.Save();
+            Config.SaveFile();
             var discordMember = modal.User as IGuildUser;
             await discordMember!.AddRoleAsync(memberRole, new RequestOptions {AuditLogReason = "Personalized Member - User: " + modal.User.Username});
             if (personalData.DefaultRoleId != 0) {
@@ -147,7 +147,7 @@ public class ModalProcessor {
             if (modifyingColor)
                 guildPersonalizedMember.colorHex = newColorString;
             guildPersonalizedMember.epochTime = currentEpoch;
-            Config.Save();
+            Config.SaveFile();
             await memberRole!.ModifyAsync(x => {
                 x.Name = modifyingName ? roleName : memberRole.Name;
                 x.Color = modifyingColor ? Colors.HexToColor(newColorString) : memberRole.Color;

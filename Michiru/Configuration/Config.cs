@@ -7,6 +7,7 @@ namespace Michiru.Configuration;
 public static class Config {
     public static Base Base { get; private set; }
     private static readonly ILogger Logger = Log.ForContext(typeof(Config));
+    private static readonly List<string> DefaultWhitelistUrls = ["open.spotify.com", "youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be", "deezer.page.link", "tidal.com", "bandcamp.com", "music.apple.com", "soundcloud.com"];
 
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
@@ -40,11 +41,12 @@ public static class Config {
             GuildId = 0,
             ChannelId = 0,
             SubmittedBangers = 0,
-            // WhitelistedUrls = [ "open.spotify.com", "youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be", "deezer.com", "tidal.com", "bandcamp.com", "music.apple.com", "soundcloud.com" ],
+            WhitelistedUrls = DefaultWhitelistUrls,
             WhitelistedFileExtensions = [ "mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma" ],
             UrlErrorResponseMessage = "This URL is not whitelisted.",
             FileErrorResponseMessage = "This file type is not whitelisted.",
             SpeakFreely = false,
+            OfferToReplaceSpotifyTrack = false,
             AddUpvoteEmoji = true,
             AddDownvoteEmoji = false,
             UseCustomUpvoteEmoji = true,
@@ -134,6 +136,13 @@ public static class Config {
     public static int GetBangerNumber() => Base.Banger.Sum(guild => guild.SubmittedBangers) + Base.ExtraBangerCount;
 
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
+    
+    public static void FixGuildWhiteListUrls() {
+        foreach (var banger in Base.Banger!) {
+            banger.WhitelistedUrls ??= DefaultWhitelistUrls;
+        }
+        SaveFile();
+    }
     
     /*public static GiveAway GetGuildGiveAway(ulong id) {
         var giveAway = Base.GiveAways!.FirstOrDefault(g => g.GuildId == id);
