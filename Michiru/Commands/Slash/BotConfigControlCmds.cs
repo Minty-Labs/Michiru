@@ -102,18 +102,18 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
             Config.Base.RotatingStatus.MinutesPerStatus = minutes;
             await RespondAsync($"Rotating Status Interval set to {minutes} minutes", ephemeral: true);
             Config.Save();
-            await RespondAsync("Attempting to restart and update the Scheduler", ephemeral: true);
-            try {
-                await Scheduler.TheScheduler.Shutdown();
-                Scheduler.TheScheduler = null!;
-                Scheduler.StatusLoopJob = null!;
-                Scheduler.StatusLoopTrigger = null!;
-                await Scheduler.Initialize();
-                await RespondAsync("Scheduler Restarted", ephemeral: true);
-            }
-            catch (Exception e) {
-                await RespondAsync($"Error restarting Scheduler: " + MarkdownUtils.ToCodeBlockMultiline(e.Message), ephemeral: true);
-            }
+            // await RespondAsync("Attempting to restart and update the Scheduler", ephemeral: true);
+            // try {
+            //     await Scheduler.TheScheduler.Shutdown();
+            //     Scheduler.TheScheduler = null!;
+            //     Scheduler.StatusLoopJob = null!;
+            //     Scheduler.StatusLoopTrigger = null!;
+            //     await Scheduler.Initialize();
+            //     await RespondAsync("Scheduler Restarted", ephemeral: true);
+            // }
+            // catch (Exception e) {
+            //     await RespondAsync($"Error restarting Scheduler: " + MarkdownUtils.ToCodeBlockMultiline(e.Message), ephemeral: true);
+            // }
         }
         
         [SlashCommand("setapikey", "Changes API keys")]
@@ -138,6 +138,12 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
                 .AddTextInput("Secret", "spotsecret", required: true, placeholder: "Ultra Cute", style: TextInputStyle.Short);
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
+        }
+        
+        [SlashCommand("save", "Saves the current configuration")]
+        public async Task Save() {
+            Config.SaveFile();
+            await RespondAsync("Configuration Saved", ephemeral: true);
         }
     }
 }
