@@ -51,7 +51,10 @@ public class SpotifyTrackApiJson {
             { "User-Agent", Vars.BotUserAgent },
             { "Authorization", $"Bearer {BearerToken}" }
         });
-        var request2 = new RestRequest($"{TrackApiUrl}{trackId}", Method.Get);
+        var finalId = trackId;
+        if (trackId.Contains('?')) 
+            finalId = trackId.Split('?')[0];
+        var request2 = new RestRequest($"{TrackApiUrl}{finalId}", Method.Get);
         var response2 = http2.Execute(request2);
         return JsonConvert.DeserializeObject<Root>(response2.Content!);
     }

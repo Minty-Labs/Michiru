@@ -52,32 +52,32 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("addurl", "Adds a URL to the whitelist")]
         public async Task AddUrl([Summary("url", "URL to whitelist")] string url) {
-            await RespondAsync("This command is disabled, please contact Lily to add a URL to the whitelist.", ephemeral: true);
+            // await RespondAsync("This command is disabled, please contact Lily to add a URL to the whitelist.", ephemeral: true);
             
-            // var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            // configBanger.WhitelistedUrls ??= [];
-            // if (_doesItExist(url, configBanger.WhitelistedUrls)) {
-            //     await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
-            //     return;
-            // }
-            // configBanger.WhitelistedUrls.Add(url);
-            // Config.Save();
-            // await RespondAsync($"Added {url} to the whitelist.");
+            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
+            configBanger.WhitelistedUrls ??= [];
+            if (_doesItExist(url, configBanger.WhitelistedUrls)) {
+                await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
+                return;
+            }
+            configBanger.WhitelistedUrls.Add(url);
+            Config.Save();
+            await RespondAsync($"Added {url} to the whitelist.");
         }
         
         [SlashCommand("removeurl", "Removes a URL from the whitelist")]
         public async Task RemoveUrl([Summary("url", "URL to remove from the whitelist")] string url) {
-            await RespondAsync("This command is disabled, please contact Lily to remove a URL from the whitelist.", ephemeral: true);
+            // await RespondAsync("This command is disabled, please contact Lily to remove a URL from the whitelist.", ephemeral: true);
             
-            // var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            // configBanger.WhitelistedUrls ??= [];
-            // if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
-            //     await RespondAsync("URL does not exist in the whitelist.", ephemeral: true);
-            //     return;
-            // }
-            // configBanger.WhitelistedUrls.Remove(url);
-            // Config.Save();
-            // await RespondAsync($"Removed {url} from the whitelist.");
+            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
+            configBanger.WhitelistedUrls ??= [];
+            if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
+                await RespondAsync("URL does not exist in the whitelist.", ephemeral: true);
+                return;
+            }
+            configBanger.WhitelistedUrls.Remove(url);
+            Config.Save();
+            await RespondAsync($"Removed {url} from the whitelist.");
         }
         
         [SlashCommand("addext", "Adds a file extension to the whitelist")]
@@ -204,13 +204,26 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
         }
         
-        [SlashCommand("testregex", "Tests a URL against the whitelist"), RequireOwner]
-        public async Task TestRegex([Summary("url", "URL to test")] string url, bool ephemeral = false) {
-            var sb = new StringBuilder();
-            
-            sb.AppendLine($"URL: <{url}>");
-            sb.AppendLine($"Is URL Whitelisted: {BangerListener.IsUrlWhitelisted(url, Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!)}");
-            await RespondAsync(sb.ToString(), ephemeral: ephemeral);
+        [SlashCommand("clearbangerinteractiondata", "(Bot Owner Only) Clears a select or all banger interaction data"), RequireOwner]
+        public async Task ClearBangerInteractionData([Summary("RandomID", "ID of the Data Entry, if empty, remove everything")] string randomId = "", [Summary("ephemeral", "Ephemeral response")] bool ephemeral = false) {
+            if (string.IsNullOrWhiteSpace(randomId)) {
+                foreach (var iData in BangerListener.TheBangerInteractionData) {
+                    if (iData.LookupMessage is not null)
+                        await iData.LookupMessage.DeleteAsync(new RequestOptions { AuditLogReason = "Bot Owner forcefully deleted the Lookup Asking message." });
+                    BangerListener.TheBangerInteractionData.Remove(iData);
+                    await Task.Delay(TimeSpan.FromSeconds(0.25f));
+                }
+                return;
+            }
+            var data = BangerListener.TheBangerInteractionData.FirstOrDefault(x => x.RandomId == randomId);
+            if (data is null) {
+                await RespondAsync("Data not found.", ephemeral: ephemeral);
+                return;
+            }
+
+            if (data.LookupMessage is not null)
+                await data.LookupMessage.DeleteAsync(new RequestOptions { AuditLogReason = "Bot Owner forcefully deleted the Lookup Asking message." });
+            BangerListener.TheBangerInteractionData.Remove(data);
         }
     }
 }
