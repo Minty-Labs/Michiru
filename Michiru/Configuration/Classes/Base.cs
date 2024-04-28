@@ -16,6 +16,7 @@ public class Base {
     [JsonPropertyName("Banger System")] public List<Banger> Banger { get; set; } = [];
     [JsonPropertyName("Personalized Members")] public List<PersonalizedMember> PersonalizedMember { get; set; } = [];
     [JsonPropertyName("Penny's Guild Watcher")] public PennysGuildWatcher PennysGuildWatcher { get; set; } = new();
+    // [JsonPropertyName("Penny's Guild History")] public List<PennysGuildWatcher> PennysGuildHistory { get; set; } = [];
     // [JsonPropertyName("GiveAways")] public List<GiveAway> GiveAways { get; set; } = [];
     [JsonPropertyName("Api")] public Api Api { get; set; } = new();
 }

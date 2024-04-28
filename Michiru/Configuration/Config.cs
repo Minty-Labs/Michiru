@@ -71,6 +71,7 @@ public static class Config {
             Banger = [ banger ],
             PersonalizedMember = [ personalizedMember ],
             PennysGuildWatcher = pennyGuildWatcher,
+            // PennysGuildHistory = [ pennyGuildWatcher ],
             Api = new Api {
                 ApiKeys = new ApiKeys {
                     UnsplashAccessKey = "",
