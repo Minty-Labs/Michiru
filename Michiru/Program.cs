@@ -149,8 +149,9 @@ public class Program {
             FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
 
         Client.Ready += ClientOnReady;
-        Client.MessageReceived += Events.BangerListener.BangerListenerEvent;
-        Client.GuildUpdated += Events.GuildUpdated.OnGuildUpdated;
+        Client.MessageReceived += BangerListener.BangerListenerEvent;
+        Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
+        Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
 
         var serviceCollection = new ServiceCollection();
@@ -158,7 +159,6 @@ public class Program {
 
         await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
         await Commands.AddModuleAsync<HelpCmd>(null);
-        // await Commands.AddModuleAsync<ServerInfo>(null);
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);

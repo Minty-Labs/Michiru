@@ -59,7 +59,15 @@ public static class StringUtils {
     /// <param name="str1">this</param>
     /// <param name="strs">As many strings as you want to compare to the target string</param>
     /// <returns>Boolean indicating that any and all of your specified strings are contained in the target string (this)</returns>
-    public static bool ContainsMultiple(this string str1, params string[] strs) => strs.Any(str1.ToLower().Contains);
+    public static bool AndContainsMultiple(this string str1, params string[] strs) => strs.All(str1.ToLower().Contains);
+
+    /// <summary>
+    /// Checks if the string contains multiple values using OR
+    /// </summary>
+    /// <param name="str1"></param>
+    /// <param name="strs"></param>
+    /// <returns>Boolean that iterates through each string instance and compares it to that target using OR</returns>
+    public static bool OrContainsMultiple(this string str1, params string[] strs) => strs.Any(str1.ToLower().Contains);
 
     /// <summary>
     /// Checks if the string is equal to multiple values
@@ -67,7 +75,7 @@ public static class StringUtils {
     /// <param name="str1">this</param>
     /// <param name="strs">As many strings as you want to compare to the target string</param>
     /// <returns>Boolean whether the multiple strings are equal to each other (or the same) as the target string (this)</returns>
-    public static bool EqualsMultiple(this string str1, params string[] strs) => strs.Any(str1.Equals);
+    public static bool EqualsMultiple(this string str1, params string[] strs) => strs.All(str1.Equals);
 
     /// <summary>
     /// Checks if the string is not equal to a value

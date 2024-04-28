@@ -7,7 +7,7 @@ public static class ErrorSending {
     private static EmbedBuilder? ErrorEmbed(object message, object? exception = null) {
         var msg = message.ToString();
         var finalMsg = msg!.Length > 2000 ? msg[..1990] + "..." : msg;
-        if (finalMsg.ContainsMultiple("unauthorized", "403"))
+        if (finalMsg.AndContainsMultiple("unauthorized", "403"))
             return null;
 
         return new EmbedBuilder {
