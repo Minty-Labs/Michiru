@@ -92,17 +92,21 @@ public class ModalProcessor {
         var personalData = Config.GetGuildPersonalizedMember((ulong)modal.GuildId!);
         var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == modal.User.Id);
+        var newColorString = colorHexString.ValidateHexColor().Left(6);
+        var discordColor = newColorString.Length == 6 ? Colors.HexToColor(newColorString) : Colors.HexToColor(Colors.RandomColorHex);
 
         if (guildPersonalizedMember is null) {
             var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
-            var newColorString = colorHexString.ValidateHexColor().Left(6);
-            var memberRole = await guild.CreateRoleAsync(roleName ?? modal.User.Username.Left(15).Trim(), color: Colors.HexToColor(newColorString), options: new RequestOptions {AuditLogReason = "Personalized Member - User"});
+            var memberRole = await guild.CreateRoleAsync(
+                name: roleName ?? modal.User.Username.Left(15).Trim(), 
+                color: discordColor, 
+                options: new RequestOptions {AuditLogReason = "Personalized Member - User"});
             await Task.Delay(TimeSpan.FromSeconds(0.5f));
             var guildPersonalizedMemberData = new Member {
                 userId = modal.User.Id,
                 roleId = memberRole.Id,
                 roleName = roleName ?? modal.User.Username.Left(15).Trim(),
-                colorHex = newColorString,
+                colorHex = Colors.ColorToHex(discordColor),
                 epochTime = currentEpoch
             };
             personalData.Members!.Add(guildPersonalizedMemberData);
