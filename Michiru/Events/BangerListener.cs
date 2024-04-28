@@ -166,6 +166,11 @@ public static class BangerListener {
             await ErrorSending.SendErrorToLoggingChannelAsync("Failed to process Spotify to YouTube Song Lookup via Button Press", obj: $"Error Code: {errorCode}\nRandom ID: {randomId}");
             return;
         }
+        
+        if (component.User.Id != currentData.OriginalPostedSocketMessage.Author.Id) {
+            await component.RespondAsync("You cannot interact with this button.", ephemeral: true);
+            return;
+        }
 
         var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == currentData.OriginalPostedSocketMessage.Channel.Id);
         if (conf is null) return;
