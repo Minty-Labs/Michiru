@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -153,6 +153,8 @@ public class Program {
         Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
+        Client.ThreadMemberJoined += MemberUpdated.MemberJoin;
+        Client.ThreadMemberLeft += MemberUpdated.MemberLeave;
 
         var serviceCollection = new ServiceCollection();
         _modalProcessor = new ModalProcessor();
@@ -163,6 +165,7 @@ public class Program {
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
         await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
+        await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
         // await GlobalInteractions.AddModuleAsync<GiveAwayCmds>(null);
 
