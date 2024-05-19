@@ -110,18 +110,18 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Removed {ext} from the whitelist.");
         }
         
-        [SlashCommand("listeverything", "Lists all URLs and file extns")]
-        public async Task ListUrls() {
+        [SlashCommand("listeverything", "Lists all URLs and file extens."), RequireUserPermission(GuildPermission.SendMessages)]
+        public async Task ListUrls([Summary("ephemeral", "Ephemeral response")] bool ephemeral = true) {
             var sb = new StringBuilder();
             sb.AppendLine("```");
-            sb.AppendLine("Whitelisted URLs (RegEx form):");
+            sb.AppendLine("Whitelisted URLs (Plain form):");
             Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
             // BangerListener.WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
             sb.AppendLine();
             sb.AppendLine("Whitelisted File Extensions:");
-            Config.GetGuildBanger(Context.Guild.Id).WhitelistedFileExtensions!.ForEach(s => sb.AppendLine($"- {s}"));
+            Config.GetGuildBanger(Context.Guild.Id).WhitelistedFileExtensions!.ForEach(s => sb.AppendLine($"- .{s}"));
             sb.AppendLine("```");
-            await RespondAsync(sb.ToString());
+            await RespondAsync(sb.ToString(), ephemeral: ephemeral);
         }
 
         [SlashCommand("addupvote", "Adds an upvote emoji to a banger post")]
