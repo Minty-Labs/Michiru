@@ -34,7 +34,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         if (bangerData.Enabled)
             embed.AddField("Bangers (Server/Global)", $"{bangerData.SubmittedBangers} / {gloablBangerData} | {serverToGlobalBangerPercentage:F1}%", true);
         if (pmData.Enabled)
-            embed.AddField("Personalized Members", $"{pmData.Members!.Count} {pmtoMemberCountPercentage:00}%", true);
+            embed.AddField("Personalized Members", $"{pmData.Members!.Count} | {pmtoMemberCountPercentage:00}%", true);
         await RespondAsync(embed: embed.Build());
     }
 }
