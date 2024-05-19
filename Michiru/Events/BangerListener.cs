@@ -26,7 +26,7 @@ public static class BangerListener {
 
     public static readonly List<ulong> BangerMessageIds = [];
 
-    public static async Task BangerListenerEvent(SocketMessage messageArg) {
+    internal static async Task BangerListenerEvent(SocketMessage messageArg) {
         var socketUserMessage = (SocketUserMessage)messageArg;
         var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == messageArg.Channel.Id);
 
@@ -53,7 +53,7 @@ public static class BangerListener {
         bool didUrl = false, didExt = false;
         var urlGood = IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!);
         if (urlGood) {
-            bool doSpotifyAlbumCount = false, doYoutTubePlaylistCount = false;
+            bool doSpotifyAlbumCount = false, doYouTubePlaylistCount = false;
             try {
                 if (theActualUrl.AndContainsMultiple("spotify.com", "album")) {
                     BangerLogger.Information("Found URL to be a Spotify Album");
@@ -78,14 +78,14 @@ public static class BangerListener {
                     var youtube = new YoutubeClient();
                     var youtubePlaylist = await youtube.Playlists.GetVideosAsync(theActualUrl);
                     conf.SubmittedBangers += youtubePlaylist.Count;
-                    doYoutTubePlaylistCount = true;
+                    doYouTubePlaylistCount = true;
                     await Program.Instance.GeneralLogChannel!.SendMessageAsync($"Banger: Added {youtubePlaylist.Count} bangers from YouTube playlist {theActualUrl}");
                 }
             }
             catch (Exception ex) {
                 BangerLogger.Error("Failed to get playlist data from YouTube API");
                 await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get playlist data from YouTube API", obj: ex);
-                doYoutTubePlaylistCount = false;
+                doYouTubePlaylistCount = false;
             }
 
             if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
@@ -112,7 +112,7 @@ public static class BangerListener {
                         MessageReference = reference,
                         LookupMessage = lookupMessage,
                         DoesWantToLookup = false,
-                        HasPressedASerachResultButton = false,
+                        HasPressedASearchResultButton = false,
                         YouTubeSearchResults = [],
                         HasCompletelyFinishedInteraction = false
                     });
@@ -126,7 +126,7 @@ public static class BangerListener {
                 }
             }
 
-            if (!doSpotifyAlbumCount || !doYoutTubePlaylistCount) {
+            if (!doSpotifyAlbumCount || !doYouTubePlaylistCount) {
                 conf.SubmittedBangers++;
                 Config.Save();
             }
@@ -154,9 +154,9 @@ public static class BangerListener {
         }
     }
 
-    public static List<BangerInteractionData> TheBangerInteractionData = [];
+    internal static List<BangerInteractionData> TheBangerInteractionData = [];
 
-    public static async Task SpotifyToYouTubeSongLookupButtons(SocketMessageComponent component) {
+    internal static async Task SpotifyToYouTubeSongLookupButtons(SocketMessageComponent component) {
         var currentData = TheBangerInteractionData.FirstOrDefault(x => component.Data.CustomId.Split('-')[1].Equals(x.RandomId));
         var randomId = currentData?.RandomId;
         if (string.IsNullOrWhiteSpace(randomId) || currentData is null) {
@@ -230,9 +230,9 @@ public static class BangerListener {
             }); 
         }
 
-        if (!currentData.HasPressedASerachResultButton) {
+        if (!currentData.HasPressedASearchResultButton) {
             if (component.Data.CustomId == $"{randomId}-1") {
-                currentData.HasPressedASerachResultButton = true;
+                currentData.HasPressedASearchResultButton = true;
                 await currentData.OriginalPostedSocketMessage.DeleteAsync(new RequestOptions { AuditLogReason = reason });
                 await component.ModifyOriginalResponseAsync(x => {
                     x.Content = "Completed";
@@ -245,7 +245,7 @@ public static class BangerListener {
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-2") {
-                currentData.HasPressedASerachResultButton = true;
+                currentData.HasPressedASearchResultButton = true;
                 await currentData.OriginalPostedSocketMessage.DeleteAsync(new RequestOptions { AuditLogReason = reason });
                 await component.ModifyOriginalResponseAsync(x => {
                     x.Content = "Completed";
@@ -258,7 +258,7 @@ public static class BangerListener {
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-3") {
-                currentData.HasPressedASerachResultButton = true;
+                currentData.HasPressedASearchResultButton = true;
                 await currentData.OriginalPostedSocketMessage.DeleteAsync(new RequestOptions { AuditLogReason = reason });
                 await component.ModifyOriginalResponseAsync(x => {
                     x.Content = "Completed";
@@ -271,7 +271,7 @@ public static class BangerListener {
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-4") {
-                currentData.HasPressedASerachResultButton = true;
+                currentData.HasPressedASearchResultButton = true;
                 await currentData.OriginalPostedSocketMessage.DeleteAsync(new RequestOptions { AuditLogReason = reason });
                 await component.ModifyOriginalResponseAsync(x => {
                     x.Content = "Completed";
@@ -284,7 +284,7 @@ public static class BangerListener {
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-5") {
-                currentData.HasPressedASerachResultButton = true;
+                currentData.HasPressedASearchResultButton = true;
                 await currentData.OriginalPostedSocketMessage.DeleteAsync(new RequestOptions { AuditLogReason = reason });
                 await component.ModifyOriginalResponseAsync(x => {
                     x.Content = "Completed";
@@ -318,14 +318,14 @@ public static class BangerListener {
     }
 }
 
-public class BangerInteractionData {
+internal class BangerInteractionData {
     public string RandomId { get; set; }
     public string SpotifyUrl { get; set; }
     public SocketMessage? OriginalPostedSocketMessage { get; set; }
     public MessageReference? MessageReference { get; set; }
     public RestUserMessage? LookupMessage { get; set; }
     public bool DoesWantToLookup { get; set; }
-    public bool HasPressedASerachResultButton { get; set; }
+    public bool HasPressedASearchResultButton { get; set; }
     public Dictionary<int, string> YouTubeSearchResults { get; set; }
     public bool HasCompletelyFinishedInteraction { get; set; }
 }

@@ -27,10 +27,9 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
         }
         var isMessageFromWithinGuild = message.Channel is IGuildChannel;
         var conf = isMessageFromWithinGuild ? Config.Base.Banger.FirstOrDefault(x => x.ChannelId == message.Channel.Id) : Config.Base.Banger.FirstOrDefault(x => x.ChannelId == 805663181170802719);
-        // var url = BangerListener.FindMatchedUrl(contents);
         var isUrlGood = BangerListener.IsUrlWhitelisted(contents!, conf!.WhitelistedUrls!);
         
-        // check if url is white listed
+        // check if url is whitelisted
         if (isUrlGood) {
             BangerListener.BangerMessageIds.Add(message.Id);
             // try to get album data from spotify

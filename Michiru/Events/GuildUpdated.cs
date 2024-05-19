@@ -9,7 +9,7 @@ namespace Michiru.Events;
 public static class GuildUpdated {
     private static ulong _pennysGuildWatcherChannelId = 0;
     private static ulong _pennysGuildWatcherGuildId = 0;
-    public static Task OnGuildUpdated(SocketGuild beforeInfoArg, SocketGuild afterInfoArg) {
+    internal static Task OnGuildUpdated(SocketGuild beforeInfoArg, SocketGuild afterInfoArg) {
         if (beforeInfoArg.Name == afterInfoArg.Name) return Task.CompletedTask;
         
         if (_pennysGuildWatcherGuildId == 0) _pennysGuildWatcherGuildId = Config.Base.PennysGuildWatcher.GuildId;
