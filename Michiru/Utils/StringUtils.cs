@@ -54,20 +54,36 @@ public static class StringUtils {
     public static int AsInt(this string? str) => int.Parse(str!);
 
     /// <summary>
-    /// Checks if the string contains multiple values
+    /// Checks if the string contains multiple string values
+    /// </summary>
+    /// <param name="str1">this</param>
+    /// <param name="chars">As many strings as you want to compare to the target string</param>
+    /// <returns>Boolean indicating that any and all of your specified strings are contained in the target string (this)</returns>
+    public static bool AndContainsMultiple(this string str1, params string[] chars) => chars.All(str1.ToLower().Contains);
+    
+    /// <summary>
+    /// Checks if the string contains multiple character values
+    /// </summary>
+    /// <param name="str1">this</param>
+    /// <param name="chars">As many characters as you want to compare to the target string</param>
+    /// <returns></returns>
+    public static bool AndContainsMultiple(this string str1, params char[] chars) => chars.All(str1.ToLower().Contains);
+
+    /// <summary>
+    /// Checks if the string contains multiple string values using OR
     /// </summary>
     /// <param name="str1">this</param>
     /// <param name="strs">As many strings as you want to compare to the target string</param>
-    /// <returns>Boolean indicating that any and all of your specified strings are contained in the target string (this)</returns>
-    public static bool AndContainsMultiple(this string str1, params string[] strs) => strs.All(str1.ToLower().Contains);
-
-    /// <summary>
-    /// Checks if the string contains multiple values using OR
-    /// </summary>
-    /// <param name="str1"></param>
-    /// <param name="strs"></param>
     /// <returns>Boolean that iterates through each string instance and compares it to that target using OR</returns>
     public static bool OrContainsMultiple(this string str1, params string[] strs) => strs.Any(str1.ToLower().Contains);
+
+    /// <summary>
+    /// Checks if the string contains multiple character values using OR
+    /// </summary>
+    /// <param name="str1">this</param>
+    /// <param name="chars">As many characters as you want to compare to the target string</param>
+    /// <returns></returns>
+    public static bool OrContainsMultiple(this string str1, params char[] chars) => chars.Any(str1.ToLower().Contains);
 
     /// <summary>
     /// Checks if the string is equal to multiple values
