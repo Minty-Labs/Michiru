@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Events;
 using Michiru.Managers;
@@ -12,23 +13,26 @@ namespace Michiru.Commands.ContextMenu;
 public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext> {
     private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "CONTEXTMENU:Banger");
     
-    [MessageCommand("Find Banger (Ephemeral)"), IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall), CommandContextType(InteractionContextType.Guild, InteractionContextType.PrivateChannel)]
+    [MessageCommand("Find Banger (Ephemeral)"), 
+     IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall),
+     CommandContextType(InteractionContextType.Guild, InteractionContextType.PrivateChannel),
+     RateLimit(60, 3)]
     public async Task FindBangerFromMessage(IMessage message) {
+        await DeferAsync(true);
         // variables
         var contents = message.Content;
         if (!contents.Contains("http")) {
-            await RespondAsync($"No URL found in message: {message.GetJumpUrl()}.", ephemeral: true);
+            await ModifyOriginalResponseAsync(x => x.Content = $"No URL found in message: {message.GetJumpUrl()}.");
             return;
         }
 
         if (BangerListener.BangerMessageIds.Contains(message.Id)) {
-            await RespondAsync("This is already a banger.", ephemeral: true);
+            await ModifyOriginalResponseAsync(x => x.Content = "This is already a banger.");
             return;
         }
         var isMessageFromWithinGuild = message.Channel is IGuildChannel;
         var conf = isMessageFromWithinGuild ? Config.Base.Banger.FirstOrDefault(x => x.ChannelId == message.Channel.Id) : Config.Base.Banger.FirstOrDefault(x => x.ChannelId == 805663181170802719);
         var isUrlGood = BangerListener.IsUrlWhitelisted(contents!, conf!.WhitelistedUrls!);
-        
         // check if url is whitelisted
         if (isUrlGood) {
             BangerListener.BangerMessageIds.Add(message.Id);
@@ -42,7 +46,7 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
                         conf!.SubmittedBangers += album!.total_tracks;
                     else
                         Config.Base.ExtraBangerCount += album!.total_tracks;
-                    await RespondAsync($"Successfully added {album!.total_tracks} banger(s) from Spotify album", ephemeral: true);
+                    await ModifyOriginalResponseAsync(x => x.Content = $"Successfully added {album!.total_tracks} banger(s) from Spotify album");
                     Config.Save();
                     return;
                 }
@@ -57,15 +61,15 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
                 conf!.SubmittedBangers++;
             else
                 Config.Base.ExtraBangerCount++;
-            await RespondAsync("Successfully added a banger.", ephemeral: true);
+            await ModifyOriginalResponseAsync(x => x.Content = "Successfully added a banger.");
             Config.Save();
             return;
         }
         
         // if url is not good, throw fail message
         var errorCode = StringUtils.GetRandomString(7).ToUpper();
-        await RespondAsync($"This URL: <{contents}> is not whitelisted. If you think this is an issue, please contact Lily with this message and the URL.\n" +
-                           $"Error: `{errorCode}`", ephemeral: true);
+        await ModifyOriginalResponseAsync(x => x.Content = $"This URL: <{contents}> is not whitelisted. If you think this is an issue, please contact Lily with this message and the URL.\n" +
+                                                           $"Error: `{errorCode}`");
         await ErrorSending.SendErrorToLoggingChannelAsync("Banger URL not whitelisted", obj: $"Error: {errorCode}\nURL: {contents}\nMessage Contents: {message.Content}");
     }
 }
