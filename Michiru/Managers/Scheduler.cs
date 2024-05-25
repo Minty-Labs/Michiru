@@ -33,6 +33,7 @@ public class Scheduler {
                 .WithIntervalInMinutes(10)
                 .RepeatForever())
             .Build();
+        await theScheduler.ScheduleJob(configSaveLoopJob, configSaveLoopTrigger);
         
         Logger.Information("Initialized!");
     }
