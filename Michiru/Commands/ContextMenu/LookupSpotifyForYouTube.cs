@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
 using Michiru.Events;
 using Michiru.Managers;
@@ -16,7 +17,10 @@ namespace Michiru.Commands.ContextMenu;
 public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionContext> {
     private static readonly ILogger SluLogger = Log.ForContext("SourceContext", "CONTEXTMENU:SpotifyLookup");
     
-    [MessageCommand("Lookup Spotify for YouTube"), IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall), CommandContextType(InteractionContextType.Guild, InteractionContextType.PrivateChannel)]
+    [MessageCommand("Lookup Spotify on YouTube"), 
+     IntegrationType(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall),
+     CommandContextType(InteractionContextType.Guild, InteractionContextType.PrivateChannel),
+     RateLimit(60, 3)]
     public async Task LookupSpotifyForYouTubeAction(IMessage message) {
         // variables
         var socketUserMessage = (SocketUserMessage)message;
@@ -77,7 +81,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
             }
             catch (Exception ex) {
                 SluLogger.Error("Failed to get album data from Spotify API");
-                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get album data from Spotify API", obj: ex);
+                await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get album data from Spotify API", obj: ex.StackTrace);
                 // await RespondAsync("Failed to get album data from Spotify API", ephemeral: true);
                 await ModifyOriginalResponseAsync(x => x.Content = "Failed to get album data from Spotify API");
                 doSpotifyAlbumCount = false;
@@ -107,7 +111,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
                 }
                 catch (Exception ex) {
                     SluLogger.Error("Failed to get track data from Spotify API");
-                    await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get track data from Spotify API", obj: ex);
+                    await ErrorSending.SendErrorToLoggingChannelAsync("Failed to get track data from Spotify API", obj: ex.StackTrace);
                     // await RespondAsync("Failed to get track data from Spotify API", ephemeral: true);
                     await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API");
                 }
