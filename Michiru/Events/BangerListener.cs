@@ -41,8 +41,9 @@ public static class BangerListener {
         var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
         var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
         string? theActualUrl = null;
+        var guild = Program.Instance.GetGuildFromChannel(messageArg.Channel.Id)!;
 
-        if (messageContent.Contains(' ')) {
+        if (messageContent.OrContainsMultiple(' ', '\n')) {
             foreach (var str in messageContent.Split(' ')) {
                 if (str.Contains("https"))
                     theActualUrl = str;
@@ -63,7 +64,7 @@ public static class BangerListener {
                     var album = await SpotifyAlbumApiJson.GetAlbumData(finalId.Split('/').Last());
                     conf.SubmittedBangers += album!.total_tracks;
                     doSpotifyAlbumCount = true;
-                    await Program.Instance.GeneralLogChannel!.SendMessageAsync($"Banger: Added {album.total_tracks} bangers from Spotify album {album.name}");
+                    await Program.Instance.GeneralLogChannel!.SendMessageAsync($"{guild.Name} Bangers: Added {album.total_tracks} bangers from Spotify album {album.name} in channel <#{messageArg.Channel.Id}>");
                 }
             }
             catch (Exception ex) {
@@ -79,7 +80,7 @@ public static class BangerListener {
                     var youtubePlaylist = await youtube.Playlists.GetVideosAsync(theActualUrl);
                     conf.SubmittedBangers += youtubePlaylist.Count;
                     doYouTubePlaylistCount = true;
-                    await Program.Instance.GeneralLogChannel!.SendMessageAsync($"Banger: Added {youtubePlaylist.Count} bangers from YouTube playlist {theActualUrl}");
+                    await Program.Instance.GeneralLogChannel!.SendMessageAsync($"{guild.Name} Bangers: Added {youtubePlaylist.Count} bangers from YouTube playlist {theActualUrl} in channel <#{messageArg.Channel.Id}>");
                 }
             }
             catch (Exception ex) {
@@ -100,7 +101,7 @@ public static class BangerListener {
                         .WithButton("Lookup song on YouTube?", $"YouTubeLookupForSpotify-{randomId}", ButtonStyle.Success)
                         .WithButton("No", $"DoNotLookupForSpotify-{randomId}", ButtonStyle.Danger);
 
-                    var reference = new MessageReference(messageArg.Id, messageArg.Channel.Id, Program.Instance.GetGuildFromChannel(messageArg.Channel.Id)!.Id, false);
+                    var reference = new MessageReference(messageArg.Id, messageArg.Channel.Id, guild.Id, false);
                     
                     var lookupMessage = await messageArg.Channel.SendMessageAsync("Would you like to lookup this song on YouTube?", components: builder.Build(),
                         messageReference: reference);
