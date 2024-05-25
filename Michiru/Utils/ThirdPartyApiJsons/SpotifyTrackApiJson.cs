@@ -31,7 +31,7 @@ public class SpotifyTrackApiJson {
             request.AddParameter("grant_type", "client_credentials", ParameterType.GetOrPost);
             request.AddParameter("client_id", Config.Base.Api.ApiKeys.Spotify.SpotifyClientId!, ParameterType.GetOrPost);
             request.AddParameter("client_secret", Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret!, ParameterType.GetOrPost);
-            var response = http.Execute(request);
+            var response = await http.ExecuteAsync(request);
             var jsonData = JsonConvert.DeserializeObject<SpotifyToken>(response.Content!);
             if (response.Content != null) {
                 BearerToken = jsonData!.access_token;
@@ -55,7 +55,7 @@ public class SpotifyTrackApiJson {
         if (trackId.Contains('?')) 
             finalId = trackId.Split('?')[0];
         var request2 = new RestRequest($"{TrackApiUrl}{finalId}", Method.Get);
-        var response2 = http2.Execute(request2);
+        var response2 = await http2.ExecuteAsync(request2);
         return JsonConvert.DeserializeObject<Root>(response2.Content!);
     }
 }
