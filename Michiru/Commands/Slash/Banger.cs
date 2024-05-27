@@ -244,6 +244,8 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 return;
             }
 
+            IUserMessage? socketUserMessage = null;
+
             await DeferAsync();
 
             var conf = Config.GetGuildBanger(Context.Guild.Id);
@@ -271,10 +273,15 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                             finalId = theActualUrl.Split('?')[0];
                         var track = await SpotifyTrackApiJson.GetTrackData(finalId.Split('/').Last());
                         var videos = yt.Search.GetVideosAsync($"{track!.artists[0].name} {track.name}").GetAwaiter().GetResult();
+
+                        // foreach (var result in videos) {
+                        //     if (result.Title.OrContainsMultiple("bass boosted", "")) continue;
                         sb.Append($"{MarkdownUtils.MakeLink($"{videos[0].Author} - {videos[0].Title}", videos[0].Url)}");
                         sb.Append($" [<{videos[0].Url}>]");
+                        //     break;
+                        // }
 
-                        await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
+                        socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
                         conf!.SubmittedBangers++;
                         Config.Save();
                     }
@@ -284,6 +291,21 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                     await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
                     await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
                         .DeleteAfter(5, "Failed to get track data from Spotify API");
+                }
+
+                if (Context.Channel.Id == conf.ChannelId) {
+                    var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
+                    var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
+
+                    if (socketUserMessage is not null) {
+                        if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                            await socketUserMessage.AddReactionAsync(upVote);
+                        if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                            await socketUserMessage.AddReactionAsync(downVote);
+                    }
+                    
+                    conf.SubmittedBangers++;
+                    Config.Save();
                 }
             }
         }
