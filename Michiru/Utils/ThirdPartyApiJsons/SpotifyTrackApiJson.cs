@@ -24,14 +24,14 @@ public class SpotifyTrackApiJson {
             var http = new RestClient();
             http.AddDefaultHeaders(new Dictionary<string, string> {
                 { "Content-Type", "application/x-www-form-urlencoded" },
-                { "User-Agent", Vars.BotUserAgent },
+                // { "User-Agent", Vars.BotUserAgent },
             });
             var request = new RestRequest(AccountApiUrl, Method.Post);
             // request.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Config.Base.Api.ApiKeys.Spotify.SpotifyClientId}:{Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret}"))}");
             request.AddParameter("grant_type", "client_credentials", ParameterType.GetOrPost);
             request.AddParameter("client_id", Config.Base.Api.ApiKeys.Spotify.SpotifyClientId!, ParameterType.GetOrPost);
             request.AddParameter("client_secret", Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret!, ParameterType.GetOrPost);
-            var response = await http.ExecuteAsync(request);
+            var response = http.Execute<SpotifyToken>(request);
             var jsonData = JsonConvert.DeserializeObject<SpotifyToken>(response.Content!);
             if (response.Content != null) {
                 BearerToken = jsonData!.access_token;
@@ -48,14 +48,14 @@ public class SpotifyTrackApiJson {
         var http2 = new RestClient();
         http2.AddDefaultHeaders(new Dictionary<string, string> {
             { "Content-Type", "application/json" },
-            { "User-Agent", Vars.BotUserAgent },
+            // { "User-Agent", Vars.BotUserAgent },
             { "Authorization", $"Bearer {BearerToken}" }
         });
         var finalId = trackId;
         if (trackId.Contains('?')) 
             finalId = trackId.Split('?')[0];
         var request2 = new RestRequest($"{TrackApiUrl}{finalId}", Method.Get);
-        var response2 = await http2.ExecuteAsync(request2);
+        var response2 = http2.Execute<Root>(request2);
         return JsonConvert.DeserializeObject<Root>(response2.Content!);
     }
 }
