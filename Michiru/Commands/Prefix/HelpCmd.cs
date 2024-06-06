@@ -20,10 +20,10 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                 },
                 Timestamp = DateTime.Now
             }
-            .AddField("Basic Commands", MarkdownUtils.ToCodeBlockMultiline("-ping\n-stats\n-minecraft"))
+            .AddField("Basic Commands (prefix: -)", MarkdownUtils.ToCodeBlockMultiline("ping, stats"))
             .AddField("Basic Slash Commands", MarkdownUtils.ToCodeBlockMultiline("/serverinfo"));
         if (Context.User.IsBotOwner()) {
-            embed.AddField("Owner Commands", MarkdownUtils.ToCodeBlockMultiline("-setapikey <api> <key>\n-exec <command>") +
+            embed.AddField("Owner Commands", MarkdownUtils.ToCodeBlockMultiline("-exec <command>\n/setapikey") +
                                              "*Only available in Minty Labs guild*\n" +
                                              MarkdownUtils.ToCodeBlockMultiline("/config rotatingstatus <enable/disable/list/next>\n" +
                                                                                     "/config modifyrotatingstatus <add/update/remove> <activityType> <userStatus> <activityText>"));
@@ -45,7 +45,9 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                                                                                            "/banger setcustomdownvote <name> <id> - Sets a custom downvote emoji\n" +
                                                                                            "/banger speakfreely <true|false> - Allow users to talk freely in the banger channel\n" +
                                                                                            "/banger listeverything - Lists all URLs and file extensions\n" +
-                                                                                           "/banger getbangercount - Gets the number of bangers submitted in this guild"));
+                                                                                           "/banger getbangercount - Gets the number of bangers submitted in this guild\n" +
+                                                                                           "/banger offertoreplace - Automatically offer to replace Spotify track with a YouTube link\n" +
+                                                                                           "/banger lookupspotifyonyoutube - Looks up Spotify song data on YouTube"));
         }
 
         if (Config.Base.PersonalizedMember.Any(x => x.Guilds!.Any(y => y.GuildId == Context.Guild.Id)) || Context.User.IsBotOwner()) {
