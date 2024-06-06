@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Discord;
 using Discord.Commands;
-using fluxpoint_sharp.Responses;
+// using fluxpoint_sharp.Responses;
 using Michiru.Configuration;
 using Michiru.Utils;
 
@@ -62,7 +62,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         await ReplyAsync(embed: embed.Build());
     }
 
-    [Command("minecraft"), Alias("mc", "mint craft", "pepper mint", "peppermint")]
+    /*[Command("minecraft"), Alias("mc", "mint craft", "pepper mint", "peppermint")]
     public async Task Minecraft() {
         if (string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.FluxpointApiKey!)) {
             await ReplyAsync("Api key for Fluxpoint is not set. Lily is a baka and did not set it.");
@@ -89,5 +89,5 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         catch (Exception e) {
             await ReplyAsync($"An error occurred while trying to get the server status: {e.Message}");
         }
-    }
+    }*/
 }

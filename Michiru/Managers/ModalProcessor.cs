@@ -40,13 +40,13 @@ public class ModalProcessor {
         var apiKey = components.First(x => x.CustomId == "apiKey").Value;
         
         switch (apiType) {
-            case "flux":
-            case "fluxpoint":
-                Config.Base.Api.ApiKeys.FluxpointApiKey = apiKey;
-                Config.Save();
-                Program.Instance.FluxpointClient = new fluxpoint_sharp.FluxpointClient(Vars.Name, apiKey);
-                await modal.RespondAsync("Fluxpoint API Key set!");
-                break;
+            // case "flux":
+            // case "fluxpoint":
+            //     Config.Base.Api.ApiKeys.FluxpointApiKey = apiKey;
+            //     Config.Save();
+            //     Program.Instance.FluxpointClient = new fluxpoint_sharp.FluxpointClient(Vars.Name, apiKey);
+            //     await modal.RespondAsync("Fluxpoint API Key set!");
+            //     break;
             case "cookie":
                 Config.Base.Api.ApiKeys.CookieClientApiKey = apiKey;
                 Config.Save();

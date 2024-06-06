@@ -14,7 +14,7 @@ using Serilog.Events;
 using Serilog.Templates;
 using Serilog.Templates.Themes;
 using static System.DateTime;
-using fluxpoint_sharp;
+// using fluxpoint_sharp;
 using Michiru.Commands.ContextMenu;
 using Michiru.Events;
 
@@ -30,7 +30,7 @@ public class Program {
     private InteractionService MintyLabsInteractions { get; set; }
     public SocketTextChannel? GeneralLogChannel { get; set; }
     public SocketTextChannel? ErrorLogChannel { get; set; }
-    public FluxpointClient FluxpointClient { get; set; }
+    // public FluxpointClient FluxpointClient { get; set; }
     private ModalProcessor _modalProcessor;
 
     public static async Task Main(string[] args) {
@@ -145,8 +145,8 @@ public class Program {
                 services: null);
         };
         
-        if (!string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.FluxpointApiKey!))
-            FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
+        // if (!string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.FluxpointApiKey!))
+        //     FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
 
         Client.Ready += ClientOnReady;
         Client.MessageReceived += BangerListener.BangerListenerEvent;
