@@ -60,7 +60,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
             // try to get album data from spotify
             var doSpotifyAlbumCount = false;
             try {
-                if (theActualUrl.AndContainsMultiple("spotify.com", "album")) {
+                if (theActualUrl.AndContainsMultiple("spotify.com", "/album")) {
                     SluLogger.Information("Found URL to be a Spotify Album");
                     var finalId = theActualUrl;
                     if (theActualUrl.Contains('?')) 

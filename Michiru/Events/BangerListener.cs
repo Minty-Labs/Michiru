@@ -56,7 +56,7 @@ public static class BangerListener {
         if (urlGood) {
             bool doSpotifyAlbumCount = false, doYouTubePlaylistCount = false;
             try {
-                if (theActualUrl.AndContainsMultiple("spotify.com", "album")) {
+                if (theActualUrl.AndContainsMultiple("spotify.com", "/album")) {
                     BangerLogger.Information("Found URL to be a Spotify Album");
                     var finalId = theActualUrl;
                     if (theActualUrl.Contains('?')) 
@@ -95,7 +95,7 @@ public static class BangerListener {
                 await socketUserMessage.AddReactionAsync(downVote);
 
             if (conf.OfferToReplaceSpotifyTrack) {
-                if (theActualUrl.AndContainsMultiple("open.spotify.com", "track")) {
+                if (theActualUrl.AndContainsMultiple("open.spotify.com", "/track")) {
                     var randomId = StringUtils.GetRandomString(8);
                     var builder = new ComponentBuilder()
                         .WithButton("Lookup song on YouTube?", $"YouTubeLookupForSpotify-{randomId}", ButtonStyle.Success)
