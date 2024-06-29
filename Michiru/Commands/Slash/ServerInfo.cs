@@ -35,16 +35,18 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
             .AddField("Roles", $"{Context.Guild.Roles.Count}")
             .AddField("Bot Features",
                 $"{(pmData.Enabled ? check.ToString() : uncheck.ToString())} Personalized Roles\n" +
+                    $"{transparent} in {(pmData.ChannelId == 0 ? "`(no set channel)`" : $"<#{pmData.ChannelId}>")}\n" +
                 
                 $"{(bangerData.Enabled ? check.ToString() : uncheck.ToString())} Banger System\n" +
+                    $"{transparent} in {(bangerData.ChannelId == 0 ? "`(no set channel)`" : $"<#{bangerData.ChannelId}>")}\n" +
                 
                 $"{(guildFeatures.Join.Enable ? check.ToString() : uncheck.ToString())} Member Join Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? "(no set channel)" : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
+                    $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? "`(no set channel)`" : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
                     $"{transparent} {(guildFeatures.Join.DmWelcomeMessage ? check.ToString() : uncheck.ToString())} DM Message\n" +
                     $"{transparent} {(guildFeatures.Join.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
                 
                 $"{(guildFeatures.Leave.Enable ? check.ToString() : uncheck.ToString())} Member Leave Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? "(no set channel)" : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
+                    $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? "`(no set channel)`" : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
                     $"{transparent} {(guildFeatures.Leave.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
                 
                 $"{(isPennyGuild ? check + " Guild Update Notices" : "")}");
