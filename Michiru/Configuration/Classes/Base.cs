@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Michiru.Configuration.Classes;
 
@@ -13,7 +13,7 @@ public class Base {
     [JsonPropertyName("Bot Logs Channel")] public ulong BotLogsChannel { get; set; } = 0;
     [JsonPropertyName("Error Logs Channel")] public ulong ErrorLogsChannel { get; set; } = 0;
     [JsonPropertyName("Extra Banger Count")] public int ExtraBangerCount { get; set; } = 0;
-    [JsonPropertyName("Banger System")] public List<Banger> Banger { get; set; } = [];
+    [JsonPropertyName("Guild Features")] public List<GuildFeatures> GuildFeatures { get; init; } = []; // TODO: Add Banger and PersonalizedMember to GuildFeatures
     [JsonPropertyName("Personalized Members")] public List<PersonalizedMember> PersonalizedMember { get; set; } = [];
     [JsonPropertyName("Penny's Guild Watcher")] public PennysGuildWatcher PennysGuildWatcher { get; set; } = new();
     // [JsonPropertyName("Penny's Guild History")] public List<PennysGuildWatcher> PennysGuildHistory { get; set; } = [];

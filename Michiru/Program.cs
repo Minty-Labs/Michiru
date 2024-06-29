@@ -153,8 +153,8 @@ public class Program {
         Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
-        Client.ThreadMemberJoined += MemberUpdated.MemberJoin;
-        Client.ThreadMemberLeft += MemberUpdated.MemberLeave;
+        Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
+        Client.UserLeft += MemberUpdated.MemberLeave;  // this finally works
 
         var serviceCollection = new ServiceCollection();
         _modalProcessor = new ModalProcessor();
@@ -166,6 +166,7 @@ public class Program {
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
         await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
         await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
+        await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
         // await GlobalInteractions.AddModuleAsync<GiveAwayCmds>(null);
 

@@ -162,6 +162,48 @@ public class ModalProcessor {
         
         await modal.RespondAsync("You do not have a personalized role to update.\nRun `/personalization createrole` to create your role.", ephemeral: true);
     }
+
+    /*[ModalAction("servermemberupdatejoin")]
+    private static async Task UpdateMemberJoin(SocketModal modal) {
+        var components = modal.Data.Components.ToList();
+        var enabled = components.First(x => x.CustomId == "join_enable").Value;
+        var channelId = components.First(x => x.CustomId == "join_channel_id").Value;
+        var joinMessageText = components.First(x => x.CustomId == "join_message_text").Value;
+        var overrideAllWithEmbed = components.First(x => x.CustomId == "join_override_all_with_embed").Value;
+        var showDetailedEmbed = components.First(x => x.CustomId == "join_show_detailed_embed").Value;
+        var dmWelcomeMessage = components.First(x => x.CustomId == "join_dm_welcome_message").Value;
+        var guildId = (ulong)modal.GuildId!;
+        
+        var serverData = Config.GetGuildFeature(guildId);
+        serverData.Join.Enable = enabled is "true" or "on" or "yes";
+        serverData.Join.ChannelId = ulong.Parse(channelId);
+        serverData.Join.JoinMessageText = ParseMessageTextModifiers(joinMessageText, modal.User, Program.Instance.Client.GetGuild(guildId), Config.GetGuildPersonalizedMember(guildId));
+        serverData.Join.OverrideAllWithEmbed = overrideAllWithEmbed is "true" or "on" or "yes";
+        serverData.Join.ShowDetailedEmbed = showDetailedEmbed is "true" or "on" or "yes";
+        serverData.Join.DmWelcomeMessage = dmWelcomeMessage is "true" or "on" or "yes";
+        Config.Save();
+        await modal.RespondAsync("Updated Join Features!", ephemeral: true);
+    }
+    
+    [ModalAction("servermemberupdateleave")]
+    private static async Task UpdateMemberLeave(SocketModal modal) {
+        var components = modal.Data.Components.ToList();
+        var enabled = components.First(x => x.CustomId == "leave_enable").Value;
+        var channelId = components.First(x => x.CustomId == "leave_channel_id").Value;
+        var leaveMessageText = components.First(x => x.CustomId == "leave_message_text").Value;
+        var overrideAllWithEmbed = components.First(x => x.CustomId == "leave_override_all_with_embed").Value;
+        var showDetailedEmbed = components.First(x => x.CustomId == "leave_show_detailed_embed").Value;
+        var guildId = (ulong)modal.GuildId!;
+        
+        var serverData = Config.GetGuildFeature(guildId);
+        serverData.Leave.Enable = enabled is "true" or "on" or "yes";
+        serverData.Leave.ChannelId = ulong.Parse(channelId);
+        serverData.Leave.LeaveMessageText = ParseMessageTextModifiers(leaveMessageText, modal.User, Program.Instance.Client.GetGuild(guildId), Config.GetGuildPersonalizedMember(guildId));
+        serverData.Leave.OverrideAllWithEmbed = overrideAllWithEmbed is "true" or "on" or "yes";
+        serverData.Leave.ShowDetailedEmbed = showDetailedEmbed is "true" or "on" or "yes";
+        Config.Save();
+        await modal.RespondAsync("Updated Leave Features!", ephemeral: true);
+    }*/
 }
 
 public class ModalAction(string modalTag) : Attribute {

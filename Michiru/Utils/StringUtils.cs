@@ -1,5 +1,7 @@
-﻿using System.Text;
+using System.Text;
 using Discord;
+using Discord.WebSocket;
+using Michiru.Configuration.Classes;
 
 namespace Michiru.Utils;
 
@@ -372,5 +374,21 @@ public static class StringUtils {
 
         return sb.ToString();
     }
+    
+    /// <summary>
+    /// Parses a message with text modifiers, used for Update Member Messages
+    /// </summary>
+    /// <param name="message">incoming string</param>
+    /// <param name="user">target user</param>
+    /// <param name="guild">target guild</param>
+    /// <param name="pmData">personalized member data</param>
+    /// <returns>New text with replaced values</returns>
+    public static string ParseMessageTextModifiers(this string message, SocketUser user, SocketGuild guild, PmGuildData pmData) 
+        => message
+            .Replace("{user}", user.Mention)
+            .Replace("{guild}", guild.Name)
+            .Replace("{pm.ChannelId}", pmData.ChannelId.ToString())
+            .Replace("{pm.Timer}", pmData.ResetTimer.ToString())
+            .Replace("<br>", "\n");
 
 }
