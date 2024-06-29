@@ -98,7 +98,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
         }
     }
 
-    [Group("personalizationadmin", "Personalized Members Admin Commands"), EnabledInDm(false)]
+    [Group("personalizationadmin", "Personalized Members Admin Commands"), IntegrationType(ApplicationIntegrationType.GuildInstall)]
     public class AdminCommands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("toggle", "Toggles the personalized members system"), RequireToBeSpecial]

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Configuration.Classes;
@@ -18,7 +18,7 @@ public static class StringUtils {
     }
 
     /// <summary>
-    /// Replaces all of the old characters (as char) to anything of your choosing.
+    /// Replaces all the old characters (as char) to anything of your choosing.
     /// </summary>
     /// <param name="theStringToBeEdited">this</param>
     /// <param name="oldCharacters">Characters (char[]) to be replaced</param>
@@ -131,7 +131,7 @@ public static class StringUtils {
     /// Returns a random string of a specified length
     /// </summary>
     /// <param name="length">Target length of randomized string</param>
-    /// <returns>Random string of alpha-numeric characters</returns>
+    /// <returns>Random string of alphanumeric characters</returns>
     public static string GetRandomString(int length = 15) =>
         new(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz", length)
             .Select(s => s[new Random().Next(s.Length)]).ToArray());

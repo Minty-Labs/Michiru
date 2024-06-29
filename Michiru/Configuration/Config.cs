@@ -11,13 +11,7 @@ public static class Config {
 
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
-        var hasFile = File.Exists(file);
-        
-        var pennyGuildWatcher = new PennysGuildWatcher {
-            GuildId = 0,
-            ChannelId = 0,
-            LastUpdateTime = 0
-        };
+        var hasFile = File.Exists(file);;
         
         var rotatingStatus = new RotatingStatus {
             Enabled = false,
@@ -30,32 +24,7 @@ public static class Config {
                     UserStatus = "Online"
                 }
             ]
-        };
-        
-        var personalizedMember = new PersonalizedMember {
-            Guilds = []
-        };
-
-        var banger = new Banger {
-            Enabled = false,
-            GuildId = 0,
-            ChannelId = 0,
-            SubmittedBangers = 0,
-            WhitelistedUrls = DefaultWhitelistUrls,
-            WhitelistedFileExtensions = [ "mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma" ],
-            UrlErrorResponseMessage = "This URL is not whitelisted.",
-            FileErrorResponseMessage = "This file type is not whitelisted.",
-            SpeakFreely = false,
-            OfferToReplaceSpotifyTrack = false,
-            AddUpvoteEmoji = true,
-            AddDownvoteEmoji = false,
-            UseCustomUpvoteEmoji = true,
-            CustomUpvoteEmojiName = "upvote",
-            CustomUpvoteEmojiId = 1201639290048872529,
-            UseCustomDownvoteEmoji = false,
-            CustomDownvoteEmojiName = "downvote",
-            CustomDownvoteEmojiId = 1201639287972696166
-        };
+        };;
 
         var config = new Base {
             ConfigVersion = Vars.TargetConfigVersion,
@@ -68,9 +37,14 @@ public static class Config {
             BotLogsChannel = 0,
             ErrorLogsChannel = 0,
             ExtraBangerCount = 0,
-            Banger = [ banger ],
-            PersonalizedMember = [ personalizedMember ],
-            PennysGuildWatcher = pennyGuildWatcher,
+            GuildFeatures = [],
+            Banger = [],
+            PersonalizedMember = [ new PersonalizedMember { Guilds = [] } ],
+            PennysGuildWatcher = new PennysGuildWatcher {
+                GuildId = 977705960544014407,
+                ChannelId = 989703825977905192,
+                LastUpdateTime = 1207
+            },
             // PennysGuildHistory = [ pennyGuildWatcher ],
             Api = new Api {
                 ApiKeys = new ApiKeys {
@@ -138,11 +112,26 @@ public static class Config {
 
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
     
-    public static void FixGuildWhiteListUrls() {
+    public static void FixBangerNulls() {
         foreach (var banger in Base.Banger!) {
             banger.WhitelistedUrls ??= DefaultWhitelistUrls;
+            banger.WhitelistedFileExtensions ??= ["mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma"];
+            banger.UrlErrorResponseMessage ??= "This URL is not whitelisted.";
+            banger.FileErrorResponseMessage ??= "This file type is not whitelisted.";
         }
         SaveFile();
+    }
+    
+    // Get guild from guild features
+    public static GuildFeatures GetGuildFeature(ulong id) {
+        // if guild by id doesn't exist, create it
+        if (Base.GuildFeatures.Any(x => x.GuildId == id)) 
+            return Base.GuildFeatures.First(x => x.GuildId == id);
+        
+        var guild = new GuildFeatures {GuildId = id};
+        Base.GuildFeatures!.Add(guild);
+        SaveFile();
+        return guild;
     }
     
     /*public static GiveAway GetGuildGiveAway(ulong id) {

@@ -244,7 +244,7 @@ public class Program {
             crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
         }
         
-        Config.FixGuildWhiteListUrls();
+        Config.FixBangerNulls();
     }
 
     public SocketTextChannel? GetChannel(ulong guildId, ulong id) {
