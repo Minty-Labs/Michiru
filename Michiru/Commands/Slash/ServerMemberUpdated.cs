@@ -30,6 +30,8 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         [SlashCommand("joinmessage", "Update Join Message")]
         public async Task UpdateJoinMessage([Summary("Message", "Join Message Text")] string message) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
+            if (message is "." or "NUL" or "NULL" or "EMPTY" or "none" or "NONE" or "null" or "empty" or "nul")
+                message = "";
             serverData.Join.JoinMessageText = message;
             Config.Save();
             await RespondAsync("Updated Join Message\nPreview:\n" + message.ParseMessageTextModifiers(Context.User, Context.Guild, Config.GetGuildPersonalizedMember(Context.Guild.Id)));
@@ -83,6 +85,8 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         [SlashCommand("leavemessage", "Update Leave Message")]
         public async Task UpdateLeaveMessage([Summary("Message", "Leave Message Text")] string message) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
+            if (message is "." or "NUL" or "NULL" or "EMPTY" or "none" or "NONE" or "null" or "empty" or "nul")
+                message = "";
             serverData.Leave.LeaveMessageText = message;
             Config.Save();
             await RespondAsync("Updated Leave Message\nPreview:\n" + message.ParseMessageTextModifiers(Context.User, Context.Guild, Config.GetGuildPersonalizedMember(Context.Guild.Id)));
