@@ -34,7 +34,15 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
                 message = "";
             serverData.Join.JoinMessageText = message;
             Config.Save();
-            await RespondAsync("Updated Join Message\nPreview:\n" + message.ParseMessageTextModifiers(Context.User, Context.Guild, Config.GetGuildPersonalizedMember(Context.Guild.Id)));
+            var preview = message.ParseMessageTextModifiers(Context.User, Context.Guild, Config.GetGuildPersonalizedMember(Context.Guild.Id));
+            if (serverData.Join.DmWelcomeMessage && string.IsNullOrWhiteSpace(serverData.Join.JoinMessageText)) {
+                var pm = Config.GetGuildPersonalizedMember(Context.Guild.Id);
+                preview = $"Welcome to {Context.Guild.Name}!\n" +
+                $"\nCreate your personal role by running {MarkdownUtils.ToCodeBlockSingleline("/personalization createrole")} in <#{pm.ChannelId}>\n" +
+                    $"You can also update role every {pm.ResetTimer} seconds by running the {MarkdownUtils.ToCodeBlockSingleline("/personalization updaterole")} command.\n" +
+                    $"Choose your choice of HEX color easily by using {MarkdownUtils.MakeLink("this website", "https://html-color.codes/")} and inputing that hex code in the color box.";;
+            }
+            await RespondAsync("Updated Join Message\nPreview:\n" + preview);
         }
         
         [SlashCommand("embedjoin", "Override All With Embed")]

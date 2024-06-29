@@ -17,15 +17,17 @@ public static class MemberUpdated {
             logger.Warning("Channel not found for guild {GuildId}", guild.Id);
             return;
         }
+
         if (config.Join.DmWelcomeMessage && string.IsNullOrWhiteSpace(config.Join.JoinMessageText)) {
             var stringMsg = $"Welcome to {guild.Name}!";
             var pm = Config.GetGuildPersonalizedMember(guild.Id);
             if (pm.Enabled)
-                stringMsg += $"Create your personal role by running {MarkdownUtils.ToCodeBlockSingleline("/personalization createrole")} in <#{pm.ChannelId}>\n" +
+                stringMsg += $"\nCreate your personal role by running {MarkdownUtils.ToCodeBlockSingleline("/personalization createrole")} in <#{pm.ChannelId}>\n" +
                              $"You can also update role every {pm.ResetTimer} seconds by running the {MarkdownUtils.ToCodeBlockSingleline("/personalization updaterole")} command.\n" +
                              $"Choose your choice of HEX color easily by using {MarkdownUtils.MakeLink("this website", "https://html-color.codes/")} and inputing that hex code in the color box.";
             await user.SendMessageAsync(stringMsg);
         }
+        else return;
 
         if (config.Join.OverrideAllWithEmbed) {
             var embed = new EmbedBuilder {
@@ -53,6 +55,10 @@ public static class MemberUpdated {
             logger.Warning("Channel not found for guild {GuildId}", guild.Id);
             return;
         }
+
+        if (string.IsNullOrWhiteSpace(config.Leave.LeaveMessageText))
+            return;
+        
         if (config.Leave.OverrideAllWithEmbed) {
             var embed = new EmbedBuilder {
                 Title = "Goodbye!",
