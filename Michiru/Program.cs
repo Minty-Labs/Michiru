@@ -212,19 +212,19 @@ public class Program {
 
         var startEmbed = new EmbedBuilder {
                 Color = Vars.IsDebug || Vars.IsWindows ? Colors.HexToColor("5178b5") : Colors.MichiruPink,
-                Description = $"Bot has started on {(Vars.IsWindows ? "Windows" : "Linux")}\n" +
-                              $"Currently in {Client.Guilds.Count} Guilds\n" +
-                              $"Currently listening to {Config.GetBangerNumber()} bangers",
+                Description = $"Bot has started on {(Vars.IsWindows ? "Windows" : "Linux")}",
                 Footer = new EmbedFooterBuilder {
                     Text = $"v{Vars.VersionStr}",
                     IconUrl = Client.CurrentUser.GetAvatarUrl()
                 },
                 Timestamp = Now
             }
+            .AddField("Guilds", $"{Client.Guilds.Count}", true)
+            .AddField("Bangers", $"{Config.GetBangerNumber()}", true)
             .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
             .AddField("Start Time", $"{UtcNow.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{UtcNow.ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
-            .AddField("Discord.NET Version", Vars.DNetVer)
-            .AddField("System .NET Version", Environment.Version)
+            .AddField("Discord.NET Version", Vars.DNetVer, true)
+            .AddField("System .NET Version", Environment.Version, true)
             .Build();
 
         if (!conf.ErrorLogsChannel.IsZero())
