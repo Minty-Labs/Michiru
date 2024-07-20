@@ -14,11 +14,11 @@ public static class MarkdownUtils {
     public static string ToUnderline(string text) => $"__{text}__";
     public static string ToStrikeThrough(string text) => $"~~{text}~~";
 
-    public static string ToCodeBlockSingleline(string text) => $"`{text}`";
+    public static string ToCodeBlockSingleLine(string text) => $"`{text}`";
     public static string ToCodeBlockMultiline(string text, string? languageCode = null) => $"```{languageCode ?? ""}\n{text}```";
     public static string ToCodeBlockMultiline(string text, CodingLanguages codingLanguages) => $"```{Enum.GetName(typeof(CodingLanguages), codingLanguages)}\n{text}```";
 
-    public static string ToBlockQuoteSingleline(string text) => $"> {text}";
+    public static string ToBlockQuoteSingleLine(string text) => $"> {text}";
     public static string ToBlockQuoteMultiline(string text) => $">>> {text}";
 
     public static string ToSpoiler(string text) => $"||{text}||";
@@ -26,6 +26,8 @@ public static class MarkdownUtils {
     public static string ToHeading1(string text) => $"# {text}";
     public static string ToHeading2(string text) => $"## {text}";
     public static string ToHeading3(string text) => $"### {text}";
+    
+    public static string ToSubText(string text) => $"-# {text}";
 
     #endregion
 

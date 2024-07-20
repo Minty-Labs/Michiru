@@ -162,7 +162,7 @@ public static class BangerListener {
         var randomId = currentData?.RandomId;
         if (string.IsNullOrWhiteSpace(randomId) || currentData is null) {
             var errorCode = StringUtils.GetRandomString(7).ToUpper();
-            await component.RespondAsync($"Error Code: {MarkdownUtils.ToCodeBlockSingleline(errorCode)} - If the problem persists, give this error code to Lily. {MarkdownUtils.ToItalics("(Please do not spam the button)")}\n" +
+            await component.RespondAsync($"Error Code: {MarkdownUtils.ToCodeBlockSingleLine(errorCode)} - If the problem persists, give this error code to Lily. {MarkdownUtils.ToItalics("(Please do not spam the button)")}\n" +
                                          $"Failed to process request.", ephemeral: true);
             await ErrorSending.SendErrorToLoggingChannelAsync("Failed to process Spotify to YouTube Song Lookup via Button Press", obj: $"Error Code: {errorCode}\nRandom ID: {randomId}");
             return;
@@ -302,7 +302,7 @@ public static class BangerListener {
             var errorCode = StringUtils.GetRandomString(7).ToUpper();
             await component.ModifyOriginalResponseAsync(x => {
                 x.Content = "It appears this command has already ran, but it should not have been completed.\n" +
-                            $"Error Code: {MarkdownUtils.ToCodeBlockSingleline(errorCode)} - If the problem persists, give this error code to Lily.";
+                            $"Error Code: {MarkdownUtils.ToCodeBlockSingleLine(errorCode)} - If the problem persists, give this error code to Lily.";
                 x.Components = new ComponentBuilder().Build();
             }); 
             // await component.RespondAsync(, ephemeral: true);

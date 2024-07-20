@@ -22,8 +22,8 @@ public static class MemberUpdated {
             var stringMsg = $"Welcome to {guild.Name}!";
             var pm = Config.GetGuildPersonalizedMember(guild.Id);
             if (pm.Enabled)
-                stringMsg += $"\nCreate your personal role by running {MarkdownUtils.ToCodeBlockSingleline("/personalization createrole")} in <#{pm.ChannelId}>\n" +
-                             $"You can also update role every {pm.ResetTimer} seconds by running the {MarkdownUtils.ToCodeBlockSingleline("/personalization updaterole")} command.\n" +
+                stringMsg += $"\nCreate your personal role by running {MarkdownUtils.ToCodeBlockSingleLine("/personalization createrole")} in <#{pm.ChannelId}>\n" +
+                             $"You can also update role every {pm.ResetTimer} seconds by running the {MarkdownUtils.ToCodeBlockSingleLine("/personalization updaterole")} command.\n" +
                              $"Choose your choice of HEX color easily by using {MarkdownUtils.MakeLink("this website", "https://html-color.codes/")} and inputing that hex code in the color box.";
             await user.SendMessageAsync(stringMsg);
         }
