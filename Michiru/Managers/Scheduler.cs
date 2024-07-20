@@ -11,7 +11,7 @@ public class Scheduler {
     public static async Task Initialize() {
         Logger.Information("Creating and Building...");
         var theScheduler = await SchedulerBuilder.Create()
-            .UseDefaultThreadPool(x => x.MaxConcurrency = 2)
+            .UseDefaultThreadPool(x => x.MaxConcurrency = 3)
             .BuildScheduler();
         await theScheduler.Start();
 
@@ -34,6 +34,16 @@ public class Scheduler {
                 .RepeatForever())
             .Build();
         await theScheduler.ScheduleJob(configSaveLoopJob, configSaveLoopTrigger);
+        
+        var lookForOfflineGoHPJob = JobBuilder.Create<LookForOfflineGoHP>().Build();
+        var lookForOfflineGoHPTrigger = TriggerBuilder.Create()
+            .WithIdentity("LookForOfflineGoHP", Vars.Name)
+            .StartNow()
+            .WithSimpleSchedule(x => x
+                .WithIntervalInMinutes(30)
+                .RepeatForever())
+            .Build();
+        await theScheduler.ScheduleJob(lookForOfflineGoHPJob, lookForOfflineGoHPTrigger);
         
         Logger.Information("Initialized!");
     }
