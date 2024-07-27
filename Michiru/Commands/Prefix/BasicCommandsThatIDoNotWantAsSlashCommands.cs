@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Discord;
 using Discord.Commands;
 // using fluxpoint_sharp.Responses;
@@ -29,6 +29,22 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
         var weh = output.SplitMessage(1900);
         foreach (var chuck in weh)
             await ReplyAsync($"```\n{chuck}```");
+    }
+    
+    [RequireOwner, Command("restartbot"), Alias("rb")]
+    public async Task RestartBot() {
+        var process = new Process {
+            StartInfo = new ProcessStartInfo {
+                FileName = "/bin/bash",
+                Arguments = "-c \"pm2 restart 1\"",
+                RedirectStandardOutput = false,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        };
+        process.Start();
+        await process.WaitForExitAsync();
+        await ReplyAsync("GoHP has been restarted.");
     }
 
     [Command("ping")]
