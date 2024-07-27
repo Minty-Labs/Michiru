@@ -15,7 +15,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
         var isPennyGuild = Context.Guild.Id == Config.Base.PennysGuildWatcher.GuildId;
         var check = EmojiUtils.GetCustomEmoji("checked_box", 1225518363871023165) ?? Emote.Parse("<:checked_box:1225518363871023165>") ?? Emote.Parse(":white_check_mark:");
         var uncheck = EmojiUtils.GetCustomEmoji("unchecked_box", 1225518365137698817) ?? Emote.Parse("<:unchecked_box:1225518365137698817>") ?? Emote.Parse(":x_checked_box:");
-        var transparent = EmojiUtils.GetCustomEmoji("trans", 686315460022894705) ?? Emote.Parse("<:trans:686315460022894705>") ?? Emote.Parse(":heavy_minus_sign:");
+        var transparent = await Context.Client.GetApplicationEmoteAsync(1266756179774799934);
         var globalBangerData = Config.GetBangerNumber();
         var serverToGlobalBangerPercentage = (float)bangerData.SubmittedBangers / globalBangerData * 100;
         var pmToMemberCountPercentage = (float)pmData.Members!.Count / Context.Guild.MemberCount * 100;
