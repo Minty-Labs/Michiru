@@ -79,6 +79,18 @@ public class ModalProcessor {
         Config.SaveFile();
         await modal.RespondAsync("Spotify API Keys set!", ephemeral: true);
     }
+    
+    // [ModalAction("setdeezerapikeys")]
+    // private static async Task SetDeezerApiKey(SocketModal modal) {
+    //     var components = modal.Data.Components.ToList();
+    //     var spotClient = components.First(x => x.CustomId == "deezclient").Value;
+    //     var spotSecret = components.First(x => x.CustomId == "deezsecret").Value;
+    //     
+    //     Config.Base.Api.ApiKeys.Spotify.SpotifyClientId = spotClient;
+    //     Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret = spotSecret;
+    //     Config.SaveFile();
+    //     await modal.RespondAsync("Deezer API Keys set!", ephemeral: true);
+    // }
 
     [ModalAction("personalization_createrole")]
     private static async Task CreateRole(SocketModal modal) {

@@ -309,5 +309,34 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 }
             }
         }
+
+        // [SlashCommand("lookupdeezeronyoutube", "YT top result of Deezer link"), RequireUserPermission(GuildPermission.SendMessages), RateLimit(30, 5)]
+        // public async Task LookupDeezerOnYouTubeCommand([Summary("track", "Deezer Track")] string deezerUrl) {
+        //     var sluLogger = Log.ForContext("SourceContext", "COMMAND:DeezerLookup");
+        //     if (!deezerUrl.Contains("http")) {
+        //         await RespondAsync("No URL found in message", ephemeral: true);
+        //         return;
+        //     }
+        //
+        //     IUserMessage? socketUserMessage = null;
+        //
+        //     await DeferAsync();
+        //
+        //     var conf = Config.GetGuildBanger(Context.Guild.Id);
+        //     string? theActualUrl = null;
+        //     var yt = new YoutubeClient();
+        //     var sb = new StringBuilder().AppendLine("Top Result");
+        //     theActualUrl ??= deezerUrl;
+        //     var isUrlGood = theActualUrl.Contains("deezer.page.link");
+        //
+        //     // check if url is whitelisted
+        //     if (isUrlGood) {
+        //         var deezer = DeezerSession.CreateNew();
+        //
+        //         await deezer.Login("");
+        //         // waiting for Deezer to reopen applications
+        //         // https://developers.deezer.com/myapps
+        //     }
+        // }
     }
 }

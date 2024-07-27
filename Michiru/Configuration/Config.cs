@@ -55,6 +55,10 @@ public static class Config {
                     Spotify = new SpotifyApi {
                         SpotifyClientId = "",
                         SpotifyClientSecret = ""
+                    },
+                    Deezer = new DeezerApi {
+                        DeezerClientId = "",
+                        DeezerClientSecret = ""
                     }
                 }
             }

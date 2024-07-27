@@ -140,6 +140,18 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
             await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
         
+        // [SlashCommand("setdeezerapikeys", "Changes Deezer API keys")]
+        // public async Task SetDeezerApiKey() {
+        //     var modal = new ModalBuilder {
+        //             Title = "Deezer API Keys",
+        //             CustomId = "setdeezerapikey"
+        //         }
+        //         .AddTextInput("Client", "deezclient", required: true, placeholder: "Elly Is", style: TextInputStyle.Short)
+        //         .AddTextInput("Secret", "deezsecret", required: true, placeholder: "Ultra Cute", style: TextInputStyle.Short);
+        //
+        //     await Context.Interaction.RespondWithModalAsync(modal.Build());
+        // }
+        
         [SlashCommand("save", "Saves the current configuration")]
         public async Task Save() {
             Config.SaveFile();
