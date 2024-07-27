@@ -25,7 +25,12 @@ public static class MemberUpdated {
                 stringMsg += $"\nCreate your personal role by running {MarkdownUtils.ToCodeBlockSingleLine("/personalization createrole")} in <#{pm.ChannelId}>\n" +
                              $"You can also update role every {pm.ResetTimer} seconds by running the {MarkdownUtils.ToCodeBlockSingleLine("/personalization updaterole")} command.\n" +
                              $"Choose your choice of HEX color easily by using {MarkdownUtils.MakeLink("this website", "https://html-color.codes/")} and inputing that hex code in the color box.";
-            await user.SendMessageAsync(stringMsg);
+            try {
+                await user.SendMessageAsync(stringMsg);
+            }
+            catch {
+                // silently fail if user has DMs disabled
+            }
         }
         else return;
 
