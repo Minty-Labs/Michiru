@@ -54,7 +54,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("showdetailedembed", "Show Detailed Embed")]
-        public async Task UpdateJoinDetailedEmbed([Summary("Embed", "Show Detailed Embed")] bool value) {
+        public async Task UpdateJoinDetailedEmbed([Summary("Detail", "Show Detailed Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.ShowDetailedEmbed = value;
             Config.Save();
@@ -109,7 +109,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("showdetailedleave", "Show Detailed Embed")]
-        public async Task UpdateLeaveDetailedEmbed([Summary("Embed", "Show Detailed Embed")] bool value) {
+        public async Task UpdateLeaveDetailedEmbed([Summary("Detail", "Show Detailed Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Leave.ShowDetailedEmbed = value;
             Config.Save();

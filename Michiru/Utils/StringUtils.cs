@@ -390,5 +390,4 @@ public static class StringUtils {
             .Replace("{pm.ChannelId}", pmData.ChannelId.ToString())
             .Replace("{pm.Timer}", pmData.ResetTimer.ToString())
             .Replace("<br>", "\n");
-
 }

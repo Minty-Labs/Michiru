@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Discord;
 using Discord.Commands;
 // using fluxpoint_sharp.Responses;
@@ -10,7 +10,7 @@ namespace Michiru.Commands.Prefix;
 [RequireContext(ContextType.Guild)]
 public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketCommandContext> {
     [RequireOwner, Command("exec")]
-    internal async Task InternalExecute_ThisShouldHardlyNeverBeRan(string command) {
+    internal async Task InternalExecute_ThisShouldHardlyEverBeRan(string command) {
         var process = new Process {
             StartInfo = new ProcessStartInfo {
                 FileName = "/bin/bash",
@@ -20,7 +20,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
                 CreateNoWindow = true
             }
         };
-        if (command.Equals("pm2 stop 1"))
+        if (command.Equals("pm2 stop 2"))
             await Context.Client.StopAsync();
         process.Start();
         var output = await process.StandardOutput.ReadToEndAsync();
