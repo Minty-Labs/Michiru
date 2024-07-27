@@ -17,19 +17,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Discord.Net" Version="3.15.2" />
+        <PackageReference Include="Discord.Net" Version="3.15.3" />
         <PackageReference Include="Lib.Harmony" Version="2.3.3" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-        <PackageReference Include="Quartz" Version="3.10.0" />
-        <PackageReference Include="RestSharp" Version="111.3.0" />
+        <PackageReference Include="Quartz" Version="3.11.0" />
+        <PackageReference Include="RestSharp" Version="111.4.0" />
         <PackageReference Include="ScottPlot" Version="5.0.36" />
-        <PackageReference Include="Serilog" Version="4.0.0" />
+        <PackageReference Include="Serilog" Version="4.0.1" />
         <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
         <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" />
-        <PackageReference Include="System.Drawing.Common" Version="8.0.6" />
-        <PackageReference Include="YoutubeExplode" Version="6.3.16" />
+        <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+        <PackageReference Include="YoutubeExplode" Version="6.4.0" />
     </ItemGroup>
 
 </Project>
