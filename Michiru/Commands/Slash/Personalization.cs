@@ -183,6 +183,27 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
             }
             await RespondAsync($"Removed {discordMember.DisplayName}'s personalized role.");
         }
+
+        public static IUser? UserBeingEdited { get; private set; }
+        [SlashCommand("forceupdaterole", "Forces a user's personalized role to be updated"), RequireToBeSpecial]
+        public async Task ForceUpdateUserRole([Summary("User", "User to update")] IUser user) {
+            var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
+            var memberData = personalData.Members!.FirstOrDefault(x => x.userId == user.Id);
+            if (memberData is null) {
+                await RespondAsync("User data does not exist.", ephemeral: true);
+                return;
+            }
+            
+            UserBeingEdited = user;
+            var modal = new ModalBuilder {
+                    Title = "Update User Role",
+                    CustomId = "personalizationadmin_forceupdaterole"
+                }
+                .AddTextInput("Name", "roleName", required: false, placeholder: "A Cool Name (15 characters)", style: TextInputStyle.Short, value: memberData?.roleName)
+                .AddTextInput("Color (Hex)", "colorHex", required: false, placeholder: "#abc123", style: TextInputStyle.Short, value: memberData?.colorHex);
+
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
+        }
         
     }
 }

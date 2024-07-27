@@ -1,6 +1,7 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Discord;
 using Discord.WebSocket;
+using Michiru.Commands.Slash;
 using Michiru.Configuration;
 using Michiru.Configuration.Classes;
 using Michiru.Utils;
@@ -182,6 +183,59 @@ public class ModalProcessor {
         }
         
         await modal.RespondAsync("You do not have a personalized role to update.\nRun `/personalization createrole` to create your role.", ephemeral: true);
+    }
+    
+    [ModalAction("personalizationadmin_forceupdaterole")]
+    private static async Task AdminForceUpdateRole(SocketModal modal) {
+        var targetUser = Personalization.AdminCommands.UserBeingEdited;
+        if (targetUser is null) {
+            await modal.RespondAsync("Invalid Targeted User", ephemeral: true);
+            return;
+        }
+        var components = modal.Data.Components.ToList();
+        var roleName = components.First(x => x.CustomId == "roleName").Value;
+        var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToUpper();
+        
+        if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(colorHexString)) {
+            await modal.RespondAsync("Role Name and/or Color fields cannot be empty.", ephemeral: true);
+            return;
+        }
+        
+        if (colorHexString is "000000" or "#000000")
+            colorHexString = "010101";
+        if (colorHexString is "FFFFFF" or "#FFFFFF")
+            colorHexString = "FEFEFE";
+        
+        var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
+        var personalData = Config.GetGuildPersonalizedMember(guild.Id);
+        var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == targetUser.Id);
+
+        if (guildPersonalizedMember is not null) {
+            var memberRole = guild.GetRole(guildPersonalizedMember.roleId);
+            var newColorString = colorHexString.ValidateHexColor().Left(6);
+            var modifyingName = !string.IsNullOrWhiteSpace(roleName);
+            var modifyingColor = !string.IsNullOrWhiteSpace(colorHexString);
+            await Task.Delay(TimeSpan.FromSeconds(0.5f));
+            if (modifyingName)
+                guildPersonalizedMember.roleName = roleName;
+            if (modifyingColor)
+                guildPersonalizedMember.colorHex = newColorString;
+            guildPersonalizedMember.epochTime = currentEpoch;
+            Config.SaveFile();
+            await memberRole!.ModifyAsync(x => {
+                x.Name = modifyingName ? roleName : memberRole.Name;
+                x.Color = modifyingColor ? Colors.HexToColor(newColorString) : memberRole.Color;
+            }, new RequestOptions {AuditLogReason = "Personalized Member - Admin: " + modal.User.Username + "- Editing: " + targetUser.Username});
+            await modal.RespondAsync("Successfully updated your personalized member role.");
+            // ReSharper disable once RedundantAssignment
+            targetUser = null;
+            return;
+        }
+        
+        await modal.RespondAsync("Targeted user does not have a personal role.", ephemeral: true);
+        // ReSharper disable once RedundantAssignment
+        targetUser = null;
     }
 
     /*[ModalAction("servermemberupdatejoin")]
