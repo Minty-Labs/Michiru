@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Configuration;
@@ -84,19 +84,23 @@ public class ModalProcessor {
     private static async Task CreateRole(SocketModal modal) {
         var components = modal.Data.Components.ToList();
         var roleName = components.First(x => x.CustomId == "roleName").Value;
-        var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToLower();
+        var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToUpper();
         
         if (string.IsNullOrWhiteSpace(colorHexString))
             colorHexString = Colors.RandomColorHex;
+        if (colorHexString is "000000" or "#000000")
+            colorHexString = "010101";
+        if (colorHexString is "FFFFFF" or "#FFFFFF")
+            colorHexString = "FEFEFE";
         
-        var personalData = Config.GetGuildPersonalizedMember((ulong)modal.GuildId!);
+        var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
+        var personalData = Config.GetGuildPersonalizedMember(guild.Id);
         var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == modal.User.Id);
         var newColorString = colorHexString.ValidateHexColor().Left(6);
         var discordColor = newColorString.Length == 6 ? Colors.HexToColor(newColorString) : Colors.HexToColor(Colors.RandomColorHex);
 
         if (guildPersonalizedMember is null) {
-            var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
             var memberRole = await guild.CreateRoleAsync(
                 name: roleName ?? modal.User.Username.Left(15).Trim(), 
                 color: discordColor, 
@@ -128,19 +132,24 @@ public class ModalProcessor {
     private static async Task UpdateRole(SocketModal modal) {
         var components = modal.Data.Components.ToList();
         var roleName = components.First(x => x.CustomId == "roleName").Value;
-        var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToLower();
+        var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToUpper();
         
         if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(colorHexString)) {
             await modal.RespondAsync("You need to provide a new role name or color to update your personalized role.", ephemeral: true);
             return;
         }
         
-        var personalData = Config.GetGuildPersonalizedMember((ulong)modal.GuildId!);
+        if (colorHexString is "000000" or "#000000")
+            colorHexString = "010101";
+        if (colorHexString is "FFFFFF" or "#FFFFFF")
+            colorHexString = "FEFEFE";
+        
+        var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
+        var personalData = Config.GetGuildPersonalizedMember(guild.Id);
         var currentEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var guildPersonalizedMember = personalData.Members!.FirstOrDefault(x => x.userId == modal.User.Id);
 
         if (guildPersonalizedMember is not null) {
-            var guild = Program.Instance.Client.GetGuild((ulong)modal.GuildId!);
             var memberRole = guild.GetRole(guildPersonalizedMember.roleId);
             var newColorString = colorHexString.ValidateHexColor().Left(6);
             var modifyingName = !string.IsNullOrWhiteSpace(roleName);
