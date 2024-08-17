@@ -122,8 +122,8 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
                     Title = "API Key",
                     CustomId = "setapikey"
                 }
-                .AddTextInput("API Type", "apiType", required: true, placeholder: "fluxpoint, cookie, unsplashsecret, unsplashaccess", style: TextInputStyle.Short, value:"fluxpoint")
-                .AddTextInput("Key", "apiKey", required: true, placeholder: "", style: TextInputStyle.Paragraph);
+                .AddTextInput("API Type", "apiType", required: true, placeholder: "fluxpoint, cookie, unsplashsecret, unsplashaccess", style: TextInputStyle.Short)
+                .AddTextInput("Key", "apiKey", required: true, placeholder: StringUtils.GetRandomString(), style: TextInputStyle.Paragraph);
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
@@ -146,13 +146,13 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
         //             Title = "Deezer API Keys",
         //             CustomId = "setdeezerapikey"
         //         }
-        //         .AddTextInput("Client", "deezclient", required: true, placeholder: "Elly Is", style: TextInputStyle.Short)
-        //         .AddTextInput("Secret", "deezsecret", required: true, placeholder: "Ultra Cute", style: TextInputStyle.Short);
+        //         .AddTextInput("Client", "deezclient", required: true, placeholder: "I love", style: TextInputStyle.Short)
+        //         .AddTextInput("Secret", "deezsecret", required: true, placeholder: "My adorable floof", style: TextInputStyle.Short);
         //
         //     await Context.Interaction.RespondWithModalAsync(modal.Build());
         // }
         
-        [SlashCommand("save", "Saves the current configuration")]
+        [SlashCommand("save", "Forcibly saves the current configuration values")]
         public async Task Save() {
             Config.SaveFile();
             await RespondAsync("Configuration Saved", ephemeral: true);

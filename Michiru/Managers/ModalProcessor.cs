@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Commands.Slash;
@@ -41,13 +41,13 @@ public class ModalProcessor {
         var apiKey = components.First(x => x.CustomId == "apiKey").Value;
         
         switch (apiType) {
-            // case "flux":
-            // case "fluxpoint":
-            //     Config.Base.Api.ApiKeys.FluxpointApiKey = apiKey;
-            //     Config.Save();
-            //     Program.Instance.FluxpointClient = new fluxpoint_sharp.FluxpointClient(Vars.Name, apiKey);
-            //     await modal.RespondAsync("Fluxpoint API Key set!");
-            //     break;
+            case "flux":
+            case "fluxpoint":
+                Config.Base.Api.ApiKeys.FluxpointApiKey = apiKey;
+                Config.Save();
+                // Program.Instance.FluxpointClient = new fluxpoint_sharp.FluxpointClient(Vars.Name, apiKey);
+                await modal.RespondAsync("Fluxpoint API Key set!\nNo library found for this API key to be used.");
+                break;
             case "cookie":
                 Config.Base.Api.ApiKeys.CookieClientApiKey = apiKey;
                 Config.Save();
@@ -147,10 +147,10 @@ public class ModalProcessor {
         var roleName = components.First(x => x.CustomId == "roleName").Value;
         var colorHexString = components.First(x => x.CustomId == "colorHex").Value.ToUpper();
         
-        if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(colorHexString)) {
-            await modal.RespondAsync("You need to provide a new role name or color to update your personalized role.", ephemeral: true);
-            return;
-        }
+        // if (string.IsNullOrWhiteSpace(roleName) && string.IsNullOrWhiteSpace(colorHexString)) {
+        //     await modal.RespondAsync("You need to provide a new role name or color to update your personalized role.", ephemeral: true);
+        //     return;
+        // }
         
         if (colorHexString is "000000" or "#000000")
             colorHexString = "010101";

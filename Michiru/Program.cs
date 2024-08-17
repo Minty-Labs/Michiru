@@ -223,8 +223,9 @@ public class Program {
             .AddField("Bangers", $"{Config.GetBangerNumber()}", true)
             .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
             .AddField("Start Time", $"{UtcNow.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{UtcNow.ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
-            .AddField("Discord.NET Version", Vars.DNetVer, true)
+            .AddField("Target .NET Version", Vars.DotNetTargetVersion, true)
             .AddField("System .NET Version", Environment.Version, true)
+            .AddField("Discord.NET Version", Vars.DNetVer, true)
             .Build();
 
         if (!conf.ErrorLogsChannel.IsZero())

@@ -7,8 +7,12 @@ using Serilog;
 namespace Michiru.Events;
 
 public static class MemberUpdated {
-    internal static async Task MemberJoin(SocketGuildUser user) {
+    internal static async Task MemberJoin(SocketGuildUser? user) {
         var logger = Log.ForContext("SourceContext", "EVENT:MemberJoin");
+        if (user is null) {
+            logger.Error("User is null");
+            return;
+        }
         var guild = user.Guild;
         var config = Config.GetGuildFeature(guild.Id);
         if (!config.Join.Enable) return;

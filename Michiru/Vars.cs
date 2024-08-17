@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord.WebSocket;
 
 namespace Michiru;
@@ -19,4 +19,5 @@ public static class Vars {
     public const string SupportServer = "https://discord.gg/Qg9eVB34sq";
     public const ulong SupportServerId = 1083619886980403272;
     public static readonly string BotUserAgent = $"Mozilla/5.0 {(IsWindows ? "(Windows NT 10.0; Win64; x64; rv:115.0)" : "(X11; Linux x86_64)")} (compatible; {Name}/{VersionObj.ToString(3)}; +https://discordapp.com)";
+    public static string DotNetTargetVersion => "8.0.8";
 }

@@ -22,31 +22,31 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
 
         var embed = new EmbedBuilder {
                 Title = $"{Context.Guild.Name} ({Context.Guild.Id})",
-                ThumbnailUrl = Context.Guild.IconUrl ?? "https://i.mintlily.lgbt/null.jpg",
+                ThumbnailUrl = Context.Guild.IconUrl ?? "https://img.mili.lgbt/null.jpg",
                 Footer = new EmbedFooterBuilder {
-                    Text = $"Michiru Bot | v{Vars.VersionStr}"
+                    Text = $"Michiru Bot • v{Vars.VersionStr}"
                 },
                 Color = Context.Guild.Roles.ElementAt(new Random().Next(Context.Guild.Roles.Count)).Color
             }
-            .AddField("Owner", $"{Context.Guild.Owner.Mention}", true)
+            .AddField("Owner", $"{Context.Guild.Owner.Mention}")
             //.AddField("Admins", $"{string.Join(", ", Context.Guild.Users.Where(x => x.GuildPermissions.Administrator && x.Id != Context.Guild.OwnerId).Select(x => x.Mention))[..256]}", true)
+            .AddField("Created At", $"{Context.Guild.CreatedAt.UtcDateTime.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}")
             .AddField("Members", $"{Context.Guild.MemberCount}", true)
-            .AddField("Created At", $"{Context.Guild.CreatedAt.UtcDateTime.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}", true)
-            .AddField("Roles", $"{Context.Guild.Roles.Count}")
+            .AddField("Roles", $"{Context.Guild.Roles.Count}", true)
             .AddField("Bot Features",
                 $"{(pmData.Enabled ? check.ToString() : uncheck.ToString())} Personalized Roles\n" +
-                    $"{transparent} in {(pmData.ChannelId == 0 ? "`(no set channel)`" : $"<#{pmData.ChannelId}>")}\n" +
+                    $"{transparent} in {(pmData.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{pmData.ChannelId}>")}\n" +
                 
                 $"{(bangerData.Enabled ? check.ToString() : uncheck.ToString())} Banger System\n" +
-                    $"{transparent} in {(bangerData.ChannelId == 0 ? "`(no set channel)`" : $"<#{bangerData.ChannelId}>")}\n" +
+                    $"{transparent} in {(bangerData.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{bangerData.ChannelId}>")}\n" +
                 
                 $"{(guildFeatures.Join.Enable ? check.ToString() : uncheck.ToString())} Member Join Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? "`(no set channel)`" : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
+                    $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
                     $"{transparent} {(guildFeatures.Join.DmWelcomeMessage ? check.ToString() : uncheck.ToString())} DM Message\n" +
                     $"{transparent} {(guildFeatures.Join.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
                 
                 $"{(guildFeatures.Leave.Enable ? check.ToString() : uncheck.ToString())} Member Leave Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? "`(no set channel)`" : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
+                    $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
                     $"{transparent} {(guildFeatures.Leave.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
                 
                 $"{(isPennyGuild ? check + " Guild Update Notices" : "")}");
