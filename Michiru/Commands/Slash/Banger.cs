@@ -281,7 +281,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                         var title = firstEntry.Title;
                         var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
                         sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                        sb.AppendLine(MarkdownUtils.ToSubText(MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url, true)) + " \u2197");
+                        sb.AppendLine(MarkdownUtils.ToSubText(MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197");
                         //     break;
                         // }
 
