@@ -6,6 +6,7 @@ using Michiru.Events;
 using Michiru.Managers;
 using Michiru.Utils;
 using Michiru.Utils.ThirdPartyApiJsons;
+using Michiru.Utils.ThirdPartyApiJsons.Spotify;
 using Serilog;
 
 namespace Michiru.Commands.ContextMenu;

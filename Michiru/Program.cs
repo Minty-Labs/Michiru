@@ -152,9 +152,9 @@ public class Program {
         Client.MessageReceived += BangerListener.BangerListenerEvent;
         Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
-        Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
         Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
         Client.UserLeft += MemberUpdated.MemberLeave;  // this finally works
+        Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
 
         var serviceCollection = new ServiceCollection();
         _modalProcessor = new ModalProcessor();

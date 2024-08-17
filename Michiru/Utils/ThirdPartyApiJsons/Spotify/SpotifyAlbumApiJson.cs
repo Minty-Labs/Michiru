@@ -1,10 +1,9 @@
-﻿using Discord.WebSocket;
-using Michiru.Configuration;
+﻿using Michiru.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 
-namespace Michiru.Utils.ThirdPartyApiJsons;
+namespace Michiru.Utils.ThirdPartyApiJsons.Spotify;
 
 public class SpotifyAlbumApiJson {
     private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyAlbumApiJson");

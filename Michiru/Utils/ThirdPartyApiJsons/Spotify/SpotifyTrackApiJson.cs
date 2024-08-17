@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 
-namespace Michiru.Utils.ThirdPartyApiJsons;
+namespace Michiru.Utils.ThirdPartyApiJsons.Spotify;
 
 public class SpotifyTrackApiJson {
     private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyTrackApiJson");

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
@@ -7,6 +7,7 @@ using Michiru.Events;
 using Michiru.Managers;
 using Michiru.Utils;
 using Michiru.Utils.ThirdPartyApiJsons;
+using Michiru.Utils.ThirdPartyApiJsons.Spotify;
 using Serilog;
 using YoutubeExplode;
 using YoutubeExplode.Common;
