@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Discord;
 using Discord.WebSocket;
 using Michiru.Commands.Slash;
@@ -227,7 +227,8 @@ public class ModalProcessor {
                 x.Name = modifyingName ? roleName : memberRole.Name;
                 x.Color = modifyingColor ? Colors.HexToColor(newColorString) : memberRole.Color;
             }, new RequestOptions {AuditLogReason = "Personalized Member - Admin: " + modal.User.Username + "- Editing: " + targetUser.Username});
-            await modal.RespondAsync("Successfully updated your personalized member role.");
+            var guildUser = targetUser as IGuildUser;
+            await modal.RespondAsync($"Successfully updated {(guildUser is null ? targetUser.Username : guildUser.DisplayName)}'s personalized member role.");
             // ReSharper disable once RedundantAssignment
             targetUser = null;
             return;
