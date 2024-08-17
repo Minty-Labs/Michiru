@@ -3,7 +3,7 @@
 public static class MarkdownUtils {
     #region Complex Markdown
 
-    public static string MakeLink(string text, string url) => $"[{text}]({url})";
+    public static string MakeLink(string text, string url, bool hideEmbed = false) => $"[{text}]({(hideEmbed ? $"<{url}>" : url)})";
 
     #endregion
 

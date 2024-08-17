@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
@@ -277,8 +277,11 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
                         // foreach (var result in videos) {
                         //     if (result.Title.OrContainsMultiple("bass boosted", "")) continue;
-                        sb.Append($"{MarkdownUtils.MakeLink($"{videos[0].Author} - {videos[0].Title}", videos[0].Url)}");
-                        sb.Append($" [<{videos[0].Url}>]");
+                        var firstEntry = videos[0];
+                        var title = firstEntry.Title;
+                        var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+                        sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+                        sb.AppendLine(MarkdownUtils.ToSubText(MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url, true)) + " \u2197");
                         //     break;
                         // }
 
