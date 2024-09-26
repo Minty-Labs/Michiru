@@ -26,7 +26,12 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
             embed.AddField("Owner Commands", MarkdownUtils.ToCodeBlockMultiline("-exec <command>\n/setapikey") +
                                              "*Only available in Minty Labs guild*\n" +
                                              MarkdownUtils.ToCodeBlockMultiline("/config rotatingstatus <enable/disable/list/next>\n" +
-                                                                                    "/config modifyrotatingstatus <add/update/remove> <activityType> <userStatus> <activityText>"));
+                                                                                    "/config modifyrotatingstatus <add/update/remove> <activityType> <userStatus> <activityText>\n" +
+                                                                                    "-wol <deviceIdentifier>\n" +
+                                                                                    "-addwol <deviceIdentifier> <portNumber> <ipAddress> <macAddress>\n" +
+                                                                                    "-pingwol <deviceIdentifier>\n" +
+                                                                                    "-listwol\n" +
+                                                                                    "-remove <deviceIdentifier>"));
         }
 
         if (Config.Base.Banger.Any(x => x.GuildId == Context.Guild.Id) && Context.User.IsSpecial(Context.Guild) || Context.User.IsBotOwner()) {

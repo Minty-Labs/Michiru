@@ -61,7 +61,15 @@ public static class Config {
                         DeezerClientSecret = ""
                     }
                 }
-            }
+            },
+            WakeOnLan = [
+                new WakeOnLanConf {
+                    DeviceIdentifier = "NULL",
+                    PortNumber = 0,
+                    MacAddress = "00:00:00:00:00:00",
+                    IpAddress = "192.168.1.0"
+                }
+            ]
         };
         
         bool update;

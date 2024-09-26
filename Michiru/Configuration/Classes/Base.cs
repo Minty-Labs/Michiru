@@ -20,4 +20,5 @@ public class Base {
     // [JsonPropertyName("Penny's Guild History")] public List<PennysGuildWatcher> PennysGuildHistory { get; set; } = [];
     // [JsonPropertyName("GiveAways")] public List<GiveAway> GiveAways { get; set; } = [];
     [JsonPropertyName("Api")] public Api Api { get; init; } = new();
+    [JsonPropertyName("Wake On Lan")] public List<WakeOnLanConf> WakeOnLan { get; init; } = [];
 }

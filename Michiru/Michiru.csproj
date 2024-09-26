@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -33,6 +33,10 @@
 
     <ItemGroup>
       <Folder Include="Utils\ThirdPartyApiJsons\Deezer\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WakeOnLanCSharp\WakeOnLanCSharp.csproj" />
     </ItemGroup>
 
 </Project>

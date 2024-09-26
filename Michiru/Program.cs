@@ -161,6 +161,7 @@ public class Program {
 
         await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
         await Commands.AddModuleAsync<HelpCmd>(null);
+        await Commands.AddModuleAsync<WakeOnLanCmds>(null);
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
