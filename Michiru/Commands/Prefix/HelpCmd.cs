@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
 using static Michiru.Commands.Preexecution.UserExtensions;
 
@@ -52,7 +53,9 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                                                                                            "/banger listeverything - Lists all URLs and file extensions\n" +
                                                                                            "/banger getbangercount - Gets the number of bangers submitted in this guild\n" +
                                                                                            "/banger offertoreplace - Automatically offer to replace Spotify track with a YouTube link\n" +
-                                                                                           "/banger lookupspotifyonyoutube - Looks up Spotify song data on YouTube"));
+                                                                                           "/banger lookupspotifyonyoutube - Looks up a Spotify song's data on YouTube\n" +
+                                                                                         //"/banger lookupdeezeronyoutube - Looks up a Deezer song's data on YouTube\n" +
+                                                                                           "/banger lookuptidalonyoutube - Looks up a Tidal song's data on YouTube"));
         }
 
         if (Config.Base.PersonalizedMember.Any(x => x.Guilds!.Any(y => y.GuildId == Context.Guild.Id)) || Context.User.IsBotOwner()) {

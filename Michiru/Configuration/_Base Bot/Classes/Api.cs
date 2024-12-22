@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-namespace Michiru.Configuration.Classes;
+
+namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class Api {
     [JsonPropertyName("API Keys")] public ApiKeys ApiKeys { get; set; } = new();
@@ -12,6 +13,7 @@ public class ApiKeys {
     [JsonPropertyName("FluxpointAPI Key")] public string? FluxpointApiKey { get; set; } = "";
     [JsonPropertyName("Spotify")] public SpotifyApi Spotify { get; init; } = new();
     [JsonPropertyName("Deezer")] public DeezerApi Deezer { get; init; } = new();
+    [JsonPropertyName("Tidal")] public TidalApi Tidal { get; init; } = new();
 }
 
 public class SpotifyApi {
@@ -22,4 +24,9 @@ public class SpotifyApi {
 public class DeezerApi {
     [JsonPropertyName("Deezer Client ID")] public string? DeezerClientId { get; set; } = "";
     [JsonPropertyName("Deezer Client Secret")] public string? DeezerClientSecret { get; set; } = "";
+}
+
+public class TidalApi {
+    [JsonPropertyName("Tidal Client ID")] public string? TidalClientId { get; set; } = "";
+    [JsonPropertyName("Tidal Client Secret")] public string? TidalClientSecret { get; set; } = "";
 }

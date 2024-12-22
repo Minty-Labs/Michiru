@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using Discord;
 using Discord.Interactions;
-using Michiru.Configuration;
-using Michiru.Configuration.Classes;
-using Michiru.Managers;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration._Base_Bot.Classes;
 using Michiru.Utils;
 
 namespace Michiru.Commands.Slash;
@@ -151,6 +150,18 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
         //
         //     await Context.Interaction.RespondWithModalAsync(modal.Build());
         // }
+        
+        [SlashCommand("settidalapikeys", "Changes Tidal API keys")]
+        public async Task SetTidalApiKey() {
+            var modal = new ModalBuilder {
+                    Title = "Tidal API Keys",
+                    CustomId = "settidalapikey"
+                }
+                .AddTextInput("Client", "tidalclient", required: true, placeholder: "I love", style: TextInputStyle.Short)
+                .AddTextInput("Secret", "tidalsecret", required: true, placeholder: "My adorable floof", style: TextInputStyle.Short);
+
+            await Context.Interaction.RespondWithModalAsync(modal.Build());
+        }
         
         [SlashCommand("save", "Forcibly saves the current configuration values")]
         public async Task Save() {

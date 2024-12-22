@@ -3,11 +3,10 @@ using AngleSharp.Common;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Managers;
 using Michiru.Utils;
-using Michiru.Utils.ThirdPartyApiJsons;
-using Michiru.Utils.ThirdPartyApiJsons.Spotify;
+using Michiru.Utils.MusicProviderApis.Spotify;
 using Serilog;
 using YoutubeExplode;
 using YoutubeExplode.Common;
@@ -62,7 +61,7 @@ public static class BangerListener {
                     var finalId = theActualUrl;
                     if (theActualUrl.Contains('?')) 
                         finalId = theActualUrl.Split('?')[0];
-                    var album = await SpotifyAlbumApiJson.GetAlbumData(finalId.Split('/').Last());
+                    var album = await GetAlbumResults.GetAlbumData(finalId.Split('/').Last());
                     conf.SubmittedBangers += album!.total_tracks;
                     doSpotifyAlbumCount = true;
                     await Program.Instance.GeneralLogChannel!.SendMessageAsync($"{guild.Name} Bangers: Added {album.total_tracks} bangers from Spotify album {album.name} in channel <#{messageArg.Channel.Id}>");
@@ -195,7 +194,7 @@ public static class BangerListener {
             }); 
             var yt = new YoutubeClient();
             var sb = new StringBuilder();
-            var spotifyTrack = await SpotifyTrackApiJson.GetTrackData(currentData.OriginalPostedSocketMessage.Content.Split('/').Last());
+            var spotifyTrack = await GetTrackResults.GetTrackData(currentData.OriginalPostedSocketMessage.Content.Split('/').Last());
 
             var videos = await yt.Search.GetVideosAsync($"{spotifyTrack!.artists[0].name} {spotifyTrack.name}");
             for (var i = 0; i < 5; i++) {
