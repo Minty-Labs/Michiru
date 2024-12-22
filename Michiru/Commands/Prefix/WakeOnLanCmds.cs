@@ -1,12 +1,12 @@
 ﻿using System.Net.NetworkInformation;
 using System.Text;
 using Discord.Commands;
-using Michiru.Configuration;
-using Michiru.Configuration.Classes;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration._Base_Bot.Classes;
 
 namespace Michiru.Commands.Prefix;
 
-[RequireContext(ContextType.Guild)]
+[RequireContext(ContextType.Guild | ContextType.DM)]
 public class WakeOnLanCmds : ModuleBase<SocketCommandContext> {
     [Command("wol"), RequireOwner]
     public async Task WakeOnLan(string deviceIdentifier) {
