@@ -59,6 +59,10 @@ public class Program {
 
     private async Task MainAsync() {
         Config.Initialize();
+        try {
+            ModData.Initialize();
+        }
+        catch {/**/}
         if (string.IsNullOrWhiteSpace(Config.Base.BotToken)) {
             Console.Title = $"{Vars.Name} | Enter your bot token";
             Console.Write("Please enter your bot token: ");
@@ -163,6 +167,8 @@ public class Program {
         await Commands.AddModuleAsync<HelpCmd>(null);
         await Commands.AddModuleAsync<WakeOnLanCmds>(null);
         await Commands.AddModuleAsync<DAndD>(null);
+        await Commands.AddModuleAsync<Moderation>(null);
+        
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
