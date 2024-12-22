@@ -1,14 +1,13 @@
-﻿using System.Text;
+﻿/*using System.Text;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Michiru.Commands.Preexecution;
-using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Events;
 using Michiru.Managers;
 using Michiru.Utils;
-using Michiru.Utils.ThirdPartyApiJsons;
-using Michiru.Utils.ThirdPartyApiJsons.Spotify;
+using Michiru.Utils.MusicProviderApis.Spotify;
 using Serilog;
 using YoutubeExplode;
 using YoutubeExplode.Common;
@@ -37,7 +36,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
         
         await DeferAsync(true);
         var isMessageFromWithinGuild = message.Channel is IGuildChannel;
-        Configuration.Classes.Banger? conf = null;
+        Configuration._Base_Bot.Classes.Banger? conf = null;
         // Emote? upVote = null;
         // Emote? downVote = null;
         if (isMessageFromWithinGuild) {
@@ -66,7 +65,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
                     var finalId = theActualUrl;
                     if (theActualUrl.Contains('?')) 
                         finalId = theActualUrl.Split('?')[0];
-                    var album = await SpotifyAlbumApiJson.GetAlbumData(finalId.Split('/').Last());
+                    var album = await GetAlbumResults.GetAlbumData(finalId.Split('/').Last());
                     // numberToAdd = album!.total_tracks;
                     doSpotifyAlbumCount = true;
                     var videos = yt.Search.GetVideosAsync($"{album!.artists[0].name} {album.name}").GetAwaiter().GetResult();
@@ -96,7 +95,7 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
                         var finalId = theActualUrl;
                         if (theActualUrl.Contains('?')) 
                             finalId = theActualUrl.Split('?')[0];
-                        var track = await SpotifyTrackApiJson.GetTrackData(finalId.Split('/').Last());
+                        var track = await GetTrackResults.GetTrackData(finalId.Split('/').Last());
                         // numberToAdd = 1;
                         
                         var videos = yt.Search.GetVideosAsync($"{track!.artists[0].name} {track.name}").GetAwaiter().GetResult();
@@ -139,4 +138,4 @@ public class LookupSpotifyForYouTube : InteractionModuleBase<SocketInteractionCo
             await ModifyOriginalResponseAsync(x => x.Content = "URL is not whitelisted for Spotify lookup.");
         }
     }
-}
+}*/

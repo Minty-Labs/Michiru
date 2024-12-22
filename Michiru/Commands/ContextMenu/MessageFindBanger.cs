@@ -1,12 +1,11 @@
-﻿using Discord;
+﻿/*using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
-using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Events;
 using Michiru.Managers;
 using Michiru.Utils;
-using Michiru.Utils.ThirdPartyApiJsons;
-using Michiru.Utils.ThirdPartyApiJsons.Spotify;
+using Michiru.Utils.MusicProviderApis.Spotify;
 using Serilog;
 
 namespace Michiru.Commands.ContextMenu;
@@ -37,12 +36,29 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
         // check if url is whitelisted
         if (isUrlGood) {
             BangerListener.BangerMessageIds.Add(message.Id);
+
+            var provider = "none";
+            if (contents.Contains("spotify.com"))
+                provider = "Spotify";
+            else if (contents.Contains("youtube.com"))
+                provider = "YouTube";
+            else if (contents.Contains("tidal.com"))
+                provider = "Tidal";
+            else if (contents.Contains("deezer.page"))
+                provider = "Deezer";
+            else if (contents.Contains("bandcamp.com"))
+                provider = "Bandcamp";
+            else if (contents.Contains("music.apple.com"))
+                provider = "Apple Music";
+            else if (contents.Contains("soundcloud.com"))
+                provider = "Soundcloud";
+            
             // try to get album data from spotify
             try {
-                if (contents.Contains("spotify.com") && contents.Contains("album")) {
+                if (provider == "Spotify" && contents.Contains("album")) {
                     BangerLogger.Information("Found URL to be a Spotify Album");
                     var entryId = contents.Split('/').Last();
-                    var album = await SpotifyAlbumApiJson.GetAlbumData(entryId);
+                    var album = await GetAlbumResults.GetAlbumData(entryId);
                     if (isMessageFromWithinGuild)
                         conf!.SubmittedBangers += album!.total_tracks;
                     else
@@ -73,4 +89,4 @@ public class MessageFindBanger : InteractionModuleBase<SocketInteractionContext>
                                                            $"Error: `{errorCode}`");
         await ErrorSending.SendErrorToLoggingChannelAsync("Banger URL not whitelisted", obj: $"Error: {errorCode}\nURL: {contents}\nMessage Contents: {message.Content}");
     }
-}
+}*/
