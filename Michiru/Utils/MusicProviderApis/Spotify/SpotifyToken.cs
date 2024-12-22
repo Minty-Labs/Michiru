@@ -1,4 +1,4 @@
-﻿namespace Michiru.Utils.ThirdPartyApiJsons.Spotify;
+﻿namespace Michiru.Utils.MusicProviderApis.Spotify;
 
 public class SpotifyToken {
     public string access_token { get; set; }

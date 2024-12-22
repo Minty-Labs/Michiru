@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
-using Michiru.Configuration.Classes;
+using Michiru.Configuration._Base_Bot.Classes;
 using Serilog;
 
-namespace Michiru.Configuration; 
+namespace Michiru.Configuration._Base_Bot; 
 
 public static class Config {
     public static Base Base { get; private set; }
@@ -11,7 +11,7 @@ public static class Config {
 
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
-        var hasFile = File.Exists(file);;
+        var hasFile = File.Exists(file);
         
         var rotatingStatus = new RotatingStatus {
             Enabled = false,
@@ -59,6 +59,10 @@ public static class Config {
                     Deezer = new DeezerApi {
                         DeezerClientId = "",
                         DeezerClientSecret = ""
+                    },
+                    Tidal = new TidalApi {
+                        TidalClientId = "",
+                        TidalClientSecret = ""
                     }
                 }
             },
@@ -114,14 +118,22 @@ public static class Config {
     public static PmGuildData GetGuildPersonalizedMember(ulong id) {
         var pm = Base.PersonalizedMember!.FirstOrDefault(p => p.Guilds!.Any(g => g.GuildId == id));
         if (pm is not null) return pm.Guilds!.First(g => g.GuildId == id);
-        pm = new PersonalizedMember {Guilds = new List<PmGuildData> {new() {GuildId = id}}};
+        pm = new PersonalizedMember {Guilds = [new PmGuildData { GuildId = id }] };
         Base.PersonalizedMember!.Add(pm);
         Save();
         return pm.Guilds!.First();
     }
     
+    /// <summary>
+    /// Gets the sum of all submitted bangers from all guilds
+    /// </summary>
+    /// <returns></returns>
     public static int GetBangerNumber() => Base.Banger.Sum(guild => guild.SubmittedBangers) + Base.ExtraBangerCount;
 
+    /// <summary>
+    /// Gets the sum of all personalized members from all guilds
+    /// </summary>
+    /// <returns></returns>
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
     
     public static void FixBangerNulls() {
@@ -145,13 +157,4 @@ public static class Config {
         SaveFile();
         return guild;
     }
-    
-    /*public static GiveAway GetGuildGiveAway(ulong id) {
-        var giveAway = Base.GiveAways!.FirstOrDefault(g => g.GuildId == id);
-        if (giveAway is not null) return giveAway;
-        giveAway = new GiveAway {GuildId = id};
-        Base.GiveAways!.Add(giveAway);
-        Save();
-        return giveAway;
-    }*/
 }

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using Michiru.Configuration._Base_Bot.Classes;
 
-namespace Michiru.Configuration.Classes;
+namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class Base {
     public int ConfigVersion { get; set; } = 1;

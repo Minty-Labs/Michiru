@@ -1,4 +1,4 @@
-﻿namespace Michiru.Configuration.Classes; 
+﻿namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class PennysGuildWatcher {
     public ulong GuildId { get; set; } = 977705960544014407;

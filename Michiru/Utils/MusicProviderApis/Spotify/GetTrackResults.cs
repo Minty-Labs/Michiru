@@ -1,16 +1,13 @@
-﻿using Michiru.Configuration;
+﻿using Michiru.Configuration._Base_Bot;
 using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 
-namespace Michiru.Utils.ThirdPartyApiJsons.Spotify;
+namespace Michiru.Utils.MusicProviderApis.Spotify;
 
-public class SpotifyTrackApiJson {
+public class GetTrackResults {
     private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyTrackApiJson");
     private const string TrackApiUrl = "https://api.spotify.com/v1/tracks/";
-    private const string AccountApiUrl = "https://accounts.spotify.com/api/token";
-    private static string? BearerToken { get; set; }
-    private static DateTime TokenExpiration { get; set; }
 
     public static async Task<Root?> GetTrackData(string trackId) {
         if (string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.Spotify.SpotifyClientId) || string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret)) {
@@ -19,46 +16,28 @@ public class SpotifyTrackApiJson {
             return null;
         }
 
-        if (DateTime.UtcNow > TokenExpiration) {
-            // Refresh token
-            var http = new RestClient();
-            http.AddDefaultHeaders(new Dictionary<string, string> {
-                { "Content-Type", "application/x-www-form-urlencoded" },
-                // { "User-Agent", Vars.BotUserAgent },
-            });
-            var request = new RestRequest(AccountApiUrl, Method.Post);
-            // request.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Config.Base.Api.ApiKeys.Spotify.SpotifyClientId}:{Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret}"))}");
-            request.AddParameter("grant_type", "client_credentials", ParameterType.GetOrPost);
-            request.AddParameter("client_id", Config.Base.Api.ApiKeys.Spotify.SpotifyClientId!, ParameterType.GetOrPost);
-            request.AddParameter("client_secret", Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret!, ParameterType.GetOrPost);
-            var response = http.Execute<SpotifyToken>(request);
-            var jsonData = JsonConvert.DeserializeObject<SpotifyToken>(response.Content!);
-            if (response.Content != null) {
-                BearerToken = jsonData!.access_token;
-                TokenExpiration = DateTime.UtcNow.AddSeconds(jsonData!.expires_in);
-            }
-            else {
-                return null;
-            }
+        if (DateTime.UtcNow > CheckAuthToken.TokenExpiration)
+            await CheckAuthToken.UpdateBearerToken();
 
-            await Task.Delay(TimeSpan.FromSeconds(1.5f));
-        }
+        await Task.Delay(TimeSpan.FromSeconds(1.5f));
 
         // relay track data
-        var http2 = new RestClient();
-        http2.AddDefaultHeaders(new Dictionary<string, string> {
+        var restClient = new RestClient();
+        restClient.AddDefaultHeaders(new Dictionary<string, string> {
             { "Content-Type", "application/json" },
-            // { "User-Agent", Vars.BotUserAgent },
-            { "Authorization", $"Bearer {BearerToken}" }
+            { "Authorization", $"Bearer {CheckAuthToken.BearerToken}" }
         });
         var finalId = trackId;
         if (trackId.Contains('?')) 
             finalId = trackId.Split('?')[0];
-        var request2 = new RestRequest($"{TrackApiUrl}{finalId}", Method.Get);
-        var response2 = http2.Execute<Root>(request2);
-        return JsonConvert.DeserializeObject<Root>(response2.Content!);
+        
+        var restRequest = new RestRequest($"{TrackApiUrl}{finalId}", Method.Get);
+        var restResponse = restClient.Execute<Root>(restRequest);
+        return JsonConvert.DeserializeObject<Root>(restResponse.Content!);
     }
 }
+
+#region local json api results
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 public class Album2 {
@@ -119,3 +98,5 @@ public class Root2 {
     public string type { get; set; }
     public string uri { get; set; }
 }
+
+#endregion

@@ -1,4 +1,4 @@
-﻿namespace Michiru.Configuration.Classes;
+﻿namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class WakeOnLanConf {
     public string DeviceIdentifier { get; init; }

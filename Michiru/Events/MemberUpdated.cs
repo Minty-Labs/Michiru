@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
 using Serilog;
 

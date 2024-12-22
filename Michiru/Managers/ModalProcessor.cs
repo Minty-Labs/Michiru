@@ -2,8 +2,8 @@
 using Discord;
 using Discord.WebSocket;
 using Michiru.Commands.Slash;
-using Michiru.Configuration;
-using Michiru.Configuration.Classes;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration._Base_Bot.Classes;
 using Michiru.Utils;
 using Serilog;
 
@@ -92,6 +92,18 @@ public class ModalProcessor {
     //     Config.SaveFile();
     //     await modal.RespondAsync("Deezer API Keys set!", ephemeral: true);
     // }
+    
+    [ModalAction("settidalapikeys")]
+    private static async Task SetTidalApiKey(SocketModal modal) {
+        var components = modal.Data.Components.ToList();
+        var spotClient = components.First(x => x.CustomId == "tidalclient").Value;
+        var spotSecret = components.First(x => x.CustomId == "tidalsecret").Value;
+        
+        Config.Base.Api.ApiKeys.Tidal.TidalClientId = spotClient;
+        Config.Base.Api.ApiKeys.Tidal.TidalClientSecret = spotSecret;
+        Config.SaveFile();
+        await modal.RespondAsync("Tidal API Keys set!", ephemeral: true);
+    }
 
     [ModalAction("personalization_createrole")]
     private static async Task CreateRole(SocketModal modal) {

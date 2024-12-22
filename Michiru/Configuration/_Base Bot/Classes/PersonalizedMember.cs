@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-namespace Michiru.Configuration.Classes;
+
+namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class PersonalizedMember {
     public List<PmGuildData>? Guilds { get; set; } = [];

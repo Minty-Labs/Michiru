@@ -1,8 +1,8 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
-using Michiru.Configuration;
-using Michiru.Configuration.Classes;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration._Base_Bot.Classes;
 using Michiru.Utils;
 
 namespace Michiru.Commands.Slash; 
@@ -10,7 +10,9 @@ namespace Michiru.Commands.Slash;
 public class Personalization : InteractionModuleBase<SocketInteractionContext> {
     private static bool _IsInChannel(SocketInteractionContext context, ulong guildId) => context.Channel.Id == Config.GetGuildPersonalizedMember(guildId).ChannelId;
 
-    [Group("personalization", "Personalized Members Commands"), IntegrationType(ApplicationIntegrationType.GuildInstall), CommandContextType(InteractionContextType.Guild)]
+    [Group("personalization", "Personalized Members Commands"),
+     IntegrationType(ApplicationIntegrationType.GuildInstall),
+     CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
 
         [SlashCommand("createrole", "Creates a personalized role for you")]
@@ -98,7 +100,9 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
         }
     }
 
-    [Group("personalizationadmin", "Personalized Members Admin Commands"), IntegrationType(ApplicationIntegrationType.GuildInstall)]
+    [Group("personalizationadmin", "Personalized Members Admin Commands"),
+     IntegrationType(ApplicationIntegrationType.GuildInstall),
+     CommandContextType(InteractionContextType.Guild)]
     public class AdminCommands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("toggle", "Toggles the personalized members system"), RequireToBeSpecial]

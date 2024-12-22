@@ -1,61 +1,39 @@
-﻿using Michiru.Configuration;
+﻿using Michiru.Configuration._Base_Bot;
 using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 
-namespace Michiru.Utils.ThirdPartyApiJsons.Spotify;
+namespace Michiru.Utils.MusicProviderApis.Spotify;
 
-public class SpotifyAlbumApiJson {
+public class GetAlbumResults {
     private static readonly ILogger Logger = Log.ForContext("SourceContext", "SpotifyAlbumApiJson");
     private const string AlbumApiUrl = "https://api.spotify.com/v1/albums/";
-    private const string AccountApiUrl = "https://accounts.spotify.com/api/token";
-    private static string? BearerToken { get; set; }
-    private static DateTime TokenExpiration { get; set; }
 
     public static async Task<Root?> GetAlbumData(string albumUrlId) {
         if (string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.Spotify.SpotifyClientId) || string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret)) {
-            // await Program.Instance.ErrorLogChannel!.SendMessageAsync("[GetAlbumData] Spotify API Keys are not set!");
             Logger.Error("[GetAlbumData] Spotify API Keys are not set!");
             return null;
         }
 
-        if (DateTime.UtcNow > TokenExpiration) {
-            // Refresh token
-            var http = new RestClient();
-            http.AddDefaultHeaders(new Dictionary<string, string> {
-                { "Content-Type", "application/x-www-form-urlencoded" },
-                // { "User-Agent", Vars.BotUserAgent },
-            });
-            var request = new RestRequest(AccountApiUrl, Method.Post);
-            // request.AddHeader("Authorization", $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Config.Base.Api.ApiKeys.Spotify.SpotifyClientId}:{Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret}"))}");
-            request.AddParameter("grant_type", "client_credentials", ParameterType.GetOrPost);
-            request.AddParameter("client_id", Config.Base.Api.ApiKeys.Spotify.SpotifyClientId!, ParameterType.GetOrPost);
-            request.AddParameter("client_secret", Config.Base.Api.ApiKeys.Spotify.SpotifyClientSecret!, ParameterType.GetOrPost);
-            var response = http.Execute<SpotifyToken>(request);
-            var jsonData = JsonConvert.DeserializeObject<SpotifyToken>(response.Content!);
-            if (response.Content != null) {
-                BearerToken = jsonData!.access_token;
-                TokenExpiration = DateTime.UtcNow.AddSeconds(jsonData!.expires_in);
-            }
-            else {
-                return null;
-            }
+        if (DateTime.UtcNow > CheckAuthToken.TokenExpiration)
+            await CheckAuthToken.UpdateBearerToken();
 
-            await Task.Delay(TimeSpan.FromSeconds(1.5f));
-        }
+        await Task.Delay(TimeSpan.FromSeconds(1.5f));
 
         // relay album data
-        var http2 = new RestClient();
-        http2.AddDefaultHeaders(new Dictionary<string, string> {
+        var restClient = new RestClient();
+        restClient.AddDefaultHeaders(new Dictionary<string, string> {
             { "Content-Type", "application/json" },
-            // { "User-Agent", Vars.BotUserAgent },
-            { "Authorization", $"Bearer {BearerToken}" }
+            { "Authorization", $"Bearer {CheckAuthToken.BearerToken}" }
         });
-        var request2 = new RestRequest($"{AlbumApiUrl}{albumUrlId}", Method.Get);
-        var response2 = http2.Execute<Root>(request2);
-        return JsonConvert.DeserializeObject<Root>(response2.Content!);
+        
+        var restRequest = new RestRequest($"{AlbumApiUrl}{albumUrlId}", Method.Get);
+        var restResponse = restClient.Execute<Root>(restRequest);
+        return JsonConvert.DeserializeObject<Root>(restResponse.Content!);
     }
 }
+
+#region local json api results
 
 public class Artist {
     public ExternalUrls external_urls { get; set; }
@@ -133,3 +111,5 @@ public class Tracks {
     public object previous { get; set; }
     public int total { get; set; }
 }
+
+#endregion

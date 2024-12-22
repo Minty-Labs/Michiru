@@ -3,6 +3,7 @@ using Discord;
 using Discord.Commands;
 // using fluxpoint_sharp.Responses;
 using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
 
 namespace Michiru.Commands.Prefix;
@@ -63,7 +64,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
                 },
                 Timestamp = DateTime.Now
             }
-            .AddField("Bangers", $"{Config.GetBangerNumber()}", true)
+            .AddField("Total Bangers", $"{Config.GetBangerNumber()}", true)
             .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}", true)
             .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}", true)
             .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")

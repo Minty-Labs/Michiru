@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Discord;
 using Discord.WebSocket;
-using Michiru.Configuration.Classes;
+using Michiru.Configuration._Base_Bot.Classes;
 
 namespace Michiru.Utils;
 

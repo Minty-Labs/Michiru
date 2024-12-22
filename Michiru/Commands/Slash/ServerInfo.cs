@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration;
+using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
 
 namespace Michiru.Commands.Slash;

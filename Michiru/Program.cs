@@ -4,7 +4,6 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Michiru.Commands.Slash;
 using Michiru.Commands.Prefix;
-using Michiru.Configuration;
 using Michiru.Managers;
 using Michiru.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +14,8 @@ using Serilog.Templates;
 using Serilog.Templates.Themes;
 using static System.DateTime;
 // using fluxpoint_sharp;
-using Michiru.Commands.ContextMenu;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration.Moderation;
 using Michiru.Events;
 
 namespace Michiru;
@@ -172,11 +172,10 @@ public class Program {
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
-        await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
-        await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
+        // await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
+        // await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
         await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
-        // await GlobalInteractions.AddModuleAsync<GiveAwayCmds>(null);
 
         Client.InteractionCreated += async arg => {
             var iLogger = Log.ForContext("SourceContext", "Interaction");

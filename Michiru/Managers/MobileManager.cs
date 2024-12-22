@@ -23,7 +23,7 @@ public static class MobileManager { // Thanks DubyaDude
         }
     }
 
-    public static void PatchPreSendGatewayAsync(ref object __0, ref object __1, ref RequestOptions __2) {
+    private static void PatchPreSendGatewayAsync(ref object __0, ref object __1, ref RequestOptions __2) {
         if ((byte)__0 != 2) return;
         var type = __1.GetType();
         var property = type.GetProperty("Properties");
