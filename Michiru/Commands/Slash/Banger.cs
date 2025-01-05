@@ -7,7 +7,6 @@ using Michiru.Events;
 using Michiru.Managers;
 using Michiru.Utils;
 using Serilog;
-using Serilog.Core;
 using YoutubeExplode;
 using YoutubeExplode.Common;
 
@@ -48,42 +47,49 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 }
 
                 // try get spotify track if no album
-                try {
-                    if (theActualUrl.AndContainsMultiple("spotify.com", "track")) {
-                        sluLogger.Information("Found URL to be a Spotify Track");
-                        var finalId = theActualUrl;
-                        if (theActualUrl.Contains('?'))
-                            finalId = theActualUrl.Split('?')[0];
-                        
-                        var track = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(finalId.Split('/').Last());
-                        var videos = yt.Search.GetVideosAsync($"{track!.artists[0].name} {track.name}").GetAwaiter().GetResult();
+                if (theActualUrl.AndContainsMultiple("spotify.com", "track")) {
+                    sluLogger.Information("Found URL to be a Spotify Track");
+                    var finalId = theActualUrl;
+                    if (theActualUrl.Contains('?'))
+                        finalId = theActualUrl.Split('?')[0];
 
-                        var firstEntry = videos[0];
-                        var title = firstEntry.Title;
-                        var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                        var tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{track.artists[0].name} {track.name}");
-
-                        sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                        sb.AppendLine(
-                            MarkdownUtils.ToSubText(
-                                MarkdownUtils.MakeLink("Original Spotify Link", theActualUrl, true) + " \u2197 \u2219 " +
-                                MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
-                                ((tidalTrackUrl != "[t404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(tidalTrackUrl)) ?
-                                    MarkdownUtils.MakeLink("Tidal Link", tidalTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
-                              //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
-                        );
-
-                        socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                        conf!.SubmittedBangers++;
-                        Config.Save();
+                    Utils.MusicProviderApis.Spotify.Root? track;
+                    try {
+                        track = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(finalId.Split('/').Last());
                     }
-                }
-                catch (Exception ex) {
-                    sluLogger.Error("Failed to get track data from Spotify API");
-                    await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                    await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                        .DeleteAfter(5, "Failed to get track data from Spotify API");
-                    return;
+                    catch (Exception ex) {
+                        sluLogger.Error("Failed to get track data from Spotify API");
+                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
+                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                            .DeleteAfter(5, "Failed to get track data from Spotify API");
+                        return; // fail command out right
+                    }
+                    
+                    var videos = yt.Search.GetVideosAsync($"{track!.artists[0].name} {track.name}").GetAwaiter().GetResult();
+
+                    var firstEntry = videos[0];
+                    var title = firstEntry.Title;
+                    var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+                    
+                    var tidalTrackUrl = string.Empty;
+                    try {
+                        tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{track.artists[0].name} {track.name}");
+                    }
+                    catch {/*silent fail*/}
+
+                    sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+                    sb.AppendLine(
+                        MarkdownUtils.ToSubText(
+                            MarkdownUtils.MakeLink("Original Spotify Link", theActualUrl, true) + " \u2197 \u2219 " +
+                            MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
+                            ((tidalTrackUrl != "[t404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(tidalTrackUrl)) ?
+                                MarkdownUtils.MakeLink("Tidal Link", tidalTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
+                          //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
+                    );
+
+                    socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
+                    conf!.SubmittedBangers++;
+                    Config.Save();
                 }
 
                 if (Context.Channel.Id == conf.ChannelId) {
@@ -123,48 +129,51 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             var isUrlGood = theActualUrl.Contains("tidal.com");
 
             // check if url is whitelisted
-            try {
-                if (isUrlGood) {
-                    if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
-                        tluLogger.Information("Found URL to be a Tidal Track");
-                        var finalId = theActualUrl;
-                        if (theActualUrl.Contains('?'))
-                            finalId = theActualUrl.Split('?')[0];
+            if (isUrlGood) {
+                if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
+                    tluLogger.Information("Found URL to be a Tidal Track");
+                    var finalId = theActualUrl;
+                    if (theActualUrl.Contains('?'))
+                        finalId = theActualUrl.Split('?')[0];
 
-                        var track = await Utils.MusicProviderApis.Tidal.GetTrackResults.GetData(finalId.Split('/').Last());
-                        if (track is null) {
-                            tluLogger.Error("Failed to get track data from Tidal API");
-                            return;
-                        }
-                        var videos = yt.Search.GetVideosAsync($"{track!.resource.artists[0]} {track!.resource.title}").GetAwaiter().GetResult();
-
-                        var firstEntry = videos[0];
-                        var title = firstEntry.Title;
-                        var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                        var spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{track.resource.artists[0]} {track.resource.title}"); 
-
-                        sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                        sb.AppendLine(
-                            MarkdownUtils.ToSubText(
-                                MarkdownUtils.MakeLink("Original Tidal Link", theActualUrl, true) + " \u2197 \u2219 " +
-                                MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
-                                ((spotifyTrackUrl != "[s404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(spotifyTrackUrl)) ?
-                                    MarkdownUtils.MakeLink("Spotify Link", spotifyTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
-                              //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
-                        );
-
-                        socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                        conf!.SubmittedBangers++;
-                        Config.Save();
+                    Utils.MusicProviderApis.Tidal.Root? track;
+                    try {
+                        track = await Utils.MusicProviderApis.Tidal.GetTrackResults.GetData(finalId.Split('/').Last());
                     }
+                    catch (Exception ex) {
+                        tluLogger.Error("Failed to get track data from Tidal API");
+                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
+                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                            .DeleteAfter(5, "Failed to get track data from Tidal API");
+                        return; // fail command out right
+                    }
+                    
+                    var videos = yt.Search.GetVideosAsync($"{track!.resource.artists[0]} {track!.resource.title}").GetAwaiter().GetResult();
+
+                    var firstEntry = videos[0];
+                    var title = firstEntry.Title;
+                    var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+                    
+                    var spotifyTrackUrl = string.Empty;
+                    try {
+                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{track.resource.artists[0]} {track.resource.title}"); 
+                    }
+                    catch {/*silent fail*/}
+
+                    sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+                    sb.AppendLine(
+                        MarkdownUtils.ToSubText(
+                            MarkdownUtils.MakeLink("Original Tidal Link", theActualUrl, true) + " \u2197 \u2219 " +
+                            MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
+                            ((spotifyTrackUrl != "[s404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(spotifyTrackUrl)) ?
+                                MarkdownUtils.MakeLink("Spotify Link", spotifyTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
+                          //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
+                    );
+
+                    socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
+                    conf!.SubmittedBangers++;
+                    Config.Save();
                 }
-            }
-            catch (Exception ex) {
-                tluLogger.Error("Failed to get track data from Tidal API");
-                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                    .DeleteAfter(5, "Failed to get track data from Tidal API");
-                return;
             }
 
             if (Context.Channel.Id == conf.ChannelId) {
