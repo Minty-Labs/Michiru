@@ -6,13 +6,13 @@ namespace Michiru;
 public static class Vars {
     public static string DNetVer => Assembly.GetAssembly(typeof(DiscordSocketClient))!.GetName().Version!.ToString(3);
     public const string Name = "Michiru";
-    private static readonly Version VersionObj = new (1, 12, 0);
+    private static readonly Version VersionObj = new (1, 12, 1);
     // public const ulong ClientId = 477202627285876756;
     public const int TargetConfigVersion = 9;
     public const int TargetModConfigVersion = 1;
 
     public static readonly string VersionStr = VersionObj.ToString(3) + (IsDebug ? "-dev" : "");
-    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2024, 12, 22, ( 17 + 5 ), 41, 00);
+    public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2025, 1, 4, 0/*( 19 + 5 )*/, 06, 00);
     public const bool IsDebug = false;
     public static string BuildDate => $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
