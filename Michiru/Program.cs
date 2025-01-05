@@ -1,9 +1,10 @@
+using System.Reflection;
 using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Michiru.Commands.Slash;
 using Michiru.Commands.Prefix;
+using Michiru.Commands.Slash;
 using Michiru.Managers;
 using Michiru.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ using static System.DateTime;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Configuration.Moderation;
 using Michiru.Events;
+using ExecuteResult = Discord.Interactions.ExecuteResult;
+using IResult = Discord.Interactions.IResult;
 
 namespace Michiru;
 
@@ -29,7 +32,9 @@ public class Program {
     private InteractionService GlobalInteractions { get; set; }
     private InteractionService MintyLabsInteractions { get; set; }
     public SocketTextChannel? GeneralLogChannel { get; set; }
+
     public SocketTextChannel? ErrorLogChannel { get; set; }
+
     // public FluxpointClient FluxpointClient { get; set; }
     private ModalProcessor _modalProcessor;
 
@@ -62,21 +67,23 @@ public class Program {
         try {
             ModData.Initialize();
         }
-        catch {/**/}
+        catch { /**/ }
+
         if (string.IsNullOrWhiteSpace(Config.Base.BotToken)) {
             Console.Title = $"{Vars.Name} | Enter your bot token";
             Console.Write("Please enter your bot token: ");
             Config.Base.BotToken = Console.ReadLine()!.Trim();
-            
+
             if (string.IsNullOrWhiteSpace(Config.Base.BotToken)) {
                 Logger.Warning("Cannot proceed without a bot token. Please enter your bot token in the Michiru.Bot.config.json file.");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
         }
-        if (Config.Base.BotLogsChannel.IsZero()) 
+
+        if (Config.Base.BotLogsChannel.IsZero())
             Logger.Warning("Bot Logs Channel is not set. Please set the BotLogsChannel in the Michiru.Bot.config.json file.");
-        if (Config.Base.ErrorLogsChannel.IsZero()) 
+        if (Config.Base.ErrorLogsChannel.IsZero())
             Logger.Warning("Error Logs Channel is not set. Please set the ErrorLogsChannel in the Michiru.Bot.config.json file.");
         Config.Save();
 
@@ -89,7 +96,7 @@ public class Program {
             AlwaysDownloadUsers = true,
             LogLevel = Vars.IsWindows ? LogSeverity.Verbose : LogSeverity.Debug, //Info,
             MessageCacheSize = 2000,
-            GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildEmojis | GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessages | GatewayIntents.MessageContent
+            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers) & ~GatewayIntents.GuildPresences & ~GatewayIntents.GuildScheduledEvents & ~GatewayIntents.GuildInvites
         });
 
         Commands = new CommandService(new CommandServiceConfig {
@@ -100,12 +107,14 @@ public class Program {
         });
 
         GlobalInteractions = new InteractionService(Client, new InteractionServiceConfig {
+            UseCompiledLambda = true,
             LogLevel = Vars.IsWindows ? LogSeverity.Verbose : LogSeverity.Debug, //Info,
             DefaultRunMode = Discord.Interactions.RunMode.Async,
             ThrowOnError = true
         });
-        
+
         MintyLabsInteractions = new InteractionService(Client, new InteractionServiceConfig {
+            UseCompiledLambda = true,
             LogLevel = Vars.IsWindows ? LogSeverity.Verbose : LogSeverity.Debug, //Info,
             DefaultRunMode = Discord.Interactions.RunMode.Async,
             ThrowOnError = true
@@ -148,7 +157,7 @@ public class Program {
                 argPos: argPos,
                 services: null);
         };
-        
+
         // if (!string.IsNullOrWhiteSpace(Config.Base.Api.ApiKeys.FluxpointApiKey!))
         //     FluxpointClient = new FluxpointClient(Vars.Name, Config.Base.Api.ApiKeys.FluxpointApiKey!);
 
@@ -157,34 +166,13 @@ public class Program {
         Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
-        Client.UserLeft += MemberUpdated.MemberLeave;  // this finally works
+        Client.UserLeft += MemberUpdated.MemberLeave; // this finally works
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
 
-        var serviceCollection = new ServiceCollection();
-        _modalProcessor = new ModalProcessor();
-
-        await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
-        await Commands.AddModuleAsync<HelpCmd>(null);
-        await Commands.AddModuleAsync<WakeOnLanCmds>(null);
-        await Commands.AddModuleAsync<DAndD>(null);
-        await Commands.AddModuleAsync<Moderation>(null);
-        
-        await GlobalInteractions.AddModuleAsync<Banger>(null);
-        await GlobalInteractions.AddModuleAsync<Personalization>(null);
-        await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
-        // await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
-        // await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
-        await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
-        await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
-
-        Client.InteractionCreated += async arg => {
-            var iLogger = Log.ForContext("SourceContext", "Interaction");
-            await GlobalInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
-            await MintyLabsInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
-            iLogger.Debug("{0} ran a command in guild {1}", arg.User.Username, arg.GuildId);
-        };
-        
-        await Scheduler.Initialize();
+        var serviceCollection = new ServiceCollection()
+            /*.AddSingleton(Client)
+            .AddSingleton(GlobalInteractions)
+            .AddSingleton(MintyLabsInteractions)*/;
 
         Logger.Information("Bot finished initializing, logging in to Discord...");
         await Client.LoginAsync(TokenType.Bot, Config.Base.BotToken);
@@ -195,6 +183,62 @@ public class Program {
 
     private async Task ClientOnReady() {
         var crLogger = Log.ForContext("SourceContext", "ClientReady");
+
+        await Commands.AddModuleAsync<BasicCommandsThatIDoNotWantAsSlashCommands>(null);
+        await Commands.AddModuleAsync<HelpCmd>(null);
+        await Commands.AddModuleAsync<WakeOnLanCmds>(null);
+        await Commands.AddModuleAsync<DAndD>(null);
+        await Commands.AddModuleAsync<Moderation>(null);
+
+        await GlobalInteractions.AddModuleAsync<Banger>(null);
+        await GlobalInteractions.AddModuleAsync<Personalization>(null);
+        await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
+        // await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
+        // await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
+        await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
+        // await GlobalInteractions.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        await GlobalInteractions.RegisterCommandsGloballyAsync();
+        crLogger.Information("Registered global slash commands.");
+        
+        // await MintyLabsInteractions.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
+        try {
+            await MintyLabsInteractions.RegisterCommandsToGuildAsync(Vars.SupportServerId);
+            crLogger.Information("Registered Owner slash commands for {0} ({1}).", "Minty Labs", Vars.SupportServerId);
+        }
+        catch (Exception e) {
+            crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
+        }
+
+        _modalProcessor = new ModalProcessor();
+
+        var interactionLogger = Log.ForContext("SourceContext", "Interaction");
+        
+        Client.InteractionCreated += async arg => {
+            try {
+                await GlobalInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
+                interactionLogger.Debug("{0} ran a command in guild {1}", arg.User.Username, arg.GuildId);
+            }
+            catch {
+                if (arg.Type == InteractionType.ApplicationCommand) {
+                    await arg.GetOriginalResponseAsync().ContinueWith(async (msg) => await msg.Result.DeleteAsync());
+                }
+            }
+
+            try {
+                await MintyLabsInteractions.ExecuteCommandAsync(new SocketInteractionContext(Client, arg), null);
+            }
+            catch {
+                if (arg.Type == InteractionType.ApplicationCommand) {
+                    await arg.GetOriginalResponseAsync().ContinueWith(async (msg) => await msg.Result.DeleteAsync());
+                }
+            }
+        };
+
+        GlobalInteractions.SlashCommandExecuted += SlashCommandResulted;
+
+        await Scheduler.Initialize();
+
         Vars.StartTime = UtcNow;
         var conf = Config.Base;
         crLogger.Information("Bot Version        = " + Vars.VersionStr);
@@ -242,17 +286,52 @@ public class Program {
             await GeneralLogChannel!.SendMessageAsync(embed: startEmbed);
         }
 
-        await GlobalInteractions.RegisterCommandsGloballyAsync();
-        crLogger.Information("Registered global slash commands.");
-        try {
-            await MintyLabsInteractions.RegisterCommandsToGuildAsync(Vars.SupportServerId);
-            crLogger.Information("Registered Owner slash commands for {0} ({1}).", "Minty Labs", Vars.SupportServerId);
-        }
-        catch (Exception e) {
-            crLogger.Error("Failed to register Owner slash commands for guild {0}\n{err}\n{st}", Vars.SupportServerId, e, e.StackTrace);
-        }
-        
         Config.FixBangerNulls();
+    }
+
+    private static async Task SlashCommandResulted(SlashCommandInfo info, IInteractionContext ctx, IResult res) {
+        if (!res.IsSuccess) {
+            switch (res.Error) {
+                case InteractionCommandError.UnmetPrecondition:
+                    if (ctx.Interaction.HasResponded) {
+                        await ctx.Interaction.FollowupAsync($"❌ Something went wrong:\n- {res.ErrorReason}", ephemeral: true);
+                    }
+                    else {
+                        await ctx.Interaction.RespondAsync($"❌ Something went wrong:\n- {res.ErrorReason}", ephemeral: true);
+                    }
+
+                    break;
+                case InteractionCommandError.UnknownCommand:
+                    if (ctx.Interaction.HasResponded) {
+                        await ctx.Interaction.FollowupAsync("❌ Unknown command\n- Try refreshing your Discord client.", ephemeral: true);
+                    }
+                    else {
+                        await ctx.Interaction.RespondAsync("❌ Unknown command\n- Try refreshing your Discord client.", ephemeral: true);
+                    }
+
+                    break;
+                case InteractionCommandError.BadArgs:
+                    if (ctx.Interaction.HasResponded) {
+                        await ctx.Interaction.FollowupAsync("❌ Invalid number or arguments.", ephemeral: true);
+                    }
+                    else {
+                        await ctx.Interaction.RespondAsync("❌ Invalid number or arguments.", ephemeral: true);
+                    }
+
+                    break;
+                case InteractionCommandError.Exception:
+                    await ctx.Interaction.FollowupAsync($"❌ Something went wrong...\n- Try again later.", ephemeral: true);
+
+                    var executionResult = (ExecuteResult)res;
+                    Console.WriteLine($"Error: {executionResult.Exception}");
+
+                    break;
+                
+                default:
+                    await ctx.Interaction.FollowupAsync("❌ Command could not be executed.\n- Try again later.", ephemeral: true);
+                    break;
+            }
+        }
     }
 
     public SocketTextChannel? GetChannel(ulong guildId, ulong id) {
