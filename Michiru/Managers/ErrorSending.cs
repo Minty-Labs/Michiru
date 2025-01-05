@@ -12,7 +12,10 @@ public static class ErrorSending {
 
         return new EmbedBuilder {
             Color = Color.Red,
-            Description = exception != null ? $"{MarkdownUtils.ToCodeBlockMultiline(finalMsg)}\n{MarkdownUtils.ToCodeBlockMultiline(exception.ToString() ?? "empty exception")}" : MarkdownUtils.ToCodeBlockMultiline(finalMsg),
+            Description = 
+                exception != null
+                    ? $"{finalMsg}\n{MarkdownUtils.ToCodeBlockMultiline(exception.ToString() ?? "empty exception")}"
+                    : finalMsg,
             Footer = new EmbedFooterBuilder {
                 Text = Vars.VersionStr
             },
