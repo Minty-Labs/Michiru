@@ -21,7 +21,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -47,7 +47,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
     public async Task Preban(ulong userId, [Remainder] string? reason = null) {
         var guild = Context.Guild;
         var channel = await ModData.GetBanOrUnbanLogChannel(guild) as ITextChannel;
-        var user = await Program.Instance.Client.Rest.GetUserAsync(userId);
+        var user = await Context.Client.Rest.GetUserAsync(userId);
         var embed = new EmbedBuilder {
             Title = "User Prebanned",
             Description = $"{MarkdownUtils.ToBold("User")}: {user.Mention}\n" +
@@ -56,7 +56,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -82,7 +82,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
     public async Task Unban(ulong userId, [Remainder] string? reason = null) {
         var guild = Context.Guild;
         var channel = await ModData.GetBanOrUnbanLogChannel(guild) as ITextChannel;
-        var user = await Program.Instance.Client.Rest.GetUserAsync(userId);
+        var user = await Context.Client.Rest.GetUserAsync(userId);
         var embed = new EmbedBuilder {
             Title = "User Unbanned",
             Description = $"{MarkdownUtils.ToBold("User")}: {user.Mention}\n" +
@@ -91,7 +91,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Green,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -112,7 +112,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -160,7 +160,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -213,13 +213,13 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Title = "Moderation Pardoned",
             Description = $"{MarkdownUtils.ToBold("Moderation ID")}: {moderation.Id}\n" +
                           $"{MarkdownUtils.ToBold("Moderation Type")}: {moderation.Type}\n" +
-                          $"{MarkdownUtils.ToBold("User")}: {Program.Instance.Client.Rest.GetUserAsync(moderation.UserId).Result.Mention}\n" +
-                          $"{MarkdownUtils.ToBold("Moderator")}: {Program.Instance.Client.Rest.GetUserAsync(moderation.GuildId).Result.Mention}\n" +
+                          $"{MarkdownUtils.ToBold("User")}: {Context.Client.Rest.GetUserAsync(moderation.UserId).Result.Mention}\n" +
+                          $"{MarkdownUtils.ToBold("Moderator")}: {Context.Client.Rest.GetUserAsync(moderation.GuildId).Result.Mention}\n" +
                           $"{MarkdownUtils.ToBold("Reason")}: {moderation.Reason ?? "No reason provided."}",
             Color = Color.Green,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         await ReplyAsync(embed: embed.Build());
@@ -254,7 +254,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -293,7 +293,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Green,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -332,7 +332,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         
@@ -368,7 +368,7 @@ public class Moderation : ModuleBase<SocketCommandContext> {
             Color = Color.Red,
             Footer = new EmbedFooterBuilder {
                 Text = $"v{Vars.VersionStr}",
-                IconUrl = Program.Instance.Client.CurrentUser.GetAvatarUrl()
+                IconUrl = Context.Client.CurrentUser.GetAvatarUrl()
             }
         };
         

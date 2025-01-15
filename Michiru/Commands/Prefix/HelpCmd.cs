@@ -36,26 +36,27 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
         }
 
         if (Config.Base.Banger.Any(x => x.GuildId == Context.Guild.Id) && Context.User.IsSpecial(Context.Guild) || Context.User.IsBotOwner()) {
+            embed.AddField("Banger Commands", MarkdownUtils.ToCodeBlockMultiline("/banger lookup - YouTube top result of music streaming service share URL\n" +
+                                                                                 "/banger getbangercount - Gets the number of bangers submitted in this guild\n"));
+            
             // banger admin commands with descriptions
-            embed.AddField("Banger Admin Commands", MarkdownUtils.ToCodeBlockMultiline("/banger toggle <true|false> - Toggles the banger system\n" +
-                                                                                           "/banger setchannel <channel> - Sets the banger channel\n" +
-                                                                                           "/banger addurl <url> - Adds a URL to the banger whitelist\n" +
-                                                                                           "/banger removeurl <url> - Removes a URL from the banger whitelist\n" +
-                                                                                           "/banger addext <ext> - Adds a file extension to the banger whitelist\n" +
-                                                                                           "/banger removeext <ext> - Removes a file extension from the banger whitelist\n" +
-                                                                                           "/banger addupvote <true|false> - Adds an upvote reaction to a banger post\n" +
-                                                                                           "/banger adddownvote <true|false> - Adds a downvote reaction to a banger post\n" +
-                                                                                           "/banger usecustomupvote <true|false> - Use a custom upvote emoji\n" +
-                                                                                           "/banger usecustomdownvote <true|false> - Use a custom downvote emoji\n" +
-                                                                                           "/banger setcustomupvote <name> <id> - Sets a custom upvote emoji\n" +
-                                                                                           "/banger setcustomdownvote <name> <id> - Sets a custom downvote emoji\n" +
-                                                                                           "/banger speakfreely <true|false> - Allow users to talk freely in the banger channel\n" +
-                                                                                           "/banger listeverything - Lists all URLs and file extensions\n" +
-                                                                                           "/banger getbangercount - Gets the number of bangers submitted in this guild\n" +
-                                                                                           "/banger offertoreplace - Automatically offer to replace Spotify track with a YouTube link\n" +
-                                                                                           "/banger lookupspotifyonyoutube - Looks up a Spotify song's data on YouTube\n" +
-                                                                                         //"/banger lookupdeezeronyoutube - Looks up a Deezer song's data on YouTube\n" +
-                                                                                           "/banger lookuptidalonyoutube - Looks up a Tidal song's data on YouTube"));
+            embed.AddField("Banger Admin Commands", MarkdownUtils.ToCodeBlockMultiline("/bangeradmin toggle <true|false> - Toggles the banger system\n" +
+                                                                                           "/bangeradmin setchannel <channel> - Sets the banger channel\n" +
+                                                                                           "/bangeradmin addurl <url> - Adds a URL to the banger whitelist\n" +
+                                                                                           "/bangeradmin removeurl <url> - Removes a URL from the banger whitelist\n" +
+                                                                                           "/bangeradmin addext <ext> - Adds a file extension to the banger whitelist\n" +
+                                                                                           "/bangeradmin removeext <ext> - Removes a file extension from the banger whitelist\n" +
+                                                                                           "/bangeradmin addupvote <true|false> - Adds an upvote reaction to a banger post\n" +
+                                                                                           "/bangeradmin adddownvote <true|false> - Adds a downvote reaction to a banger post\n" +
+                                                                                           "/bangeradmin usecustomupvote <true|false> - Use a custom upvote emoji\n" +
+                                                                                           "/bangeradmin usecustomdownvote <true|false> - Use a custom downvote emoji\n" +
+                                                                                           "/bangeradmin setcustomupvote <name> <id> - Sets a custom upvote emoji\n" +
+                                                                                           "/bangeradmin setcustomdownvote <name> <id> - Sets a custom downvote emoji\n" +
+                                                                                           "/bangeradmin speakfreely <true|false> - Allow users to talk freely in the banger channel\n" +
+                                                                                           "/bangeradmin listeverything - Lists all URLs and file extensions\n" +
+                                                                                           "/bangeradmin offertoreplace - Automatically offer to replace Spotify track with a YouTube link\n" +
+                                                                                           $"{(Context.User.IsBotOwner() ? "/bangeradmin modifybangercount - Modifies banger count\n" : "")}" +
+                                                                                           $"{(Context.User.IsBotOwner() ? "/bangeradmin clearbangerinteractiondata - Clears a select interaction data\n" : "")}"));
         }
 
         if (Config.Base.PersonalizedMember.Any(x => x.Guilds!.Any(y => y.GuildId == Context.Guild.Id)) || Context.User.IsBotOwner()) {

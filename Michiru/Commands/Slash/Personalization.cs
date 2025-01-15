@@ -190,7 +190,7 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
 
         public static IUser? UserBeingEdited { get; private set; }
         [SlashCommand("forceupdaterole", "Forces a user's personalized role to be updated"), RequireToBeSpecial]
-        public async Task ForceUpdateUserRole([Summary("User", "User to update")] IUser user) {
+        public async Task ForceUpdateUserRole([Summary("user", "User to update")] IUser user) {
             var personalData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
             var memberData = personalData.Members!.FirstOrDefault(x => x.userId == user.Id);
             if (memberData is null) {

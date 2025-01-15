@@ -12,7 +12,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
         
         [SlashCommand("enablejoin", "Enable Join Features")]
-        public async Task EnableJoin([Summary("Enable", "Toggle Join Feature")] bool value) {
+        public async Task EnableJoin([Summary("enable", "Toggle Join Feature")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.Enable = value;
             Config.Save();
@@ -20,7 +20,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
 
         [SlashCommand("updatejoinchannel", "Update Join Channel")]
-        public async Task UpdateJoinChannel([Summary("Channel", "Assign Channel for Join Msgs")] ITextChannel channel) {
+        public async Task UpdateJoinChannel([Summary("channel", "Assign Channel for Join Msgs")] ITextChannel channel) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.ChannelId = channel.Id;
             Config.Save();
@@ -28,7 +28,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("joinmessage", "Update Join Message")]
-        public async Task UpdateJoinMessage([Summary("Message", "Join Message Text")] string message) {
+        public async Task UpdateJoinMessage([Summary("message", "Join Message Text")] string message) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             if (message is "." or "NUL" or "NULL" or "EMPTY" or "none" or "NONE" or "null" or "empty" or "nul")
                 message = "";
@@ -46,7 +46,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("embedjoin", "Override All With Embed")]
-        public async Task UpdateJoinEmbed([Summary("Embed", "Override All With Embed")] bool value) {
+        public async Task UpdateJoinEmbed([Summary("embed", "Override All With Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.OverrideAllWithEmbed = value;
             Config.Save();
@@ -54,7 +54,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("showdetailedembed", "Show Detailed Embed")]
-        public async Task UpdateJoinDetailedEmbed([Summary("Detail", "Show Detailed Embed")] bool value) {
+        public async Task UpdateJoinDetailedEmbed([Summary("detail", "Show Detailed Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.ShowDetailedEmbed = value;
             Config.Save();
@@ -62,7 +62,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("dmjoinmessage", "DM Welcome Message")]
-        public async Task UpdateJoinDmMessage([Summary("DM", "DM Welcome Message")] bool value) {
+        public async Task UpdateJoinDmMessage([Summary("dm", "DM Welcome Message")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Join.DmWelcomeMessage = value;
             Config.Save();
@@ -75,7 +75,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         
         
         [SlashCommand("enableleave", "Enable Leave Features")]
-        public async Task EnableLeave([Summary("Enable", "Toggle Leave Feature")] bool value) {
+        public async Task EnableLeave([Summary("enable", "Toggle Leave Feature")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Leave.Enable = value;
             Config.Save();
@@ -83,7 +83,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("updateleavechannel", "Update Leave Channel")]
-        public async Task UpdateLeaveChannel([Summary("Channel", "Assign Channel for Leave Msgs")] ITextChannel channel) {
+        public async Task UpdateLeaveChannel([Summary("channel", "Assign Channel for Leave Msgs")] ITextChannel channel) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Leave.ChannelId = channel.Id;
             Config.Save();
@@ -91,7 +91,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("leavemessage", "Update Leave Message")]
-        public async Task UpdateLeaveMessage([Summary("Message", "Leave Message Text")] string message) {
+        public async Task UpdateLeaveMessage([Summary("message", "Leave Message Text")] string message) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             if (message is "." or "NUL" or "NULL" or "EMPTY" or "none" or "NONE" or "null" or "empty" or "nul")
                 message = "";
@@ -101,7 +101,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("embedleave", "Override All With Embed")]
-        public async Task UpdateLeaveEmbed([Summary("Embed", "Override All With Embed")] bool value) {
+        public async Task UpdateLeaveEmbed([Summary("embed", "Override All With Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Leave.OverrideAllWithEmbed = value;
             Config.Save();
@@ -109,7 +109,7 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
         }
         
         [SlashCommand("showdetailedleave", "Show Detailed Embed")]
-        public async Task UpdateLeaveDetailedEmbed([Summary("Detail", "Show Detailed Embed")] bool value) {
+        public async Task UpdateLeaveDetailedEmbed([Summary("detail", "Show Detailed Embed")] bool value) {
             var serverData = Config.GetGuildFeature(Context.Guild.Id);
             serverData.Leave.ShowDetailedEmbed = value;
             Config.Save();

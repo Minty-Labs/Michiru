@@ -12,7 +12,7 @@ public class LookForOfflineGoHP : IJob {
     
     public async Task Execute(IJobExecutionContext context) {
         try {
-            var bot = Program.Instance.GetUser(489144212911030304);
+            var bot = await Program.Instance.Client.GetUserAsync(489144212911030304);
             if (_count >= 2) return;
             if (bot == null) {
                 await ErrorSending.SendErrorToLoggingChannelAsync("Look For Offline GoHP:", null, "Bot not found");

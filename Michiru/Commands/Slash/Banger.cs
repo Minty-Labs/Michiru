@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Discord;
 using Discord.Interactions;
 using Michiru.Commands.Preexecution;
@@ -225,7 +225,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      CommandContextType(InteractionContextType.Guild)]
     public class AdminCommands : InteractionModuleBase<SocketInteractionContext> {
         [SlashCommand("toggle", "Toggles the banger system")]
-        public async Task ToggleBangerSystem([Summary("toggle", "Enable or disable the banger system")] bool enabled) {
+        public async Task ToggleBangerSystem([Summary("toggle", "Toggle the banger system")] bool enabled) {
             Config.GetGuildBanger(Context.Guild.Id).Enabled = enabled;
             Config.Save();
             await RespondAsync($"Bangers are now {(enabled ? "enabled" : "disabled")}.");
@@ -292,7 +292,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         }
 
         [SlashCommand("addext", "Adds a file extension to the whitelist")]
-        public async Task AddExt([Summary("ext", "File extension to whitelist")] string ext) {
+        public async Task AddExt([Summary("extension", "File extension to whitelist")] string ext) {
             var configBanger = Config.GetGuildBanger(Context.Guild.Id);
             configBanger.WhitelistedFileExtensions ??= [];
             if (ext.StartsWith('.'))
@@ -308,7 +308,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         }
 
         [SlashCommand("removeext", "Removes a file extension from the whitelist")]
-        public async Task RemoveExt([Summary("ext", "File extension to remove from the whitelist")] string ext) {
+        public async Task RemoveExt([Summary("extension", "File extension to remove from the whitelist")] string ext) {
             var configBanger = Config.GetGuildBanger(Context.Guild.Id);
             configBanger.WhitelistedFileExtensions ??= [];
             if (ext.StartsWith('.'))
@@ -323,7 +323,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Removed {ext} from the whitelist.");
         }
 
-        [SlashCommand("listeverything", "Lists all URLs and file extens."), RequireUserPermission(GuildPermission.SendMessages)]
+        [SlashCommand("listeverything", "Lists all URLs and file extens"), RequireUserPermission(GuildPermission.SendMessages)]
         public async Task ListUrls([Summary("ephemeral", "Ephemeral response")] bool ephemeral = true) {
             var sb = new StringBuilder();
             sb.AppendLine("```");
@@ -391,34 +391,38 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Custom downvote emoji set to {emote}.\nNote: Having a custom emoji ID of zero will logically mean that you are using a Discord default emoji.");
         }
 
-        [SlashCommand("speakfreely", "Allow users to talk freely in the banger channel")]
+        [SlashCommand("speakfreely", "Allow users to talk freely")]
         public async Task SpeakFreely([Summary("toggle", "Enable or disable")] bool enabled) {
             Config.GetGuildBanger(Context.Guild.Id).SpeakFreely = enabled;
             Config.Save();
             await RespondAsync($"Users {(enabled ? "can" : "cannot")} speak freely in the banger channel.");
         }
 
-        [SlashCommand("offertoreplace", "Offer to replace Spotify track with a YouTube link")]
+        [SlashCommand("offertoreplace", "Offer Spotify to YouTube replacement")]
         public async Task OfferReplace([Summary("toggle", "Enable or disable")] bool enabled) {
             Config.GetGuildBanger(Context.Guild.Id).OfferToReplaceSpotifyTrack = enabled;
             Config.Save();
             await RespondAsync($"Offer to replace Spotify track with YouTube {(enabled ? "enabled" : "disabled")}.");
         }
 
-        [SlashCommand("getbangercount", "Gets the number of bangers submitted in this guild"), RequireUserPermission(GuildPermission.SendMessages)]
-        public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
-            => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.", ephemeral: ephemeral);
-
-        [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies the number of bangers submitted in this guild"), RequireOwner]
-        public async Task ModifyBangerCount([Summary("number", "Number of bangers to add or remove")] int number, [Summary("ephemeral", "Ephemeral response")] bool ephemeral = false) {
+        [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies banger count"), RequireOwner]
+        public async Task ModifyBangerCount(
+            [Summary("number", "Number of bangers to add or remove")]
+            int number,
+            [Summary("ephemeral", "Ephemeral response")]
+            bool ephemeral = false) {
             var banger = Config.GetGuildBanger(Context.Guild.Id);
             banger.SubmittedBangers += number;
             Config.Save();
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
         }
 
-        [SlashCommand("clearbangerinteractiondata", "(Bot Owner Only) Clears a select or all banger interaction data"), RequireOwner]
-        public async Task ClearBangerInteractionData([Summary("RandomID", "ID of the Data Entry, if empty, remove everything")] string randomId = "", [Summary("ephemeral", "Ephemeral response")] bool ephemeral = false) {
+        [SlashCommand("clearbangerinteractiondata", "(Bot Owner Only) Clears a select interaction data"), RequireOwner]
+        public async Task ClearBangerInteractionData(
+            [Summary("data-entry-id", "ID of the Data Entry")]
+            string randomId = "",
+            [Summary("ephemeral", "Ephemeral response")]
+            bool ephemeral = false) {
             await DeferAsync(ephemeral);
             if (string.IsNullOrWhiteSpace(randomId)) {
                 foreach (var iData in BangerListener.TheBangerInteractionData) {

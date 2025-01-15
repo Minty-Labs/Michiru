@@ -33,7 +33,7 @@ public static class Config {
             ActivityText = "lots of cuties",
             UserStatus = "Online",
             RotatingStatus = rotatingStatus,
-            OwnerIds = new List<ulong>(),
+            OwnerIds = [],
             BotLogsChannel = 0,
             ErrorLogsChannel = 0,
             ExtraBangerCount = 0,

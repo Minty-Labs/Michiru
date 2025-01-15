@@ -2,7 +2,6 @@
 using Discord;
 using Discord.Commands;
 // using fluxpoint_sharp.Responses;
-using Michiru.Configuration;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
 
@@ -66,8 +65,8 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
             }
             .AddField("Total Bangers", $"{Config.GetBangerNumber()}", true)
             .AddField("Personalized Member Count", $"{Config.GetPersonalizedMemberCount()}", true)
-            .AddField("Guild Count", $"{Program.Instance.Client.Guilds.Count}", true)
-            .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
+            .AddField("Guild Count", $"{Context.Client.Guilds.Count}", true)
+            // .AddField("Build Time", $"{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.BuildTime.ToUniversalTime().ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
             .AddField("Start Time", $"{Vars.StartTime.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}\n{Vars.StartTime.ConvertToDiscordTimestamp(TimestampFormat.RelativeTime)}")
             .AddField("OS", Vars.IsWindows ? "Windows" : "Linux", true)
             .AddField("Discord.NET Version", Vars.DNetVer, true)

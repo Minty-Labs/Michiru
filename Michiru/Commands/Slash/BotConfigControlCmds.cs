@@ -53,13 +53,13 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
         
         [SlashCommand("modifyrotatingstatus", "Adds, updates, or removes a rotating status")]
         public async Task ModifyRotatingStatus(RotatingStatusAction action,
-            [Summary(description: "ex. Playing, Watching, Custom, ...")]
+            [Summary("activity-type", "ex. Playing, Watching, Custom, ...")]
             string activityType = "$XX",
-            [Summary(description: "ex. Online, Idle, ...")]
+            [Summary("user-status", "ex. Online, Idle, ...")]
             string userStatus = "$XX",
-            [Summary(description: "Actual Status Text")]
+            [Summary("activity-text", "Actual Status Text")]
             string activityText = "$XX",
-            [Summary(description: "Status ID")] string statusId = "$XX") {
+            [Summary("status-id", "Status ID")] string statusId = "$XX") {
             switch (action) {
                 case RotatingStatusAction.Add:
                     var status = new Status {
@@ -97,7 +97,7 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
         }
         
         [SlashCommand("rotatingstatusinterval", "Changes the interval between rotating statuses")]
-        public async Task RotatingStatusInterval([Summary(description: "Minutes between status changes")] int minutes) {
+        public async Task RotatingStatusInterval([Summary("minutes", "Minutes between status changes")] int minutes) {
             Config.Base.RotatingStatus.MinutesPerStatus = minutes;
             await RespondAsync($"Rotating Status Interval set to {minutes} minutes", ephemeral: true);
             Config.Save();
