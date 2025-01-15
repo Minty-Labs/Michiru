@@ -16,7 +16,7 @@ namespace Michiru.Events;
 public static class BangerListener {
     private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "EVENT:BangerListener");
 
-    public static bool IsUrlWhitelisted(string url, ICollection<string> list) {
+    private static bool IsUrlWhitelisted(string url, ICollection<string> list) {
         if (!Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri)) return false;
         return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
     }
@@ -24,7 +24,7 @@ public static class BangerListener {
     private static bool IsFileExtWhitelisted(string extension, ICollection<string> list)
         => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
 
-    public static readonly List<ulong> BangerMessageIds = [];
+    private static readonly List<ulong> BangerMessageIds = [];
 
     internal static async Task BangerListenerEvent(SocketMessage messageArg) {
         var socketUserMessage = (SocketUserMessage)messageArg;
@@ -89,9 +89,9 @@ public static class BangerListener {
                 doYouTubePlaylistCount = false;
             }
 
-            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+            if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                 await socketUserMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+            if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                 await socketUserMessage.AddReactionAsync(downVote);
 
             if (conf.OfferToReplaceSpotifyTrack) {
@@ -240,9 +240,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(0).Value);
-                if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-2") {
@@ -253,9 +253,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(1).Value);
-                if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-3") {
@@ -266,9 +266,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(2).Value);
-                if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-4") {
@@ -279,9 +279,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(3).Value);
-                if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-5") {
@@ -292,9 +292,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(4).Value);
-                if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                     await newMessage.AddReactionAsync(downVote);
             }
         }
@@ -307,9 +307,9 @@ public static class BangerListener {
             }); 
             // await component.RespondAsync(, ephemeral: true);
             await ErrorSending.SendErrorToLoggingChannelAsync("Spotify to YouTube Song Lookup Number Button Press has already ran", obj: $"Error Code: {errorCode}\nRandom ID: {randomId}");
-            if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
+            if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
                 await currentData.OriginalPostedSocketMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
+            if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
                 await currentData.OriginalPostedSocketMessage.AddReactionAsync(downVote);
         }
         
