@@ -1,6 +1,6 @@
+﻿using Discord.Interactions;
 using System.Text;
 using Discord;
-using Discord.Interactions;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Events;
@@ -18,10 +18,13 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      IntegrationType(ApplicationIntegrationType.GuildInstall),
      CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
-        [SlashCommand("lookupspotifyonyoutube", "YT top result of Spotify link"), RateLimit(30, 5)]
-        public async Task LookupSpotifyOnYouTubeCommand([Summary("shareLink", "Spotify Track")] string spotifyUrl) {
+        [SlashCommand("lookup", "YT top result of music service URL"), RateLimit(30, 5)]
+        public async Task LookupFromAllMusicStreamingServices(
+            [Summary("share-link", "Media Share URL")] string mediaUrl,
+            [Summary("extra-text", "Share your experience for this song")] string extraText = "") {
             var sluLogger = Log.ForContext("SourceContext", "COMMAND:SpotifyLookup");
-            if (!spotifyUrl.Contains("http")) {
+            var tluLogger = Log.ForContext("SourceContext", "COMMAND:TidalLookup");
+            if (!mediaUrl.Contains("http")) {
                 await RespondAsync("No URL found in message", ephemeral: true);
                 return;
             }
@@ -33,20 +36,18 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             var conf = Config.GetGuildBanger(Context.Guild.Id);
             string? theActualUrl = null;
             var yt = new YoutubeClient();
-            var sb = new StringBuilder().AppendLine("Top Result");
-            theActualUrl ??= spotifyUrl;
-            var isUrlGood = theActualUrl.Contains("spotify.com");
+            var sb = new StringBuilder();
+
+            if (!string.IsNullOrWhiteSpace(extraText))
+                sb.AppendLine(MarkdownUtils.ToItalics(extraText) + "\n");
+
+            sb.AppendLine("Top Result");
+
+            theActualUrl ??= mediaUrl;
+            var isUrlGood = theActualUrl.AndContainsMultiple("spotify.com", "track") || theActualUrl.AndContainsMultiple("tidal.com", "track");
 
             // check if url is whitelisted
             if (isUrlGood) {
-                // try to get album data from spotify
-                var didSpotifyAlbumLookup = theActualUrl.AndContainsMultiple("spotify.com", "album");
-                if (didSpotifyAlbumLookup) {
-                    await ModifyOriginalResponseAsync(x => x.Content = "This command only supports Spotify Track URLs.").DeleteAfter(5);
-                    return;
-                }
-
-                // try get spotify track if no album
                 if (theActualUrl.AndContainsMultiple("spotify.com", "track")) {
                     sluLogger.Information("Found URL to be a Spotify Track");
                     var finalId = theActualUrl;
@@ -64,73 +65,33 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                             .DeleteAfter(5, "Failed to get track data from Spotify API");
                         return; // fail command out right
                     }
-                    
+
                     var videos = yt.Search.GetVideosAsync($"{track!.artists[0].name} {track.name}").GetAwaiter().GetResult();
 
                     var firstEntry = videos[0];
                     var title = firstEntry.Title;
                     var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                    
+
                     var tidalTrackUrl = string.Empty;
                     try {
                         tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{track.artists[0].name} {track.name}");
                     }
-                    catch {/*silent fail*/}
+                    catch { /*silent fail*/ }
 
                     sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
                     sb.AppendLine(
                         MarkdownUtils.ToSubText(
-                            MarkdownUtils.MakeLink("Original Spotify Link", theActualUrl, true) + " \u2197 \u2219 " +
-                            MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
-                            ((tidalTrackUrl != "[t404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(tidalTrackUrl)) ?
-                                MarkdownUtils.MakeLink("Tidal Link", tidalTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
-                          //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
+                            MarkdownUtils.MakeLink("Original Spotify Link \u2197", theActualUrl, true) + " \u2219 " +
+                            MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url)) + " \u2219 " + // will show YouTube embed
+                        ((tidalTrackUrl != "[t404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(tidalTrackUrl)) ? MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true) /* + " \u2219 " + */ : "")
+                        //MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true)
                     );
 
                     socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
                     conf!.SubmittedBangers++;
                     Config.Save();
                 }
-
-                if (Context.Channel.Id == conf.ChannelId) {
-                    var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
-                    var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
-
-                    if (socketUserMessage is not null) {
-                        if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
-                            await socketUserMessage.AddReactionAsync(upVote);
-                        if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
-                            await socketUserMessage.AddReactionAsync(downVote);
-                    }
-
-                    conf.SubmittedBangers++;
-                    Config.Save();
-                }
-            }
-        }
-
-        [SlashCommand("lookuptidalonyoutube", "YT top result of Tidal link"), RateLimit(30, 5)]
-        public async Task LookupTidalOnYouTubeCommand([Summary("shareLink", "Tidal Track")] string tidalUrl) {
-            var tluLogger = Log.ForContext("SourceContext", "COMMAND:TidalLookup");
-            if (!tidalUrl.Contains("http")) {
-                await RespondAsync("No URL found in message", ephemeral: true);
-                return;
-            }
-
-            IUserMessage? socketUserMessage = null;
-
-            await DeferAsync();
-
-            var conf = Config.GetGuildBanger(Context.Guild.Id);
-            string? theActualUrl = null;
-            var yt = new YoutubeClient();
-            var sb = new StringBuilder().AppendLine("Top Result");
-            theActualUrl ??= tidalUrl;
-            var isUrlGood = theActualUrl.Contains("tidal.com");
-
-            // check if url is whitelisted
-            if (isUrlGood) {
-                if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
+                else if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
                     tluLogger.Information("Found URL to be a Tidal Track");
                     var finalId = theActualUrl;
                     if (theActualUrl.Contains('?'))
@@ -147,56 +108,62 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                             .DeleteAfter(5, "Failed to get track data from Tidal API");
                         return; // fail command out right
                     }
-                    
+
                     var videos = yt.Search.GetVideosAsync($"{track!.resource.artists[0]} {track!.resource.title}").GetAwaiter().GetResult();
 
                     var firstEntry = videos[0];
                     var title = firstEntry.Title;
                     var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                    
+
                     var spotifyTrackUrl = string.Empty;
                     try {
-                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{track.resource.artists[0]} {track.resource.title}"); 
+                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{track.resource.artists[0]} {track.resource.title}");
                     }
-                    catch {/*silent fail*/}
+                    catch { /*silent fail*/ }
 
                     sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
                     sb.AppendLine(
                         MarkdownUtils.ToSubText(
-                            MarkdownUtils.MakeLink("Original Tidal Link", theActualUrl, true) + " \u2197 \u2219 " +
-                            MarkdownUtils.MakeLink("YouTube Link", firstEntry.Url)) + " \u2197 \u2219 " + // will show YouTube embed
-                            ((spotifyTrackUrl != "[s404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(spotifyTrackUrl)) ?
-                                MarkdownUtils.MakeLink("Spotify Link", spotifyTrackUrl, true) + " \u2197" /* + " \u2219 " + */ : "")
-                          //MarkdownUtils.MakeLink("Deezer Link", "https://deezer.page.link/" + "", true) + " \u2197"
+                            MarkdownUtils.MakeLink("Original Tidal Link \u2197", theActualUrl, true) + " \u2219 " +
+                            MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url)) + " \u2219 " + // will show YouTube embed
+                        ((spotifyTrackUrl != "[s404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(spotifyTrackUrl)) ? MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) /* + " \u2219 " + */ : "")
+                        //MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true)
                     );
 
                     socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
                     conf!.SubmittedBangers++;
                     Config.Save();
                 }
-            }
 
-            if (Context.Channel.Id == conf.ChannelId) {
-                var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
-                var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
+                if (Context.Channel.Id == conf.ChannelId) {
+                    var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
+                    var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
 
-                if (socketUserMessage is not null) {
-                    if (conf is { AddUpvoteEmoji: true, UseCustomUpvoteEmoji: true })
-                        await socketUserMessage.AddReactionAsync(upVote);
-                    if (conf is { AddDownvoteEmoji: true, UseCustomDownvoteEmoji: true })
-                        await socketUserMessage.AddReactionAsync(downVote);
+                    if (socketUserMessage is not null) {
+                        if (conf is { AddUpvoteEmoji: true /*, UseCustomUpvoteEmoji: true*/ })
+                            await socketUserMessage.AddReactionAsync(upVote);
+                        if (conf is { AddDownvoteEmoji: true /*, UseCustomDownvoteEmoji: true*/ })
+                            await socketUserMessage.AddReactionAsync(downVote);
+                    }
+
+                    conf.SubmittedBangers++;
+                    Config.Save();
                 }
-
-                conf.SubmittedBangers++;
-                Config.Save();
+            }
+            else {
+                await ModifyOriginalResponseAsync(x => x.Content = "This command only supports Spotify or Tidal track URLs.").DeleteAfter(5);
             }
         }
-        
+
+        [SlashCommand("getbangercount", "Gets current guild banger count")]
+        public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
+            => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.", ephemeral: ephemeral);
+
         [SlashCommand("leaderboard", "Guild Banger count Leaderboard")]
         public async Task Leaderboard() {
             var getAll = Config.Base.Banger;
             var orderedBangers = getAll.OrderByDescending(x => x.SubmittedBangers).Take(getAll.Count).ToList();
-            
+
             var embed = new EmbedBuilder()
                 .WithTitle("Banger Leaderboard")
                 .WithColor(Color.Blue)
@@ -205,19 +172,19 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             embed.AddField("Total Bangers", Config.GetBangerNumber().ToString());
 
             var sb = new StringBuilder();
-            
+
             for (var i = 0; i < orderedBangers.Count; i++) {
                 var guild = Context.Client.GetGuild(orderedBangers[i].GuildId);
                 if (guild is null) continue;
                 var order = i + 1;
                 sb.AppendLine($"{order}. {(order is 1 ? "**" : "")}{guild.Name} - Bangers: {orderedBangers[i].SubmittedBangers}{(order is 1 ? "**" : "")}");
             }
-            
+
             embed.WithDescription(sb.ToString());
             await RespondAsync(embed: embed.Build());
         }
     }
-    
+
     [Group("bangeradmin", "Admin Banger Commands"),
      RequireToBeSpecial,
      // RequireUserPermission((GuildPermission.SendMessages & GuildPermission.ManageMessages & GuildPermission.ManageGuild) | GuildPermission.Administrator),
