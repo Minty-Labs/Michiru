@@ -45,8 +45,9 @@ public static class BangerListener {
 
         if (messageContent.OrContainsMultiple(' ', '\n')) {
             foreach (var str in messageContent.Split(' ')) {
-                if (str.Contains("https"))
-                    theActualUrl = str;
+                if (!str.Contains("https")) continue;
+                theActualUrl = str;
+                break;
             }
         }
         theActualUrl ??= messageContent;
@@ -89,43 +90,43 @@ public static class BangerListener {
                 doYouTubePlaylistCount = false;
             }
 
-            if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+            if (conf.AddUpvoteEmoji)
                 await socketUserMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+            if (conf.AddDownvoteEmoji)
                 await socketUserMessage.AddReactionAsync(downVote);
 
-            if (conf.OfferToReplaceSpotifyTrack) {
-                if (theActualUrl.AndContainsMultiple("open.spotify.com", "/track")) {
-                    var randomId = StringUtils.GetRandomString(8);
-                    var builder = new ComponentBuilder()
-                        .WithButton("Lookup song on YouTube?", $"YouTubeLookupForSpotify-{randomId}", ButtonStyle.Success)
-                        .WithButton("No", $"DoNotLookupForSpotify-{randomId}", ButtonStyle.Danger);
-
-                    var reference = new MessageReference(messageArg.Id, messageArg.Channel.Id, guild.Id, false);
-                    
-                    var lookupMessage = await messageArg.Channel.SendMessageAsync("Would you like to lookup this song on YouTube?", components: builder.Build(),
-                        messageReference: reference);
-
-                    TheBangerInteractionData.Add(new BangerInteractionData {
-                        RandomId = randomId,
-                        SpotifyUrl = theActualUrl,
-                        OriginalPostedSocketMessage = messageArg,
-                        MessageReference = reference,
-                        LookupMessage = lookupMessage,
-                        DoesWantToLookup = false,
-                        HasPressedASearchResultButton = false,
-                        YouTubeSearchResults = [],
-                        HasCompletelyFinishedInteraction = false
-                    });
-                    
-                    await Task.Delay(TimeSpan.FromMinutes(2));
-                    var currentData = TheBangerInteractionData.FirstOrDefault(x => x.RandomId == randomId);
-                    if (currentData is not null && currentData.HasCompletelyFinishedInteraction) {
-                        TheBangerInteractionData.Remove(currentData);
-                        return;
-                    }
-                }
-            }
+            // if (conf.OfferToReplaceSpotifyTrack) {
+            //     if (theActualUrl.AndContainsMultiple("open.spotify.com", "/track")) {
+            //         var randomId = StringUtils.GetRandomString(8);
+            //         var builder = new ComponentBuilder()
+            //             .WithButton("Lookup song on YouTube?", $"YouTubeLookupForSpotify-{randomId}", ButtonStyle.Success)
+            //             .WithButton("No", $"DoNotLookupForSpotify-{randomId}", ButtonStyle.Danger);
+            //
+            //         var reference = new MessageReference(messageArg.Id, messageArg.Channel.Id, guild.Id, false);
+            //         
+            //         var lookupMessage = await messageArg.Channel.SendMessageAsync("Would you like to lookup this song on YouTube?", components: builder.Build(),
+            //             messageReference: reference);
+            //
+            //         TheBangerInteractionData.Add(new BangerInteractionData {
+            //             RandomId = randomId,
+            //             SpotifyUrl = theActualUrl,
+            //             OriginalPostedSocketMessage = messageArg,
+            //             MessageReference = reference,
+            //             LookupMessage = lookupMessage,
+            //             DoesWantToLookup = false,
+            //             HasPressedASearchResultButton = false,
+            //             YouTubeSearchResults = [],
+            //             HasCompletelyFinishedInteraction = false
+            //         });
+            //         
+            //         await Task.Delay(TimeSpan.FromMinutes(2));
+            //         var currentData = TheBangerInteractionData.FirstOrDefault(x => x.RandomId == randomId);
+            //         if (currentData is not null && currentData.HasCompletelyFinishedInteraction) {
+            //             TheBangerInteractionData.Remove(currentData);
+            //             return;
+            //         }
+            //     }
+            // }
 
             if (!doSpotifyAlbumCount || !doYouTubePlaylistCount) {
                 conf.SubmittedBangers++;
@@ -240,9 +241,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(0).Value);
-                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+                if (conf.AddUpvoteEmoji)
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+                if (conf.AddDownvoteEmoji)
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-2") {
@@ -253,9 +254,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(1).Value);
-                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+                if (conf.AddUpvoteEmoji)
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+                if (conf.AddDownvoteEmoji)
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-3") {
@@ -266,9 +267,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(2).Value);
-                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+                if (conf.AddUpvoteEmoji)
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+                if (conf.AddDownvoteEmoji)
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-4") {
@@ -279,9 +280,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(3).Value);
-                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+                if (conf.AddUpvoteEmoji)
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+                if (conf.AddDownvoteEmoji)
                     await newMessage.AddReactionAsync(downVote);
             }
             else if (component.Data.CustomId == $"{randomId}-5") {
@@ -292,9 +293,9 @@ public static class BangerListener {
                     x.Components = new ComponentBuilder().Build();
                 }); 
                 var newMessage = await currentData.OriginalPostedSocketMessage.Channel.SendMessageAsync(currentData.YouTubeSearchResults.GetItemByIndex(4).Value);
-                if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+                if (conf.AddUpvoteEmoji)
                     await newMessage.AddReactionAsync(upVote);
-                if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+                if (conf.AddDownvoteEmoji)
                     await newMessage.AddReactionAsync(downVote);
             }
         }
@@ -307,9 +308,9 @@ public static class BangerListener {
             }); 
             // await component.RespondAsync(, ephemeral: true);
             await ErrorSending.SendErrorToLoggingChannelAsync("Spotify to YouTube Song Lookup Number Button Press has already ran", obj: $"Error Code: {errorCode}\nRandom ID: {randomId}");
-            if (conf is { AddUpvoteEmoji: true/*, UseCustomUpvoteEmoji: true*/ })
+            if (conf.AddUpvoteEmoji)
                 await currentData.OriginalPostedSocketMessage.AddReactionAsync(upVote);
-            if (conf is { AddDownvoteEmoji: true/*, UseCustomDownvoteEmoji: true*/ })
+            if (conf.AddDownvoteEmoji)
                 await currentData.OriginalPostedSocketMessage.AddReactionAsync(downVote);
         }
         

@@ -12,7 +12,7 @@ public class Banger {
     [JsonPropertyName("URL Error Response Message")] public string? UrlErrorResponseMessage { get; set; } = "This URL is not whitelisted.";
     [JsonPropertyName("File Error Response Message")] public string? FileErrorResponseMessage { get; set; } = "This file type is not whitelisted.";
     public bool SpeakFreely { get; set; } = false;
-    public bool OfferToReplaceSpotifyTrack { get; set; } = false;
+    // public bool OfferToReplaceSpotifyTrack { get; set; } = false;
     public bool AddUpvoteEmoji { get; set; } = true;
     public bool AddDownvoteEmoji { get; set; } = false;
     public bool UseCustomUpvoteEmoji { get; set; } = true;
