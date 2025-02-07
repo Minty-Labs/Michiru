@@ -18,8 +18,6 @@ using Michiru.Configuration._Base_Bot;
 using Michiru.Configuration.Moderation;
 using Michiru.Events;
 using CommandService = Discord.Commands.CommandService;
-using ExecuteResult = Discord.Interactions.ExecuteResult;
-using IResult = Discord.Interactions.IResult;
 
 namespace Michiru;
 
@@ -29,13 +27,13 @@ public class Program {
     private static readonly ILogger UtilLogger = Log.ForContext("SourceContext", "Util");
     
     public DiscordSocketClient Client { get; private set; }
-    private IServiceProvider _services;
+    private IServiceProvider _services { get; set; }
     private CommandService Commands { get; set; }
     private InteractionService GlobalInteractions { get; set; }
     private InteractionService MintyLabsInteractions { get; set; }
     public SocketTextChannel? GeneralLogChannel { get; private set; }
     public SocketTextChannel? ErrorLogChannel { get; private set; }
-    private ModalProcessor _modalProcessor;
+    private ModalProcessor _modalProcessor { get; set; }
 
     public static async Task Main(string[] args) {
         Vars.IsWindows = Environment.OSVersion.ToString().Contains("windows", StringComparison.CurrentCultureIgnoreCase);
@@ -180,7 +178,7 @@ public class Program {
 
         Client.Ready += ClientOnReady;
         Client.MessageReceived += BangerListener.BangerListenerEvent;
-        Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
+        // Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
         Client.UserLeft += MemberUpdated.MemberLeave; // this finally works
