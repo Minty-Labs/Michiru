@@ -79,13 +79,16 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                     catch { /*silent fail*/ }
 
                     sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                    sb.AppendLine(
-                        MarkdownUtils.ToSubText(
-                            MarkdownUtils.MakeLink("Original Spotify Link \u2197", theActualUrl, true) + " \u2219 " +
-                            MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url)) + " \u2219 " + // will show YouTube embed
-                        ((tidalTrackUrl != "[t404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(tidalTrackUrl)) ? MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true) /* + " \u2219 " + */ : "")
-                        //MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true)
-                    );
+
+                    var subtext = new StringBuilder();
+                    subtext.Append(MarkdownUtils.MakeLink("Original Spotify Link \u2197", theActualUrl, true) + " \u2219 ");
+                    subtext.Append(MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url) + " \u2219 "); // will show YouTube embed
+                    if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
+                        if (tidalTrackUrl != "[t404] ZERO RESULTS")
+                            subtext.Append(MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true) /* + " \u2219 " */);
+                    // subtext.Append(MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true));
+                    
+                    sb.AppendLine(MarkdownUtils.ToSubText(subtext.ToString()));
 
                     socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
                     conf!.SubmittedBangers++;
@@ -122,13 +125,16 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                     catch { /*silent fail*/ }
 
                     sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                    sb.AppendLine(
-                        MarkdownUtils.ToSubText(
-                            MarkdownUtils.MakeLink("Original Tidal Link \u2197", theActualUrl, true) + " \u2219 " +
-                            MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url)) + " \u2219 " + // will show YouTube embed
-                        ((spotifyTrackUrl != "[s404] ZERO RESULTS" || !string.IsNullOrWhiteSpace(spotifyTrackUrl)) ? MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) /* + " \u2219 " + */ : "")
-                        //MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true)
-                    );
+                    
+                    var subtext = new StringBuilder();
+                    subtext.Append(MarkdownUtils.MakeLink("Original Tidal Link \u2197", theActualUrl, true) + " \u2219 ");
+                    subtext.Append(MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url) + " \u2219 "); // will show YouTube embed
+                    if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
+                        if (spotifyTrackUrl != "[s404] ZERO RESULTS")
+                            subtext.Append(MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) /* + " \u2219 " */);
+                    // subtext.Append(MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true));
+                    
+                    sb.AppendLine(subtext.ToString());
 
                     socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
                     conf!.SubmittedBangers++;
@@ -140,9 +146,9 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                     var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
 
                     if (socketUserMessage is not null) {
-                        if (conf is { AddUpvoteEmoji: true /*, UseCustomUpvoteEmoji: true*/ })
+                        if (conf.AddUpvoteEmoji)
                             await socketUserMessage.AddReactionAsync(upVote);
-                        if (conf is { AddDownvoteEmoji: true /*, UseCustomDownvoteEmoji: true*/ })
+                        if (conf.AddDownvoteEmoji)
                             await socketUserMessage.AddReactionAsync(downVote);
                     }
 
@@ -365,12 +371,12 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Users {(enabled ? "can" : "cannot")} speak freely in the banger channel.");
         }
 
-        [SlashCommand("offertoreplace", "Offer Spotify to YouTube replacement")]
-        public async Task OfferReplace([Summary("toggle", "Enable or disable")] bool enabled) {
-            Config.GetGuildBanger(Context.Guild.Id).OfferToReplaceSpotifyTrack = enabled;
-            Config.Save();
-            await RespondAsync($"Offer to replace Spotify track with YouTube {(enabled ? "enabled" : "disabled")}.");
-        }
+        // [SlashCommand("offertoreplace", "Offer Spotify to YouTube replacement")]
+        // public async Task OfferReplace([Summary("toggle", "Enable or disable")] bool enabled) {
+        //     Config.GetGuildBanger(Context.Guild.Id).OfferToReplaceSpotifyTrack = enabled;
+        //     Config.Save();
+        //     await RespondAsync($"Offer to replace Spotify track with YouTube {(enabled ? "enabled" : "disabled")}.");
+        // }
 
         [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies banger count"), RequireOwner]
         public async Task ModifyBangerCount(
