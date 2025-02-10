@@ -1,4 +1,4 @@
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using System.Text;
 using Discord;
 using Michiru.Commands.Preexecution;
