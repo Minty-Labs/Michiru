@@ -20,28 +20,95 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
         [SlashCommand("lookup", "YT top result of music service URL"), RateLimit(30, 5)]
         public async Task LookupFromAllMusicStreamingServices(
-            [Summary("share-link", "Media Share URL")] string mediaUrl,
+            [Summary("share-link", "Media Share URL")] string mediaUrl = "",
+            [Summary("lookup-text", "Uses YouTube to look up the song by your input")] string lookupText = "",
             [Summary("extra-text", "Share your experience for this song")] string extraText = "") {
-            var sluLogger = Log.ForContext("SourceContext", "COMMAND:SpotifyLookup");
-            var tluLogger = Log.ForContext("SourceContext", "COMMAND:TidalLookup");
-            if (!mediaUrl.Contains("http")) {
-                await RespondAsync("No URL found in message", ephemeral: true);
+            
+            if (string.IsNullOrWhiteSpace(mediaUrl) && string.IsNullOrWhiteSpace(lookupText) && string.IsNullOrWhiteSpace(extraText)) {
+                await RespondAsync("Command variables must not be empty.", ephemeral: true);
                 return;
             }
-
-            IUserMessage? socketUserMessage = null;
-
-            await DeferAsync();
-
+            
             var conf = Config.GetGuildBanger(Context.Guild.Id);
-            string? theActualUrl = null;
-            var yt = new YoutubeClient();
+            IUserMessage? socketUserMessage = null;
+            var alreadyAddedBanger = false;
             var sb = new StringBuilder();
 
             if (!string.IsNullOrWhiteSpace(extraText))
                 sb.AppendLine(MarkdownUtils.ToItalics(extraText) + "\n");
 
             sb.AppendLine("Top Result");
+            
+            if (string.IsNullOrWhiteSpace(mediaUrl) && !string.IsNullOrWhiteSpace(lookupText)) {
+                await DeferAsync();
+                var textLookupYTClient = new YoutubeClient();
+                var videos = textLookupYTClient.Search.GetVideosAsync(lookupText).GetAwaiter().GetResult();
+                var firstEntry = videos[0];
+                var title = firstEntry.Title;
+                var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+                var subtext = new StringBuilder();
+
+                var spotifyTrackUrl = string.Empty;
+                try {
+                    spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{author} {title}");
+                }
+                catch (Exception ex) {
+                    Log.ForContext("SourceContext", "COMMAND:SpotifyLookup").Error("Failed to get track data from Spotify API");
+                    await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
+                    await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                        .DeleteAfter(5, "Failed to get track data from Spotify API");
+                    return; // fail command out right
+                }
+                
+                var tidalTrackUrl = string.Empty;
+                try {
+                    tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{author} {title}");
+                }
+                catch (Exception ex) {
+                    Log.ForContext("SourceContext", "COMMAND:TidalLookup").Error("Failed to get track data from Tidal API");
+                    await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
+                    await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                        .DeleteAfter(5, "Failed to get track data from Tidal API");
+                    return; // fail command out right
+                }
+                
+                var youtubeTrackUrl = firstEntry.Url;
+                var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
+                if (isAuthorRelease && !string.IsNullOrWhiteSpace(author))
+                    author = title;
+                
+                sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+                
+                subtext.Append(MarkdownUtils.MakeLink("Original YouTube Link \u2197", youtubeTrackUrl) + " \u2219 ");
+                if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
+                    if (spotifyTrackUrl != "[s404] ZERO RESULTS")
+                        subtext.Append(MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) + " \u2219 ");
+                if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
+                    if (tidalTrackUrl != "[t404] ZERO RESULTS")
+                        subtext.Append(MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true));
+                
+                sb.AppendLine(MarkdownUtils.ToSubText(subtext.ToString()));
+                
+                socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
+                conf!.SubmittedBangers++;
+                Config.Save();
+                alreadyAddedBanger = true;
+                goto afterCommandAction;
+            }
+            
+            var sluLogger = Log.ForContext("SourceContext", "COMMAND:SpotifyLookup");
+            var tluLogger = Log.ForContext("SourceContext", "COMMAND:TidalLookup");
+            var dluLogger = Log.ForContext("SourceContext", "COMMAND:DeezerLookup");
+            var yluLogger = Log.ForContext("SourceContext", "COMMAND:YouTubeLookup");
+            if (!mediaUrl.Contains("http")) {
+                await RespondAsync("No URL found in message", ephemeral: true);
+                return;
+            }
+
+            await DeferAsync();
+
+            string? theActualUrl = null;
+            var yt = new YoutubeClient();
 
             theActualUrl ??= mediaUrl;
             var isUrlGood = theActualUrl.AndContainsMultiple("spotify.com", "track") || theActualUrl.AndContainsMultiple("tidal.com", "track");
