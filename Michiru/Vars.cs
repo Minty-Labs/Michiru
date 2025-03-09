@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Discord.WebSocket;
 
 namespace Michiru;
@@ -6,7 +6,7 @@ namespace Michiru;
 public static class Vars {
     public static string DNetVer => Assembly.GetAssembly(typeof(DiscordSocketClient))!.GetName().Version!.ToString(3);
     public const string Name = "Michiru";
-    private static readonly Version VersionObj = new (1, 12, 4);
+    private static readonly Version VersionObj = new (1, 12, 5);
     // public const ulong ClientId = 477202627285876756;
     public const int TargetConfigVersion = 9;
     public const int TargetModConfigVersion = 1;
