@@ -221,6 +221,7 @@ public static class BangerListener {
             => a.Attributes["href"]?.Value is not null && a.Attributes["class"].Value is "css-1spf6ft");
         
         Dictionary<string, string> links = new();
+        var tempTitle = string.Empty;
         foreach (var node in nodes) {
             var href = node.Attributes["href"].Value;
             var title = node.Attributes["aria-label"].Value;
@@ -238,13 +239,13 @@ public static class BangerListener {
                 links.TryAdd("apple", href);
             else if (href.Contains("pandora"))
                 links.TryAdd("pandora", href);
+            
+            tempTitle = title;
         }
-        
-        var songNameNode = doc.DocumentNode.Descendants("div").Where(x => x.Attributes["class"].Value.Contains("css-1oiqcyt"));
-        var songName = songNameNode.FirstOrDefault()?.InnerText!;
-        
-        var songArtistsNode = doc.DocumentNode.Descendants("div").Where(x => x.Attributes["class"].Value.Contains("css-1vk2kj9"));
-        var songArtists = songArtistsNode.FirstOrDefault()?.InnerText!;
+
+        var splitTitle = tempTitle.Split("by");
+        var songName = splitTitle[0].Trim();
+        var songArtists = splitTitle[1].Trim().Split('-')[0].Trim();
 
         var services = new Services {
             SpotifyTrackUrl = links["spotify"],
