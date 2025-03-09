@@ -372,10 +372,10 @@ public static class BangerListener {
         }
 
         var dic = new Dictionary<string, string>();
-        dic.TryAdd("artists", songName);
-        BangerLogger.Information("Added Artists: {0}", songName);
-        dic.TryAdd("title", songArtists);
-        BangerLogger.Information("Added Title: {0}", songArtists);
+        dic.TryAdd("artists", songArtists);
+        BangerLogger.Information("Added Artists: {0}", songArtists);
+        dic.TryAdd("title", songName);
+        BangerLogger.Information("Added Title: {0}", songName);
         dic.TryAdd("finalizedLink", finalizedLink);
         BangerLogger.Information("Added Finalized Link: {0}", finalizedLink);
         dic.TryAdd("services", string.Join(',', list));
