@@ -52,7 +52,7 @@ public class ModData {
                 }
             ]
         };
-        
+
         bool update;
         Base? baseConfig = null;
         if (hasFile) {
@@ -61,28 +61,30 @@ public class ModData {
             if (baseConfig?.Version == Vars.TargetModConfigVersion) {
                 Base = baseConfig;
                 update = false;
-            } else {
+            }
+            else {
                 update = true;
                 baseConfig!.Version = Vars.TargetModConfigVersion;
             }
-        } else {
+        }
+        else {
             update = true;
         }
-        
-        var json = JsonSerializer.Serialize(baseConfig ?? data, new JsonSerializerOptions {WriteIndented = true});
+
+        var json = JsonSerializer.Serialize(baseConfig ?? data, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(file, json);
         Logger.Information("{0} {1}", update ? "Updated" : hasFile ? "Loaded" : "Created", file);
         Base = baseConfig ?? data;
-        
+
         foreach (var mod in Base.Users.SelectMany(user => user.Moderation)) {
             GuildModerationData.Add(mod.GuildId, mod);
         }
-        
+
         SetCurrentId();
     }
-    
-    public static void Save() => File.WriteAllText("Michiru.Bot.ModerationData.db.json", JsonSerializer.Serialize(Base, new JsonSerializerOptions {WriteIndented = true}));
-    
+
+    public static void Save() => File.WriteAllText("Michiru.Bot.ModerationData.db.json", JsonSerializer.Serialize(Base, new JsonSerializerOptions { WriteIndented = true }));
+
     private static void SetCurrentId() {
         var ids = Base.Users.SelectMany(u => u.Moderation).Select(m => m.Id);
         var enumerable = ids as int[] ?? ids.ToArray();
@@ -92,12 +94,12 @@ public class ModData {
     public static async Task<string> PrintoutUserModeration(ulong userId, ulong fromGuildId) {
         var sb = new StringBuilder();
         var user = Base.Users.FirstOrDefault(u => u.Id == userId);
-        
+
         if (user is null)
             return "No moderation data found for this user.";
-        
+
         sb.AppendLine($"Moderation data for user {userId} in guild {fromGuildId}");
-        
+
         foreach (var mod in user.Moderation.Where(m => m.GuildId == fromGuildId)) {
             sb.AppendLine($"Moderation ID: {mod.Id}");
             sb.AppendLine($"Type: {mod.Type}");
@@ -109,12 +111,12 @@ public class ModData {
             sb.AppendLine("--------------------------------------------------");
             sb.AppendLine();
         }
-        
+
         var isLarge = sb.Length > 2000 - 6; // minus 6 for the code block markdown
 
         if (!isLarge)
             return MarkdownUtils.ToCodeBlockMultiline(sb.ToString());
-        
+
         using var ms = new MemoryStream();
         await using var sw = new StreamWriter(ms);
         await sw.WriteAsync(sb.ToString());
@@ -127,17 +129,17 @@ public class ModData {
     internal static Dictionary<ulong, FileAttachment> LargeUserPrintout = new();
 
     private static FileAttachment DiscordFileAttachment(MemoryStream memoryStream, string filename = "UserPrintout.txt", string addedText = "") => new(memoryStream, filename, addedText);
-    
+
     public static async Task<IGuildChannel?> GetBanOrUnbanLogChannel(IGuild guild) {
         var channel = Base.Guilds.FirstOrDefault(g => g.Id == guild.Id)?.Channels.BanOrUnban;
         return channel is not null ? await guild.GetChannelAsync(channel.Value) : null;
     }
-    
+
     public static async Task<IGuildChannel?> GetFreezeSlowmodeMasspurgeLogChannel(IGuild guild) {
         var channel = Base.Guilds.FirstOrDefault(g => g.Id == guild.Id)?.Channels.FreezeSlowmodeMasspurge;
         return channel is not null ? await guild.GetChannelAsync(channel.Value) : null;
     }
-    
+
     public static async Task<IGuildChannel?> GetKickWarnTimeoutMuteLogChannel(IGuild guild) {
         var channel = Base.Guilds.FirstOrDefault(g => g.Id == guild.Id)?.Channels.KickWarnTimeoutMute;
         return channel is not null ? await guild.GetChannelAsync(channel.Value) : null;

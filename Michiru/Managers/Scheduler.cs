@@ -31,7 +31,7 @@ public class Scheduler {
             .WithIdentity("ConfigSaveLoop", Vars.Name)
             .StartNow()
             .WithSimpleSchedule(x => x
-                .WithIntervalInMinutes(10)
+                .WithIntervalInMinutes(1)
                 .RepeatForever())
             .Build();
         await theScheduler.ScheduleJob(configSaveLoopJob, configSaveLoopTrigger);

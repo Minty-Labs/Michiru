@@ -1,0 +1,585 @@
+﻿using System.Text;
+using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
+using HtmlAgilityPack;
+using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration._Base_Bot.Classes;
+using Michiru.Configuration.Music;
+using Michiru.Configuration.Music.Classes;
+using Michiru.Managers;
+using Michiru.Utils;
+using Michiru.Utils.MusicProviderApis.SongLink;
+using Serilog;
+using YoutubeExplode;
+using YoutubeExplode.Common;
+
+namespace Michiru.Events;
+
+public static class BangerListener {
+    private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "EVENT:BangerListener");
+
+    private static bool IsUrlWhitelisted(string url, ICollection<string> list) {
+        if (!Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri)) return false;
+        return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
+    }
+
+    private static bool IsFileExtWhitelisted(string extension, ICollection<string> list)
+        => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
+
+    internal static async Task BangerListenerEventRewrite(SocketMessage messageArg) {
+        var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == messageArg.Channel.Id);
+
+        if (conf is null) return;
+        if (!conf.Enabled) return;
+        if (messageArg.Author.IsBot) return;
+
+        var messageContent = messageArg.Content;
+        if (messageContent.StartsWith('.')) return; // can technically be exploited but whatever
+        var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
+        var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
+        string? theActualUrl = null;
+
+        if (messageContent.OrContainsMultiple(' ', '\n')) {
+            foreach (var str in messageContent.Split(' ')) {
+                if (!str.Contains("http")) continue;
+                theActualUrl = str;
+                break;
+            }
+        }
+
+        theActualUrl ??= messageContent;
+
+        BangerLogger.Information("Checking message for URL: {0}", theActualUrl);
+        BangerLogger.Information("Check URLs: {0}", conf.WhitelistedUrls);
+        var urlGood = IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!);
+        var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName)} has posted a song.");
+
+        var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(theActualUrl);
+        string spotifyTrackUrl = string.Empty,
+            tidalTrackUrl = string.Empty,
+            youtubeTrackUrl = string.Empty,
+            deezerTrackUrl = string.Empty,
+            iTunesTrackUrl = string.Empty,
+            pandoraTrackUrl = string.Empty,
+            songArtists = string.Empty,
+            songName = string.Empty;
+
+        if (!hasBeenSubmittedBefore) {
+            try {
+                if (urlGood) {
+                    var song = await SongLink.LookupData(theActualUrl);
+                    if (song is not null && SongLink.ToJson(song).AndNotContainsMultiple("entityUniqueId", ":null")) {
+                        BangerLogger.Information("Song Link Data: {json}", SongLink.ToJson(song));
+
+                        songArtists = song.entitiesByUniqueId.TIDAL_SONG.artistName;
+                        songName = song.entitiesByUniqueId.TIDAL_SONG.title;
+
+                        BangerLogger.Information("Found song: {artist} - {songName}", songArtists, songName);
+                        stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
+
+                        spotifyTrackUrl = song.linksByPlatform.spotify.url;
+                        tidalTrackUrl = song.linksByPlatform.tidal.url;
+                        youtubeTrackUrl = song.linksByPlatform.youtube.url;
+                        deezerTrackUrl = song.linksByPlatform.deezer.url;
+                        iTunesTrackUrl = song.linksByPlatform.appleMusic.url;
+                        pandoraTrackUrl = song.linksByPlatform.pandora.url;
+
+                        var data = new Submission {
+                            SubmissionId = Music.GetNextSubmissionId(),
+                            Artists = songArtists,
+                            Title = songName,
+                            Services = new Services {
+                                SpotifyTrackUrl = spotifyTrackUrl,
+                                TidalTrackUrl = tidalTrackUrl,
+                                YoutubeTrackUrl = youtubeTrackUrl,
+                                DeezerTrackUrl = deezerTrackUrl,
+                                AppleMusicTrackUrl = iTunesTrackUrl,
+                                PandoraTrackUrl = pandoraTrackUrl,
+                            },
+                            SubmissionDate = DateTime.Now,
+                        };
+                        Music.Base.MusicSubmissions.Add(data);
+                        Music.Save();
+                    }
+                    else {
+                        var yt = new YoutubeClient();
+                        if (theActualUrl.AndContainsMultiple("spotify.com", "track")) {
+                            Utils.MusicProviderApis.Spotify.Root? spotifyTrackUrlFromApi;
+                            try {
+                                spotifyTrackUrlFromApi = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(theActualUrl.Split('/').Last());
+                            }
+                            catch (Exception ex) {
+                                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{messageArg.Channel.Id}>", obj: ex.StackTrace);
+                                await messageArg.Channel.SendMessageAsync("Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                                    .DeleteAfter(5, "Failed to get track data from Spotify API");
+
+                                var failedResponseMessage = (SocketUserMessage)messageArg;
+                                if (conf.AddUpvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(upVote);
+                                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                                if (conf.AddDownvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(downVote);
+                                conf!.SubmittedBangers++;
+                                Config.Save();
+
+                                return; // fail command out right
+                            }
+
+                            var videos = await yt.Search.GetVideosAsync($"{spotifyTrackUrlFromApi!.artists[0].name} {spotifyTrackUrlFromApi.name}");
+
+                            var firstEntry = videos[0];
+                            var title = firstEntry.Title;
+                            var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+                            var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
+                            if (isAuthorRelease && !string.IsNullOrWhiteSpace(spotifyTrackUrlFromApi.artists[0].name))
+                                author = spotifyTrackUrlFromApi.artists[0].name;
+
+                            var tidalTrackUrlFromApi = string.Empty;
+                            try {
+                                tidalTrackUrlFromApi = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{spotifyTrackUrlFromApi.artists[0].name} {spotifyTrackUrlFromApi.name}");
+                            }
+                            catch { /*silent fail*/
+                            }
+
+                            stringBuilder.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+
+                            var trackLinks = new List<string>();
+                            if (!string.IsNullOrWhiteSpace(theActualUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", theActualUrl, true));
+                            if (!string.IsNullOrWhiteSpace(tidalTrackUrlFromApi))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", tidalTrackUrlFromApi, true));
+                            if (!string.IsNullOrWhiteSpace(firstEntry.Url))
+                                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", firstEntry.Url, false));
+                            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
+
+                            // add to music submissions
+                            var data = new Submission {
+                                SubmissionId = Music.GetNextSubmissionId(),
+                                Artists = spotifyTrackUrlFromApi.artists[0].name,
+                                Title = spotifyTrackUrlFromApi.name,
+                                Services = new Services {
+                                    SpotifyTrackUrl = theActualUrl,
+                                    TidalTrackUrl = tidalTrackUrlFromApi,
+                                    YoutubeTrackUrl = firstEntry.Url,
+                                    DeezerTrackUrl = "",
+                                    AppleMusicTrackUrl = "",
+                                    PandoraTrackUrl = "",
+                                },
+                                SubmissionDate = DateTime.Now,
+                            };
+                            Music.Base.MusicSubmissions.Add(data);
+                            Music.Save();
+
+                            if (trackLinks.Count is not 0)
+                                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
+
+                            await messageArg.DeleteAsync();
+
+                            var response = await messageArg.Channel.SendMessageAsync(stringBuilder.ToString());
+                            if (conf.AddUpvoteEmoji)
+                                await response.AddReactionAsync(upVote);
+                            await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                            if (conf.AddDownvoteEmoji)
+                                await response.AddReactionAsync(downVote);
+
+                            conf!.SubmittedBangers++;
+                            Config.Save();
+                        }
+                        else if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
+                            Utils.MusicProviderApis.Tidal.Root? tidalTrackFromApi;
+                            try {
+                                tidalTrackFromApi = await Utils.MusicProviderApis.Tidal.GetTrackResults.GetData(theActualUrl.Split('/').Last());
+                            }
+                            catch (Exception ex) {
+                                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{messageArg.Channel.Id}>", obj: ex.StackTrace);
+                                await messageArg.Channel.SendMessageAsync("Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                                    .DeleteAfter(5, "Failed to get track data from Tidal API");
+
+                                var failedResponseMessage = (SocketUserMessage)messageArg;
+                                if (conf.AddUpvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(upVote);
+                                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                                if (conf.AddDownvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(downVote);
+                                conf!.SubmittedBangers++;
+                                Config.Save();
+
+                                return; // fail command out right
+                            }
+
+                            var videos = await yt.Search.GetVideosAsync($"{tidalTrackFromApi!.resource.artists[0]} {tidalTrackFromApi!.resource.title}");
+
+                            var firstEntry = videos[0];
+                            var title = firstEntry.Title;
+                            var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+
+                            var spotifyTrackFromApi = string.Empty;
+                            try {
+                                spotifyTrackFromApi = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{tidalTrackFromApi.resource.artists[0]} {tidalTrackFromApi.resource.title}");
+                            }
+                            catch (Exception ex) {
+                                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{messageArg.Channel.Id}>", obj: ex.StackTrace);
+                                await messageArg.Channel.SendMessageAsync("Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                                    .DeleteAfter(5, "Failed to get track data from Spotify API");
+
+                                var failedResponseMessage = (SocketUserMessage)messageArg;
+                                if (conf.AddUpvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(upVote);
+                                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                                if (conf.AddDownvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(downVote);
+                                conf!.SubmittedBangers++;
+                                Config.Save();
+
+                                return; // fail command out right
+                            }
+
+                            var spotifyData = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(spotifyTrackFromApi!.Split('/').Last());
+                            var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
+                            if (isAuthorRelease && !string.IsNullOrWhiteSpace(spotifyData!.artists[0].name))
+                                author = spotifyData.artists[0].name;
+
+                            stringBuilder.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+
+                            var trackLinks = new List<string>();
+                            if (!string.IsNullOrWhiteSpace(spotifyTrackFromApi))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", theActualUrl, true));
+                            if (!string.IsNullOrWhiteSpace(theActualUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", theActualUrl, true));
+                            if (!string.IsNullOrWhiteSpace(firstEntry.Url))
+                                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", firstEntry.Url, false));
+                            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
+
+                            // add to music submissions
+                            var data = new Submission {
+                                SubmissionId = Music.GetNextSubmissionId(),
+                                Artists = spotifyData.artists[0].name,
+                                Title = spotifyData.name,
+                                Services = new Services {
+                                    SpotifyTrackUrl = spotifyTrackUrl,
+                                    TidalTrackUrl = theActualUrl,
+                                    YoutubeTrackUrl = firstEntry.Url,
+                                    DeezerTrackUrl = "",
+                                    AppleMusicTrackUrl = "",
+                                    PandoraTrackUrl = "",
+                                },
+                                SubmissionDate = DateTime.Now,
+                            };
+                            Music.Base.MusicSubmissions.Add(data);
+                            Music.Save();
+
+                            if (trackLinks.Count is not 0)
+                                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
+
+                            await messageArg.DeleteAsync();
+
+                            var response = await messageArg.Channel.SendMessageAsync(stringBuilder.ToString());
+                            if (conf.AddUpvoteEmoji)
+                                await response.AddReactionAsync(upVote);
+                            await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                            if (conf.AddDownvoteEmoji)
+                                await response.AddReactionAsync(downVote);
+
+                            conf!.SubmittedBangers++;
+                            Config.Save();
+                        }
+                        else if (theActualUrl.OrContainsMultiple("music.youtube.com", "youtu.be", "youtube.com")) {
+                            var videos = await yt.Search.GetVideosAsync(theActualUrl);
+                            var firstEntry = videos[0];
+                            var title = firstEntry.Title;
+                            var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
+
+                            string spotifyTrackUrlFromYt = string.Empty,
+                                tidalTrackUrlFromYt = string.Empty;
+                            try {
+                                spotifyTrackUrlFromYt = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{author} {title}");
+                            }
+                            catch (Exception ex) {
+                                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{messageArg.Channel.Id}>", obj: ex.StackTrace);
+                                await messageArg.Channel.SendMessageAsync("Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                                    .DeleteAfter(5, "Failed to get track data from Spotify API");
+
+                                var failedResponseMessage = (SocketUserMessage)messageArg;
+                                if (conf.AddUpvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(upVote);
+                                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                                if (conf.AddDownvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(downVote);
+                                conf!.SubmittedBangers++;
+                                Config.Save();
+
+                                return; // fail command out right
+                            }
+
+                            try {
+                                tidalTrackUrlFromYt = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{author} {title}");
+                            }
+                            catch (Exception ex) {
+                                await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{messageArg.Channel.Id}>", obj: ex.StackTrace);
+                                await messageArg.Channel.SendMessageAsync("Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
+                                    .DeleteAfter(5, "Failed to get track data from Tidal API");
+
+                                var failedResponseMessage = (SocketUserMessage)messageArg;
+                                if (conf.AddUpvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(upVote);
+                                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                                if (conf.AddDownvoteEmoji)
+                                    await failedResponseMessage.AddReactionAsync(downVote);
+                                conf!.SubmittedBangers++;
+                                Config.Save();
+
+                                return; // fail command out right
+                            }
+
+                            stringBuilder.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
+
+                            var trackLinks = new List<string>();
+                            if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", theActualUrl, true));
+                            if (!string.IsNullOrWhiteSpace(theActualUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", theActualUrl, true));
+                            if (!string.IsNullOrWhiteSpace(firstEntry.Url))
+                                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", firstEntry.Url, false));
+                            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
+                            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
+                                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
+
+                            var ytDataGetSpotifyData = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(spotifyTrackUrlFromYt.Split('/').Last());
+
+                            // add to music submissions
+                            var data = new Submission {
+                                SubmissionId = Music.GetNextSubmissionId(),
+                                Artists = ytDataGetSpotifyData.artists[0].name,
+                                Title = ytDataGetSpotifyData.name,
+                                Services = new Services {
+                                    SpotifyTrackUrl = spotifyTrackUrlFromYt,
+                                    TidalTrackUrl = tidalTrackUrlFromYt,
+                                    YoutubeTrackUrl = theActualUrl,
+                                    DeezerTrackUrl = "",
+                                    AppleMusicTrackUrl = "",
+                                    PandoraTrackUrl = "",
+                                },
+                                SubmissionDate = DateTime.Now,
+                            };
+                            Music.Base.MusicSubmissions.Add(data);
+                            Music.Save();
+
+                            if (trackLinks.Count is not 0)
+                                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
+
+                            await messageArg.DeleteAsync();
+
+                            var response = await messageArg.Channel.SendMessageAsync(stringBuilder.ToString());
+                            if (conf.AddUpvoteEmoji)
+                                await response.AddReactionAsync(upVote);
+                            await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                            if (conf.AddDownvoteEmoji)
+                                await response.AddReactionAsync(downVote);
+
+                            conf!.SubmittedBangers++;
+                            Config.Save();
+                        }
+                    }
+                }
+            }
+            catch {
+                var failedResponseMessage = (SocketUserMessage)messageArg;
+                if (conf.AddUpvoteEmoji)
+                    await failedResponseMessage.AddReactionAsync(upVote);
+                await Task.Delay(TimeSpan.FromSeconds(0.5f));
+                if (conf.AddDownvoteEmoji)
+                    await failedResponseMessage.AddReactionAsync(downVote);
+                conf!.SubmittedBangers++;
+                Config.Save();
+            }
+        }
+        else if (hasBeenSubmittedBefore && urlGood) {
+            var songData = Music.GetSubmissionByLink(theActualUrl);
+            songArtists = songData.Artists;
+            songName = songData.Title;
+
+            BangerLogger.Information("Found song: {artist} - {songName}", songArtists, songName);
+            stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
+
+            spotifyTrackUrl = songData.Services.SpotifyTrackUrl;
+            tidalTrackUrl = songData.Services.TidalTrackUrl;
+            youtubeTrackUrl = songData.Services.YoutubeTrackUrl;
+            deezerTrackUrl = songData.Services.DeezerTrackUrl;
+            iTunesTrackUrl = songData.Services.AppleMusicTrackUrl;
+            pandoraTrackUrl = songData.Services.PandoraTrackUrl;
+
+            var trackLinks = new List<string>();
+            if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", theActualUrl, true));
+            if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", tidalTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(youtubeTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", youtubeTrackUrl, false));
+            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
+
+            if (trackLinks.Count is not 0)
+                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
+
+            await messageArg.DeleteAsync();
+
+            var response = await messageArg.Channel.SendMessageAsync(stringBuilder.ToString());
+            if (conf.AddUpvoteEmoji)
+                await response.AddReactionAsync(upVote);
+            await Task.Delay(TimeSpan.FromSeconds(0.5f));
+            if (conf.AddDownvoteEmoji)
+                await response.AddReactionAsync(downVote);
+
+            conf!.SubmittedBangers++;
+            Config.Save();
+        }
+        else {
+            if (conf.SpeakFreely)
+                return;
+            await messageArg.Channel.SendMessageAsync("Message does not contain a valid whitelisted URL.");
+        }
+    }
+
+    private static async Task HandleWebExtraction(string url) {
+        var web = new HtmlWeb();
+        var doc = await web.LoadFromWebAsync(url);
+        
+        var nodes = doc.DocumentNode.Descendants("a").Where(a => a.Attributes["href"]?.Value is not null && a.Attributes["class"].Value is "css-1spf6ft");
+        foreach (var node in nodes) {
+            var href = node.Attributes["href"].Value;
+            var title = node.Attributes["aria-label"].Value;
+            BangerLogger.Information("Found: {0} - {1}", title, href);
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /*internal static async Task BangerListenerEventRewrite2(SocketMessage messageArg) {
+        var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == messageArg.Channel.Id);
+        if (conf is null || !conf.Enabled || messageArg.Author.IsBot || messageArg.Content.StartsWith('.')) return;
+
+        var messageContent = messageArg.Content;
+        var theActualUrl = ExtractUrl(messageContent) ?? messageContent;
+        var upVote = GetEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId, ":thumbsup:");
+        var downVote = GetEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId, ":thumbsdown:");
+
+        BangerLogger.Information("Checking message for URL: {0}", theActualUrl);
+        if (!IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!)) {
+            if (!conf.SpeakFreely)
+                await messageArg.Channel.SendMessageAsync("Message does not contain a valid whitelisted URL.");
+            return;
+        }
+
+        var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(theActualUrl);
+        if (hasBeenSubmittedBefore) {
+            await HandleExistingSubmission(messageArg, conf, theActualUrl, upVote, downVote);
+            return;
+        }
+
+        await HandleNewSubmission(messageArg, conf, theActualUrl, upVote, downVote);
+    }
+
+    private static string? ExtractUrl(string content) => content.Split(' ').FirstOrDefault(str => str.Contains("http"));
+
+    private static Emote GetEmoji(string name, ulong id, string fallback) => (id != 0 ? EmojiUtils.GetCustomEmoji(name, id) : Emote.Parse(name) ?? Emote.Parse(fallback))!;
+
+    private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
+        var songData = Music.GetSubmissionByLink(url);
+        var responseMessage = FormatSubmissionMessage(messageArg, songData.Artists, songData.Title, songData.Services);
+        await messageArg.DeleteAsync();
+        var response = await messageArg.Channel.SendMessageAsync(responseMessage);
+        await AddReactions(response, conf, upVote, downVote);
+        conf.SubmittedBangers++;
+        Config.Save();
+    }
+
+    private static async Task HandleNewSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
+        var song = await SongLink.LookupData(url);
+        if (song is null || SongLink.ToJson(song).Contains(":null")) return;
+
+        var songArtists = song.entitiesByUniqueId.TIDAL_SONG.artistName;
+        var songName = song.entitiesByUniqueId.TIDAL_SONG.title;
+        var services = new Services {
+            SpotifyTrackUrl = song.linksByPlatform.spotify.url,
+            TidalTrackUrl = song.linksByPlatform.tidal.url,
+            YoutubeTrackUrl = song.linksByPlatform.youtube.url,
+            DeezerTrackUrl = song.linksByPlatform.deezer.url,
+            AppleMusicTrackUrl = song.linksByPlatform.appleMusic.url,
+            PandoraTrackUrl = song.linksByPlatform.pandora.url
+        };
+
+        Music.Base.MusicSubmissions.Add(new Submission {
+            SubmissionId = Music.GetNextSubmissionId(),
+            Artists = songArtists,
+            Title = songName,
+            Services = services,
+            SubmissionDate = DateTime.Now,
+        });
+        Music.Save();
+
+        var responseMessage = FormatSubmissionMessage(messageArg, songArtists, songName, services);
+        await messageArg.DeleteAsync();
+        var response = await messageArg.Channel.SendMessageAsync(responseMessage);
+        await AddReactions(response, conf, upVote, downVote);
+        conf.SubmittedBangers++;
+        Config.Save();
+    }
+
+    private static string FormatSubmissionMessage(SocketMessage messageArg, string artist, string title, Services services) {
+        var builder = new StringBuilder();
+        builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName)} has posted a song.");
+        builder.AppendLine(MarkdownUtils.ToBoldItalics($"{artist} - {title}"));
+
+        var links = new List<string> {
+            CreateLink("Spotify", services.SpotifyTrackUrl, true),
+            CreateLink("Tidal", services.TidalTrackUrl, true),
+            CreateLink("YouTube", services.YoutubeTrackUrl, false),
+            CreateLink("Deezer", services.DeezerTrackUrl, true),
+            CreateLink("Apple Music", services.AppleMusicTrackUrl, true),
+            CreateLink("Pandora", services.PandoraTrackUrl, true)
+        };
+
+        builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
+        return builder.ToString();
+    }
+
+    private static string CreateLink(string serviceName, string url, bool hideEmbed) => string.IsNullOrWhiteSpace(url) ? string.Empty : MarkdownUtils.MakeLink($"{serviceName} Track \u2197", url, hideEmbed);
+
+    private static async Task AddReactions(RestUserMessage message, Banger conf, Emote upVote, Emote downVote) {
+        if (conf.AddUpvoteEmoji)
+            await message.AddReactionAsync(upVote);
+        await Task.Delay(500);
+        if (conf.AddDownvoteEmoji)
+            await message.AddReactionAsync(downVote);
+    }*/
+}

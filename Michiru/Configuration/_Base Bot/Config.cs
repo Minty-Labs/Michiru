@@ -1,8 +1,8 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Michiru.Configuration._Base_Bot.Classes;
 using Serilog;
 
-namespace Michiru.Configuration._Base_Bot; 
+namespace Michiru.Configuration._Base_Bot;
 
 public static class Config {
     public static Base Base { get; private set; }
@@ -12,7 +12,7 @@ public static class Config {
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
         var hasFile = File.Exists(file);
-        
+
         var rotatingStatus = new RotatingStatus {
             Enabled = false,
             MinutesPerStatus = 2,
@@ -24,7 +24,8 @@ public static class Config {
                     UserStatus = "Online"
                 }
             ]
-        };;
+        };
+        ;
 
         var config = new Base {
             ConfigVersion = Vars.TargetConfigVersion,
@@ -39,7 +40,7 @@ public static class Config {
             ExtraBangerCount = 0,
             GuildFeatures = [],
             Banger = [],
-            PersonalizedMember = [ new PersonalizedMember { Guilds = [] } ],
+            PersonalizedMember = [new PersonalizedMember { Guilds = [] }],
             PennysGuildWatcher = new PennysGuildWatcher {
                 GuildId = 977705960544014407,
                 ChannelId = 989703825977905192,
@@ -75,7 +76,7 @@ public static class Config {
                 }
             ]
         };
-        
+
         bool update;
         Base? baseConfig = null;
         if (hasFile) {
@@ -84,15 +85,17 @@ public static class Config {
             if (baseConfig?.ConfigVersion == Vars.TargetConfigVersion) {
                 Base = baseConfig;
                 update = false;
-            } else {
+            }
+            else {
                 update = true;
                 baseConfig!.ConfigVersion = Vars.TargetConfigVersion;
             }
-        } else {
+        }
+        else {
             update = true;
         }
-        
-        var json = JsonSerializer.Serialize(baseConfig ?? config, new JsonSerializerOptions {WriteIndented = true});
+
+        var json = JsonSerializer.Serialize(baseConfig ?? config, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(file, json);
         Logger.Information("{0} {1}", update ? "Updated" : hasFile ? "Loaded" : "Created", file);
         Base = baseConfig ?? config;
@@ -102,14 +105,14 @@ public static class Config {
     public static void Save() => ShouldUpdateConfigFile = true;
 
     public static void SaveFile() {
-        File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "Michiru.Bot.config.json"), JsonSerializer.Serialize(Base, new JsonSerializerOptions {WriteIndented = true}));
+        File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "Michiru.Bot.config.json"), JsonSerializer.Serialize(Base, new JsonSerializerOptions { WriteIndented = true }));
         ShouldUpdateConfigFile = false;
     }
 
     public static Banger GetGuildBanger(ulong id) {
         var banger = Base.Banger!.FirstOrDefault(b => b.GuildId == id);
         if (banger is not null) return banger;
-        banger = new Banger {GuildId = id};
+        banger = new Banger { GuildId = id };
         Base.Banger!.Add(banger);
         Save();
         return banger;
@@ -118,12 +121,12 @@ public static class Config {
     public static PmGuildData GetGuildPersonalizedMember(ulong id) {
         var pm = Base.PersonalizedMember!.FirstOrDefault(p => p.Guilds!.Any(g => g.GuildId == id));
         if (pm is not null) return pm.Guilds!.First(g => g.GuildId == id);
-        pm = new PersonalizedMember {Guilds = [new PmGuildData { GuildId = id }] };
+        pm = new PersonalizedMember { Guilds = [new PmGuildData { GuildId = id }] };
         Base.PersonalizedMember!.Add(pm);
         Save();
         return pm.Guilds!.First();
     }
-    
+
     /// <summary>
     /// Gets the sum of all submitted bangers from all guilds
     /// </summary>
@@ -135,7 +138,7 @@ public static class Config {
     /// </summary>
     /// <returns></returns>
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
-    
+
     public static void FixBangerNulls() {
         foreach (var banger in Base.Banger!) {
             banger.WhitelistedUrls ??= DefaultWhitelistUrls;
@@ -143,16 +146,17 @@ public static class Config {
             banger.UrlErrorResponseMessage ??= "This URL is not whitelisted.";
             banger.FileErrorResponseMessage ??= "This file type is not whitelisted.";
         }
+
         SaveFile();
     }
-    
+
     // Get guild from guild features
     public static GuildFeatures GetGuildFeature(ulong id) {
         // if guild by id doesn't exist, create it
-        if (Base.GuildFeatures.Any(x => x.GuildId == id)) 
+        if (Base.GuildFeatures.Any(x => x.GuildId == id))
             return Base.GuildFeatures.First(x => x.GuildId == id);
-        
-        var guild = new GuildFeatures {GuildId = id};
+
+        var guild = new GuildFeatures { GuildId = id };
         Base.GuildFeatures!.Add(guild);
         SaveFile();
         return guild;
