@@ -1,14 +1,10 @@
 ﻿using Discord.Interactions;
 using System.Text;
-using System.Text.RegularExpressions;
 using Discord;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Configuration.Music;
-using Michiru.Configuration.Music.Classes;
 using Michiru.Events;
-using Michiru.Utils;
-using Michiru.Utils.MusicProviderApis.SongLink;
 using Serilog;
 
 namespace Michiru.Commands.Slash;
@@ -23,124 +19,32 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         public async Task LookupFromAllMusicStreamingServices(
             [Summary("share-link", "Song Share URL")] string mediaUrl,
             [Summary("extra-text", "Express some words of wisdom about this song")] string extraText = "") {
+            var logger = Log.ForContext("SourceContext", "COMMAND::Banger");
+            var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == Context.Channel.Id);
+            if (conf is null || !conf.Enabled) return;
             
-            await RespondAsync("this command is temporarily disabled", ephemeral: true);
-            return;
-            
-            var conf = Config.GetGuildBanger(Context.Guild.Id);
-            var stringBuilder = new StringBuilder();
-
-            await DeferAsync();
-
-            if (!string.IsNullOrWhiteSpace(extraText))
-                stringBuilder.AppendLine(MarkdownUtils.ToItalics(extraText) + "\n");
-
-            stringBuilder.AppendLine("Top Result");
-            
-            if (!mediaUrl.Contains("http")) {
-                await RespondAsync("No URL found in message", ephemeral: true);
+            var theActualUrl = BangerListener.ExtractUrl(mediaUrl);
+            if (string.IsNullOrWhiteSpace(theActualUrl)) {
+                await RespondAsync("Invalid URL.", ephemeral: true);
                 return;
             }
-            
-            const string pattern = @"(https?:\/\/(music\.apple\.com|open\.spotify\.com|spotify\.link|music\.amazon\.com|tidal\.com|music\.youtube\.com|deezer\.page\.link|pandora\.com)\/[^\s]+)";
-            
-            var logger = Log.ForContext("SourceContext", "COMMAND:BangerLookup");
+            var upVote = BangerListener.GetEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId, ":thumbsup:");
+            var downVote = BangerListener.GetEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId, ":thumbsdown:");
 
-            if (!Regex.IsMatch(mediaUrl, pattern)) {
-                logger.Error("Invalid URL provided");
-                await RespondAsync("Invalid URL provided", ephemeral: true);
+            logger.Information("Checking mediaUrl for URL: {0}", theActualUrl);
+            if (!BangerListener.IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!)) {
+                if (!conf.SpeakFreely)
+                    await RespondAsync("Message does not contain a valid whitelisted URL.", ephemeral: true);
                 return;
             }
 
-            var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(mediaUrl);
-            string spotifyTrackUrl, tidalTrackUrl, youtubeTrackUrl, deezerTrackUrl, iTunesTrackUrl, pandoraTrackUrl, songArtists, songName;
-
-            if (!hasBeenSubmittedBefore) {
-                var song = await SongLink.LookupData(mediaUrl);
-                if (song is null) {
-                    await RespondAsync("Failed to get song data from SongLink API", ephemeral: true);
-                    return;
-                }
-
-                songArtists = song.entitiesByUniqueId.SPOTIFY_SONG.artistName;
-                songName = song.entitiesByUniqueId.SPOTIFY_SONG.title;
-            
-                logger.Information("Found song: {artist} - {songName}", songArtists, songName);
-                stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
-                
-                spotifyTrackUrl = song.linksByPlatform.spotify.url;
-                tidalTrackUrl = song.linksByPlatform.tidal.url;
-                youtubeTrackUrl = song.linksByPlatform.youtube.url;
-                deezerTrackUrl = song.linksByPlatform.deezer.url;
-                iTunesTrackUrl = song.linksByPlatform.appleMusic.url;
-                pandoraTrackUrl = song.linksByPlatform.pandora.url;
-                
-                var data = new Submission {
-                    SubmissionId = Music.GetNextSubmissionId(),
-                    Artists = songArtists,
-                    Title = songName,
-                    Services = new Services {
-                        SpotifyTrackUrl = spotifyTrackUrl,
-                        TidalTrackUrl = tidalTrackUrl,
-                        YoutubeTrackUrl = youtubeTrackUrl,
-                        DeezerTrackUrl = deezerTrackUrl,
-                        AppleMusicTrackUrl = iTunesTrackUrl,
-                        PandoraTrackUrl = pandoraTrackUrl,
-                    },
-                    SubmissionDate = DateTime.Now,
-                };
-                Music.Base.MusicSubmissions.Add(data);
-                Music.Save();
+            var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(theActualUrl);
+            if (hasBeenSubmittedBefore) {
+                await BangerListener.HandleExistingSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
+                return;
             }
-            else {
-                var songData = Music.GetSubmissionByLink(mediaUrl);
-                songArtists = songData.Artists;
-                songName = songData.Title;
-                
-                logger.Information("Found song: {artist} - {songName}", songArtists, songName);
-                stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
-                
-                spotifyTrackUrl = songData.Services.SpotifyTrackUrl;
-                tidalTrackUrl = songData.Services.TidalTrackUrl;
-                youtubeTrackUrl = songData.Services.YoutubeTrackUrl;
-                deezerTrackUrl = songData.Services.DeezerTrackUrl;
-                iTunesTrackUrl = songData.Services.AppleMusicTrackUrl;
-                pandoraTrackUrl = songData.Services.PandoraTrackUrl;
-            }
-            
-            var trackLinks = new List<string>();
-            if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", spotifyTrackUrl, true));
-            if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", tidalTrackUrl, true));
-            if (!string.IsNullOrWhiteSpace(youtubeTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", youtubeTrackUrl, false));
-            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
-            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
-            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
-                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
 
-            if (trackLinks.Count is not 0)
-                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
-            
-            var socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = stringBuilder.ToString().Trim());
-            
-            if (Context.Channel.Id == conf.ChannelId) {
-                var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
-                var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
-
-                if (socketUserMessage is not null) {
-                    if (conf.AddUpvoteEmoji)
-                        await socketUserMessage.AddReactionAsync(upVote);
-                    if (conf.AddDownvoteEmoji)
-                        await socketUserMessage.AddReactionAsync(downVote);
-                }
-            }
-            
-            conf!.SubmittedBangers++;
-            Config.Save();
+            await BangerListener.HandleNewSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
         }
 
         [SlashCommand("getbangercount", "Gets current guild banger count")]
