@@ -16,6 +16,7 @@ using Serilog.Templates.Themes;
 using static System.DateTime;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Configuration.Moderation;
+using Michiru.Configuration.Music;
 using Michiru.Events;
 using CommandService = Discord.Commands.CommandService;
 
@@ -83,6 +84,11 @@ public class Program {
         }
         catch { /**/ }
 
+        try {
+            Music.Initialize();
+        }
+        catch { /**/ }
+
         if (string.IsNullOrWhiteSpace(Config.Base.BotToken)) {
             Console.Title = $"{Vars.Name} | Enter your bot token";
             Console.Write("Please enter your bot token: ");
@@ -114,7 +120,7 @@ public class Program {
             AlwaysDownloadUsers = true,
             LogLevel = Vars.IsWindows ? LogSeverity.Verbose : LogSeverity.Debug, //Info,
             MessageCacheSize = 1500,
-            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers) & ~GatewayIntents.GuildPresences & ~GatewayIntents.GuildScheduledEvents & ~GatewayIntents.GuildInvites
+            GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.MessageContent) & ~GatewayIntents.GuildPresences & ~GatewayIntents.GuildScheduledEvents & ~GatewayIntents.GuildInvites
         });
 
         Commands = new CommandService(new CommandServiceConfig {
@@ -177,7 +183,7 @@ public class Program {
         };
 
         Client.Ready += ClientOnReady;
-        Client.MessageReceived += BangerListener.BangerListenerEvent;
+        Client.MessageReceived += BangerListener.BangerListenerEventRewrite2ElectricBoogaloo;
         // Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad

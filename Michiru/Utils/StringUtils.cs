@@ -64,6 +64,14 @@ public static class StringUtils {
     public static bool AndContainsMultiple(this string str1, params string[] chars) => chars.All(str1.ToLower().Contains);
     
     /// <summary>
+    /// Checks if the string does not contain multiple string values
+    /// </summary>
+    /// <param name="str1">this</param>
+    /// <param name="chars">As many strings as you want to compare to the target string</param>
+    /// <returns></returns>
+    public static bool AndNotContainsMultiple(this string str1, params string[] chars) => chars.All(c => !str1.ToLower().Contains(c));
+    
+    /// <summary>
     /// Checks if the string contains multiple character values
     /// </summary>
     /// <param name="str1">this</param>

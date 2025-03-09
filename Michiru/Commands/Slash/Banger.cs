@@ -1,14 +1,15 @@
 ﻿using Discord.Interactions;
 using System.Text;
+using System.Text.RegularExpressions;
 using Discord;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration._Base_Bot;
+using Michiru.Configuration.Music;
+using Michiru.Configuration.Music.Classes;
 using Michiru.Events;
-using Michiru.Managers;
 using Michiru.Utils;
+using Michiru.Utils.MusicProviderApis.SongLink;
 using Serilog;
-using YoutubeExplode;
-using YoutubeExplode.Common;
 
 namespace Michiru.Commands.Slash;
 
@@ -18,274 +19,114 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      IntegrationType(ApplicationIntegrationType.GuildInstall),
      CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
-        [SlashCommand("lookup", "YT top result of music service URL"), RateLimit(30, 5)]
+        [SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
         public async Task LookupFromAllMusicStreamingServices(
-            [Summary("share-link", "Media Share URL")] string mediaUrl = "",
-            [Summary("lookup-text", "Uses YouTube to look up the song by your input")] string lookupText = "",
-            [Summary("extra-text", "Share your experience for this song")] string extraText = "") {
+            [Summary("share-link", "Song Share URL")] string mediaUrl,
+            [Summary("extra-text", "Express some words of wisdom about this song")] string extraText = "") {
             
-            if (string.IsNullOrWhiteSpace(mediaUrl) && string.IsNullOrWhiteSpace(lookupText) && string.IsNullOrWhiteSpace(extraText)) {
-                await RespondAsync("Command variables must not be empty.", ephemeral: true);
-                return;
-            }
+            await RespondAsync("this command is temporarily disabled", ephemeral: true);
+            return;
             
             var conf = Config.GetGuildBanger(Context.Guild.Id);
-            IUserMessage? socketUserMessage = null;
-            var alreadyAddedBanger = false;
-            var sb = new StringBuilder();
+            var stringBuilder = new StringBuilder();
+
+            await DeferAsync();
 
             if (!string.IsNullOrWhiteSpace(extraText))
-                sb.AppendLine(MarkdownUtils.ToItalics(extraText) + "\n");
+                stringBuilder.AppendLine(MarkdownUtils.ToItalics(extraText) + "\n");
 
-            sb.AppendLine("Top Result");
+            stringBuilder.AppendLine("Top Result");
             
-            if (string.IsNullOrWhiteSpace(mediaUrl) && !string.IsNullOrWhiteSpace(lookupText)) {
-                await DeferAsync();
-                var textLookupYTClient = new YoutubeClient();
-                var videos = textLookupYTClient.Search.GetVideosAsync(lookupText).GetAwaiter().GetResult();
-                var firstEntry = videos[0];
-                var title = firstEntry.Title;
-                var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                var subtext = new StringBuilder();
-
-                var spotifyTrackUrl = string.Empty;
-                try {
-                    spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{author} {title}");
-                }
-                catch (Exception ex) {
-                    Log.ForContext("SourceContext", "COMMAND:SpotifyLookup").Error("Failed to get track data from Spotify API");
-                    await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                    await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                        .DeleteAfter(5, "Failed to get track data from Spotify API");
-                    return; // fail command out right
-                }
-                
-                var tidalTrackUrl = string.Empty;
-                try {
-                    tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{author} {title}");
-                }
-                catch (Exception ex) {
-                    Log.ForContext("SourceContext", "COMMAND:TidalLookup").Error("Failed to get track data from Tidal API");
-                    await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                    await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                        .DeleteAfter(5, "Failed to get track data from Tidal API");
-                    return; // fail command out right
-                }
-                
-                var youtubeTrackUrl = firstEntry.Url;
-                var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
-                if (isAuthorRelease && !string.IsNullOrWhiteSpace(author))
-                    author = title;
-                
-                sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                
-                subtext.Append(MarkdownUtils.MakeLink("Original YouTube Link \u2197", youtubeTrackUrl) + " \u2219 ");
-                if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
-                    if (spotifyTrackUrl != "[s404] ZERO RESULTS")
-                        subtext.Append(MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) + " \u2219 ");
-                if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
-                    if (tidalTrackUrl != "[t404] ZERO RESULTS")
-                        subtext.Append(MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true));
-                
-                sb.AppendLine(MarkdownUtils.ToSubText(subtext.ToString()));
-                
-                socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                conf!.SubmittedBangers++;
-                Config.Save();
-                alreadyAddedBanger = true;
-                goto afterCommandAction;
-            }
-            
-            var sluLogger = Log.ForContext("SourceContext", "COMMAND:SpotifyLookup");
-            var tluLogger = Log.ForContext("SourceContext", "COMMAND:TidalLookup");
-            var dluLogger = Log.ForContext("SourceContext", "COMMAND:DeezerLookup");
-            var yluLogger = Log.ForContext("SourceContext", "COMMAND:YouTubeLookup");
             if (!mediaUrl.Contains("http")) {
                 await RespondAsync("No URL found in message", ephemeral: true);
                 return;
             }
+            
+            const string pattern = @"(https?:\/\/(music\.apple\.com|open\.spotify\.com|spotify\.link|music\.amazon\.com|tidal\.com|music\.youtube\.com|deezer\.page\.link|pandora\.com)\/[^\s]+)";
+            
+            var logger = Log.ForContext("SourceContext", "COMMAND:BangerLookup");
 
-            await DeferAsync();
+            if (!Regex.IsMatch(mediaUrl, pattern)) {
+                logger.Error("Invalid URL provided");
+                await RespondAsync("Invalid URL provided", ephemeral: true);
+                return;
+            }
 
-            string? theActualUrl = null;
-            var yt = new YoutubeClient();
+            var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(mediaUrl);
+            string spotifyTrackUrl, tidalTrackUrl, youtubeTrackUrl, deezerTrackUrl, iTunesTrackUrl, pandoraTrackUrl, songArtists, songName;
 
-            theActualUrl ??= mediaUrl;
-            var isUrlGood = theActualUrl.AndContainsMultiple("spotify.com", "track") || theActualUrl.AndContainsMultiple("tidal.com", "track");
-
-            // check if url is whitelisted
-            if (isUrlGood) {
-                if (theActualUrl.AndContainsMultiple("spotify.com", "track")) {
-                    sluLogger.Information("Found URL to be a Spotify Track");
-                    var finalId = theActualUrl;
-                    if (theActualUrl.Contains('?'))
-                        finalId = theActualUrl.Split('?')[0];
-
-                    Utils.MusicProviderApis.Spotify.Root? spotifyTrackUrl;
-                    try {
-                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(finalId.Split('/').Last());
-                    }
-                    catch (Exception ex) {
-                        sluLogger.Error("Failed to get track data from Spotify API");
-                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                            .DeleteAfter(5, "Failed to get track data from Spotify API");
-                        return; // fail command out right
-                    }
-
-                    var videos = yt.Search.GetVideosAsync($"{spotifyTrackUrl!.artists[0].name} {spotifyTrackUrl.name}").GetAwaiter().GetResult();
-
-                    var firstEntry = videos[0];
-                    var title = firstEntry.Title;
-                    var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                    var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
-                    if (isAuthorRelease && !string.IsNullOrWhiteSpace(spotifyTrackUrl.artists[0].name))
-                        author = spotifyTrackUrl.artists[0].name;
-
-                    var tidalTrackUrl = string.Empty;
-                    try {
-                        tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{spotifyTrackUrl.artists[0].name} {spotifyTrackUrl.name}");
-                    }
-                    catch { /*silent fail*/ }
-
-                    sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-
-                    var subtext = new StringBuilder();
-                    subtext.Append(MarkdownUtils.MakeLink("Original Spotify Link \u2197", theActualUrl, true) + " \u2219 ");
-                    subtext.Append(MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url) + " \u2219 "); // will show YouTube embed
-                    if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
-                        if (tidalTrackUrl != "[t404] ZERO RESULTS")
-                            subtext.Append(MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true) /* + " \u2219 " */);
-                    // subtext.Append(MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true));
-                    
-                    sb.AppendLine(MarkdownUtils.ToSubText(subtext.ToString()));
-
-                    socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                    conf!.SubmittedBangers++;
-                    Config.Save();
-                    alreadyAddedBanger = true;
-                }
-                else if (theActualUrl.AndContainsMultiple("tidal.com", "track")) {
-                    tluLogger.Information("Found URL to be a Tidal Track");
-                    var finalId = theActualUrl;
-                    if (theActualUrl.Contains('?'))
-                        finalId = theActualUrl.Split('?')[0];
-
-                    Utils.MusicProviderApis.Tidal.Root? tidalTrack;
-                    try {
-                        tidalTrack = await Utils.MusicProviderApis.Tidal.GetTrackResults.GetData(finalId.Split('/').Last());
-                    }
-                    catch (Exception ex) {
-                        tluLogger.Error("Failed to get track data from Tidal API");
-                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                            .DeleteAfter(5, "Failed to get track data from Tidal API");
-                        return; // fail command out right
-                    }
-
-                    var videos = yt.Search.GetVideosAsync($"{tidalTrack!.resource.artists[0]} {tidalTrack!.resource.title}").GetAwaiter().GetResult();
-
-                    var firstEntry = videos[0];
-                    var title = firstEntry.Title;
-                    var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-
-                    var spotifyTrackUrl = string.Empty;
-                    try {
-                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{tidalTrack.resource.artists[0]} {tidalTrack.resource.title}");
-                    }
-                    catch (Exception ex) {
-                        sluLogger.Error("Failed to get track data from Spotify API");
-                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                            .DeleteAfter(5, "Failed to get track data from Spotify API");
-                        return; // fail command out right
-                    }
-                    
-                    var spotifyData = await Utils.MusicProviderApis.Spotify.GetTrackResults.GetTrackData(spotifyTrackUrl!.Split('/').Last());
-                    var isAuthorRelease = author.Equals("Release", StringComparison.OrdinalIgnoreCase);
-                    if (isAuthorRelease && !string.IsNullOrWhiteSpace(spotifyData!.artists[0].name))
-                        author = spotifyData.artists[0].name;
-
-                    sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                    
-                    var subtext = new StringBuilder();
-                    subtext.Append(MarkdownUtils.MakeLink("Original Tidal Link \u2197", theActualUrl, true) + " \u2219 ");
-                    subtext.Append(MarkdownUtils.MakeLink("YouTube Link \u2197", firstEntry.Url) + " \u2219 "); // will show YouTube embed
-                    if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
-                        if (spotifyTrackUrl != "[s404] ZERO RESULTS")
-                            subtext.Append(MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) /* + " \u2219 " */);
-                    // subtext.Append(MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true));
-                    
-                    sb.AppendLine(subtext.ToString());
-
-                    socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                    conf!.SubmittedBangers++;
-                    Config.Save();
-                    alreadyAddedBanger = true;
-                }
-                else if (theActualUrl.OrContainsMultiple("music.youtube.com", "youtu.be", "youtube.com")) {
-                    yluLogger.Information("Found URL to be a YouTube Link");
-                    var finalId = theActualUrl;
-                    if (theActualUrl.Contains('?'))
-                        finalId = theActualUrl.Split('?')[0];
-                    
-                    var videos = yt.Search.GetVideosAsync(finalId).GetAwaiter().GetResult();
-                    var firstEntry = videos[0];
-                    var title = firstEntry.Title;
-                    var author = firstEntry.Author.ChannelTitle.Replace(" - Topic", "");
-                    
-                    var spotifyTrackUrl = string.Empty;
-                    var tidalTrackUrl = string.Empty;
-                    try {
-                        spotifyTrackUrl = await Utils.MusicProviderApis.Spotify.GetSearchResults.SearchForUrl($"{author} {title}");
-                    }
-                    catch (Exception ex) {
-                        yluLogger.Error("Failed to get track data from Spotify API");
-                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Spotify API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Spotify API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                            .DeleteAfter(5, "Failed to get track data from Spotify API");
-                        return; // fail command out right
-                    }
-                    
-                    try {
-                        tidalTrackUrl = await Utils.MusicProviderApis.Tidal.GetSearchResults.SearchForUrl($"{author} {title}");
-                    }
-                    catch (Exception ex) {
-                        yluLogger.Error("Failed to get track data from Tidal API");
-                        await ErrorSending.SendErrorToLoggingChannelAsync($"Failed to get track data from Tidal API in <#{Context.Channel.Id}>", obj: ex.StackTrace);
-                        await ModifyOriginalResponseAsync(x => x.Content = "Failed to get track data from Tidal API\n*this message will be deleted in 5 seconds, Lily has been notified of error*")
-                            .DeleteAfter(5, "Failed to get track data from Tidal API");
-                        return; // fail command out right
-                    }
-                    
-                    sb.AppendLine(title.Contains(author) ? MarkdownUtils.ToBold(title) : MarkdownUtils.ToBold($"{author} - {title}"));
-                    
-                    var subtext = new StringBuilder();
-                    subtext.Append(MarkdownUtils.MakeLink("Original YouTube Link \u2197", firstEntry.Url) + " \u2219 "); // will show YouTube embed
-                    if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
-                        if (spotifyTrackUrl != "[s404] ZERO RESULTS")
-                            subtext.Append(MarkdownUtils.MakeLink("Spotify Link \u2197", spotifyTrackUrl, true) + " \u2219 ");
-                    if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
-                        if (tidalTrackUrl != "[t404] ZERO RESULTS")
-                            subtext.Append(MarkdownUtils.MakeLink("Tidal Link \u2197", tidalTrackUrl, true) /* + " \u2219 " */);
-                    // subtext.Append(MarkdownUtils.MakeLink("Deezer Link \u2197", "https://deezer.page.link/" + "", true));
-                    
-                    sb.AppendLine(subtext.ToString());
-                    
-                    socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = sb.ToString().Trim());
-                    conf!.SubmittedBangers++;
-                    Config.Save();
-                    alreadyAddedBanger = true;
-                }
-                else if (theActualUrl.Contains("deezer.page.link")) {
-                    dluLogger.Information("Found URL to be a Deezer Link");
-                    
-                    await ModifyOriginalResponseAsync(x => x.Content = "Deezer links are not supported at this time.");
+            if (!hasBeenSubmittedBefore) {
+                var song = await SongLink.LookupData(mediaUrl);
+                if (song is null) {
+                    await RespondAsync("Failed to get song data from SongLink API", ephemeral: true);
                     return;
                 }
+
+                songArtists = song.entitiesByUniqueId.SPOTIFY_SONG.artistName;
+                songName = song.entitiesByUniqueId.SPOTIFY_SONG.title;
+            
+                logger.Information("Found song: {artist} - {songName}", songArtists, songName);
+                stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
+                
+                spotifyTrackUrl = song.linksByPlatform.spotify.url;
+                tidalTrackUrl = song.linksByPlatform.tidal.url;
+                youtubeTrackUrl = song.linksByPlatform.youtube.url;
+                deezerTrackUrl = song.linksByPlatform.deezer.url;
+                iTunesTrackUrl = song.linksByPlatform.appleMusic.url;
+                pandoraTrackUrl = song.linksByPlatform.pandora.url;
+                
+                var data = new Submission {
+                    SubmissionId = Music.GetNextSubmissionId(),
+                    Artists = songArtists,
+                    Title = songName,
+                    Services = new Services {
+                        SpotifyTrackUrl = spotifyTrackUrl,
+                        TidalTrackUrl = tidalTrackUrl,
+                        YoutubeTrackUrl = youtubeTrackUrl,
+                        DeezerTrackUrl = deezerTrackUrl,
+                        AppleMusicTrackUrl = iTunesTrackUrl,
+                        PandoraTrackUrl = pandoraTrackUrl,
+                    },
+                    SubmissionDate = DateTime.Now,
+                };
+                Music.Base.MusicSubmissions.Add(data);
+                Music.Save();
+            }
+            else {
+                var songData = Music.GetSubmissionByLink(mediaUrl);
+                songArtists = songData.Artists;
+                songName = songData.Title;
+                
+                logger.Information("Found song: {artist} - {songName}", songArtists, songName);
+                stringBuilder.AppendLine(MarkdownUtils.ToBoldItalics(songArtists + " - " + songName));
+                
+                spotifyTrackUrl = songData.Services.SpotifyTrackUrl;
+                tidalTrackUrl = songData.Services.TidalTrackUrl;
+                youtubeTrackUrl = songData.Services.YoutubeTrackUrl;
+                deezerTrackUrl = songData.Services.DeezerTrackUrl;
+                iTunesTrackUrl = songData.Services.AppleMusicTrackUrl;
+                pandoraTrackUrl = songData.Services.PandoraTrackUrl;
             }
             
-            afterCommandAction:
+            var trackLinks = new List<string>();
+            if (!string.IsNullOrWhiteSpace(spotifyTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Spotify Track \u2197", spotifyTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(tidalTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Tidal Track \u2197", tidalTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(youtubeTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("YouTube Track \u2197", youtubeTrackUrl, false));
+            if (!string.IsNullOrWhiteSpace(deezerTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Deezer Track \u2197", deezerTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(iTunesTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Apple Music Track \u2197", iTunesTrackUrl, true));
+            if (!string.IsNullOrWhiteSpace(pandoraTrackUrl))
+                trackLinks.Add(MarkdownUtils.MakeLink("Pandora Track \u2197", pandoraTrackUrl, true));
+
+            if (trackLinks.Count is not 0)
+                stringBuilder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", trackLinks)));
+            
+            var socketUserMessage = await ModifyOriginalResponseAsync(x => x.Content = stringBuilder.ToString().Trim());
+            
             if (Context.Channel.Id == conf.ChannelId) {
                 var upVote = conf.CustomUpvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId) : Emote.Parse(conf.CustomUpvoteEmojiName) ?? Emote.Parse(":thumbsup:");
                 var downVote = conf.CustomDownvoteEmojiId != 0 ? EmojiUtils.GetCustomEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId) : Emote.Parse(conf.CustomDownvoteEmojiName) ?? Emote.Parse(":thumbsdown:");
@@ -296,12 +137,10 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                     if (conf.AddDownvoteEmoji)
                         await socketUserMessage.AddReactionAsync(downVote);
                 }
-
-                if (!alreadyAddedBanger) {
-                    conf.SubmittedBangers++;
-                    Config.Save();
-                }
             }
+            
+            conf!.SubmittedBangers++;
+            Config.Save();
         }
 
         [SlashCommand("getbangercount", "Gets current guild banger count")]
@@ -514,13 +353,6 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             await RespondAsync($"Users {(enabled ? "can" : "cannot")} speak freely in the banger channel.");
         }
 
-        // [SlashCommand("offertoreplace", "Offer Spotify to YouTube replacement")]
-        // public async Task OfferReplace([Summary("toggle", "Enable or disable")] bool enabled) {
-        //     Config.GetGuildBanger(Context.Guild.Id).OfferToReplaceSpotifyTrack = enabled;
-        //     Config.Save();
-        //     await RespondAsync($"Offer to replace Spotify track with YouTube {(enabled ? "enabled" : "disabled")}.");
-        // }
-
         [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies banger count"), RequireOwner]
         public async Task ModifyBangerCount(
             [Summary("number", "Number of bangers to add or remove")]
@@ -531,35 +363,6 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             banger.SubmittedBangers += number;
             Config.Save();
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
-        }
-
-        [SlashCommand("clearbangerinteractiondata", "(Bot Owner Only) Clears a select interaction data"), RequireOwner]
-        public async Task ClearBangerInteractionData(
-            [Summary("data-entry-id", "ID of the Data Entry")]
-            string randomId = "",
-            [Summary("ephemeral", "Ephemeral response")]
-            bool ephemeral = false) {
-            await DeferAsync(ephemeral);
-            if (string.IsNullOrWhiteSpace(randomId)) {
-                foreach (var iData in BangerListener.TheBangerInteractionData) {
-                    if (iData.LookupMessage is not null)
-                        await iData.LookupMessage.DeleteAsync(new RequestOptions { AuditLogReason = "Bot Owner forcefully deleted the Lookup Asking message." });
-                    BangerListener.TheBangerInteractionData.Remove(iData);
-                    await Task.Delay(TimeSpan.FromSeconds(0.25f));
-                }
-
-                return;
-            }
-
-            var data = BangerListener.TheBangerInteractionData.FirstOrDefault(x => x.RandomId == randomId);
-            if (data is null) {
-                await ModifyOriginalResponseAsync(x => x.Content = "Data not found.");
-                return;
-            }
-
-            if (data.LookupMessage is not null)
-                await data.LookupMessage.DeleteAsync(new RequestOptions { AuditLogReason = "Bot Owner forcefully deleted the Lookup Asking message." });
-            BangerListener.TheBangerInteractionData.Remove(data);
         }
     }
 }
