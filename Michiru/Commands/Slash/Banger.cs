@@ -120,11 +120,22 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
 
         [SlashCommand("addurl", "Adds a URL to the whitelist")]
         public async Task AddUrl([Summary("url", "URL to whitelist")] string url) {
-            // await RespondAsync("This command is disabled, please contact Lily to add a URL to the whitelist.", ephemeral: true);
-
             var configBanger = Config.GetGuildBanger(Context.Guild.Id);
             configBanger.WhitelistedUrls ??= [];
-            if (_doesItExist(url, configBanger.WhitelistedUrls)) {
+
+            string finalUrl;
+            if (url.Contains("https"))
+                finalUrl = url.Replace("https://", "");
+            else if (url.Contains("http"))
+                finalUrl = url.Replace("http://", "");
+            else if (url.Contains('/'))
+                finalUrl = url.Replace("/", "");
+            else if (url.Contains("www."))
+                finalUrl = url.Replace("www.", "");
+            else
+                finalUrl = url;
+            
+            if (_doesItExist(finalUrl ?? url, configBanger.WhitelistedUrls)) {
                 await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
                 return;
             }
