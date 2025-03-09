@@ -110,6 +110,14 @@ public static class StringUtils {
     /// <param name="string2">String to compare to the target</param>
     /// <returns>Boolean whether the two string are equal to each other (or the same)</returns>
     public static bool NotEquals(this string string1, string string2) => string1 != string2;
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="string1">this</param>
+    /// <param name="string2">string to compare</param>
+    /// <returns>Boolean whether the source string does not contain the target string</returns>
+    public static bool NotContains(this string string1, string string2) => !string1.Contains(string2);
 
     /// <summary>
     /// Checks to see if the left number is equals the right number

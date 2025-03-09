@@ -1,10 +1,10 @@
 ﻿namespace Michiru.Configuration.Music.Classes;
 
 public class Services {
-    public string SpotifyTrackUrl { get; init; } = "";
-    public string TidalTrackUrl { get; init; } = "";
-    public string YoutubeTrackUrl { get; init; } = "";
-    public string DeezerTrackUrl { get; init; } = "";
-    public string AppleMusicTrackUrl { get; init; } = "";
-    public string PandoraTrackUrl { get; init; } = "";
+    public string SpotifyTrackUrl { get; set; } = "";
+    public string TidalTrackUrl { get; set; } = "";
+    public string YoutubeTrackUrl { get; set; } = "";
+    public string DeezerTrackUrl { get; set; } = "";
+    public string AppleMusicTrackUrl { get; set; } = "";
+    public string PandoraTrackUrl { get; set; } = "";
 }

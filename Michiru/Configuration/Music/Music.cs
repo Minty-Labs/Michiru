@@ -58,7 +58,7 @@ public class Music {
         ShouldUpdateConfigFile = false;
     }
 
-    public static int GetNextSubmissionId() => Base.MusicSubmissions.Max(x => x.SubmissionId) + 1;
+    public static int GetNextSubmissionId() => Base.MusicSubmissions.Count + 1;
 
     public static bool SearchForMatchingSubmissions(string url) =>
         Base.MusicSubmissions.Where(x =>
