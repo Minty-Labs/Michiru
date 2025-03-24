@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Michiru.Commands.Preexecution;
 using Michiru.Configuration.Moderation;
 using Michiru.Configuration.Moderation.Classes;
 using Michiru.Utils;
@@ -574,5 +575,44 @@ public class Moderation : ModuleBase<SocketCommandContext> {
         }
         ModData.Save();
         await ReplyAsync($"Channel Freeze is now {(toggle ? "enabled" : "disabled")}.");
+    }
+
+    [Command("multikick"), RequireBotOwner /*RequireUserPermission(GuildPermission.KickMembers | GuildPermission.Administrator)*/]
+    public async Task MultiKick(string listOfUserIds, [Remainder] string? reason = "") {
+        if (string.IsNullOrWhiteSpace(listOfUserIds)) {
+            await ReplyAsync("You must provide a list of user IDs.");
+            return;
+        }
+
+        if (listOfUserIds.Split(',').Length < 2) {
+            await ReplyAsync("You must provide more than one user ID, otherwise use the `kick` command to kick a single user.");
+            return;
+        }
+        
+        var list = listOfUserIds.Split(',');
+        List <string> failed = [];
+        List<IGuildUser> users = [];
+        var count = 0;
+        
+        foreach (var userId in list) {
+            var user = await ((IGuild)Context.Guild).GetUserAsync(ulong.Parse(userId));
+            if (user is null) {
+                failed.Add(userId);
+                continue;
+            }
+            
+            users.Add(user);
+            await user.KickAsync(reason ??= "No reason provided.");
+            
+            count++;
+            await Task.Delay(TimeSpan.FromSeconds(count < 5 ? 0.5f : 2)); // reduce api mass kick spam for non-verified moderation bots
+        }
+        
+        if (failed.Count > 0) {
+            await ReplyAsync($"Failed to kick the following users: {string.Join(", ", failed)}");
+            return;
+        }
+        
+        await ReplyAsync($"Kicked the following users: {string.Join(", ", users.Select(u => u.Username))}");
     }
 }
