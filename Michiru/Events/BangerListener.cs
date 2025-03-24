@@ -150,7 +150,7 @@ public static class BangerListener {
     }
 
     private static async Task HandleWebScrapeSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
-        BangerLogger.Information("Loading: {0}", url);
+        // BangerLogger.Information("Loading: {0}", url);
         var songData = await HandleWebExtractionDataOutput(url);
         if (songData is null) {
             await messageArg.Channel.SendMessageAsync("Failed to extract data from the URL.").DeleteAfter(10);
@@ -160,16 +160,16 @@ public static class BangerListener {
         var services = new Services();
         
         var songName = songData["title"];
-        BangerLogger.Information("Song Name: {0}", songName);
+        // BangerLogger.Information("Song Name: {0}", songName);
         
         var songArtists = songData["artists"];
-        BangerLogger.Information("Song Artists: {0}", songArtists);
+        // BangerLogger.Information("Song Artists: {0}", songArtists);
         
         var servicesRaw = songData["services"].Split(',');
         foreach (var s in servicesRaw) {
-            BangerLogger.Information("Service: {0}", s);
+            // BangerLogger.Information("Service: {0}", s);
             var split = s.Split('`');
-            BangerLogger.Information("Service Split: {0}", split);
+            // BangerLogger.Information("Service Split: {0}", split);
             
             switch (split[0]) {
                 case "spotify":
@@ -206,7 +206,7 @@ public static class BangerListener {
     }
     
     private static async Task HandleWebScrapeSubmissionCmd(SocketInteractionContext context, Banger conf, string url, Emote upVote, Emote downVote, string extraText = "") {
-        BangerLogger.Information("Loading: {0}", url);
+        // BangerLogger.Information("Loading: {0}", url);
         var songData = await HandleWebExtractionDataOutput(url);
         if (songData is null) {
             await context.Channel.SendMessageAsync("Failed to extract data from the URL.").DeleteAfter(10);
@@ -216,16 +216,16 @@ public static class BangerListener {
         var services = new Services();
         
         var songName = songData["title"];
-        BangerLogger.Information("Song Name: {0}", songName);
+        // BangerLogger.Information("Song Name: {0}", songName);
         
         var songArtists = songData["artists"];
-        BangerLogger.Information("Song Artists: {0}", songArtists);
+        // BangerLogger.Information("Song Artists: {0}", songArtists);
         
         var servicesRaw = songData["services"].Split(',');
         foreach (var s in servicesRaw) {
-            BangerLogger.Information("Service: {0}", s);
+            // BangerLogger.Information("Service: {0}", s);
             var split = s.Split('`');
-            BangerLogger.Information("Service Split: {0}", split);
+            // BangerLogger.Information("Service Split: {0}", split);
             
             switch (split[0]) {
                 case "spotify":
@@ -250,7 +250,7 @@ public static class BangerListener {
         }
         
         var finalizedLink = songData["finalizedLink"];
-        BangerLogger.Information("Finalizing: {0}", finalizedLink);
+        // BangerLogger.Information("Finalizing: {0}", finalizedLink);
         
         var responseMessage = FormatSubmissionMessageCmd(context, songArtists, songName, services, finalizedLink);
         var response = await context.Channel.SendMessageAsync(responseMessage);
@@ -335,51 +335,51 @@ public static class BangerListener {
             done = true;
         }
 
-        BangerLogger.Information("RAW Title: {0}", tempTitle);
+        // BangerLogger.Information("RAW Title: {0}", tempTitle);
         var splitTitle = tempTitle.Split(" by ");
         var songName = splitTitle[0];
         if (songName.StartsWith("Listen to "))
             songName = songName.Replace("Listen to ", "");
-        BangerLogger.Information("Found Song Name: {0}", songName);
+        // BangerLogger.Information("Found Song Name: {0}", songName);
         var songArtists = splitTitle[1];
-        BangerLogger.Information("Found Artists: {0}", songArtists);
+        // BangerLogger.Information("Found Artists: {0}", songArtists);
         
         var list = new List<string>();
         
         if (links.TryGetValue("spotify", out var linkS)) {
-            BangerLogger.Information("Adding Spotify: {0}", linkS);
+            // BangerLogger.Information("Adding Spotify: {0}", linkS);
             list.Add("spotify`" + linkS);
         }
         if (links.TryGetValue("tidal", out var linkT)) {
-            BangerLogger.Information("Adding Tidal: {0}", linkT);
+            // BangerLogger.Information("Adding Tidal: {0}", linkT);
             list.Add("tidal`" + linkT);
         }
         if (links.TryGetValue("youtube", out var linkY)) {
-            BangerLogger.Information("Adding YouTube: {0}", linkY);
+            // BangerLogger.Information("Adding YouTube: {0}", linkY);
             list.Add("youtube`" + linkY);
         }
         if (links.TryGetValue("deezer", out var linkD)) {
-            BangerLogger.Information("Adding Deezer: {0}", linkD);
+            // BangerLogger.Information("Adding Deezer: {0}", linkD);
             list.Add("deezer`" + linkD);
         }
         if (links.TryGetValue("apple", out var linkA)) {
-            BangerLogger.Information("Adding Apple Music: {0}", linkA);
+            // BangerLogger.Information("Adding Apple Music: {0}", linkA);
             list.Add("apple`" + linkA);
         }
         if (links.TryGetValue("pandora", out var linkP)) {
-            BangerLogger.Information("Adding Pandora: {0}", linkP);
+            // BangerLogger.Information("Adding Pandora: {0}", linkP);
             list.Add("pandora`" + linkP);
         }
 
         var dic = new Dictionary<string, string>();
         dic.TryAdd("artists", songArtists);
-        BangerLogger.Information("Added Artists: {0}", songArtists);
+        // BangerLogger.Information("Added Artists: {0}", songArtists);
         dic.TryAdd("title", songName);
-        BangerLogger.Information("Added Title: {0}", songName);
+        // BangerLogger.Information("Added Title: {0}", songName);
         dic.TryAdd("finalizedLink", finalizedLink);
-        BangerLogger.Information("Added Finalized Link: {0}", finalizedLink);
+        // BangerLogger.Information("Added Finalized Link: {0}", finalizedLink);
         dic.TryAdd("services", string.Join(',', list));
-        BangerLogger.Information("Added Services: {0}", string.Join(',', list));
+        // BangerLogger.Information("Added Services: {0}", string.Join(',', list));
 
         return dic;
     }
@@ -431,7 +431,7 @@ public static class BangerListener {
     private static string FormatSubmissionMessage(SocketMessage messageArg, string artist, string title, Services services, string othersLink = "") {
         var builder = new StringBuilder();
         builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
-        builder.AppendLine(MarkdownUtils.ToBoldItalics($"{artist} - {title}"));
+        builder.AppendLine(MarkdownUtils.ToBold($"{artist} - {title}"));
 
         var links = new List<string> {
             CreateLink("Spotify", services.SpotifyTrackUrl, true),
