@@ -163,6 +163,11 @@ public class Personalization : InteractionModuleBase<SocketInteractionContext> {
             });
             Config.Save();
             var discordMember = (IGuildUser)user;
+            
+            var getRoles = discordMember.RoleIds.ToList();
+            if (!getRoles.Contains(role.Id))
+                await discordMember.AddRoleAsync(role, new RequestOptions {AuditLogReason = "Personalized Member - Admin: " + Context.User.Username});
+            
             await RespondAsync($"Added **{role.Name}** to the personalized system for **{discordMember.DisplayName}**.");
         }
         
