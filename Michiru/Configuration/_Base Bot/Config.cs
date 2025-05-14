@@ -7,7 +7,23 @@ namespace Michiru.Configuration._Base_Bot;
 public static class Config {
     public static Base Base { get; private set; }
     private static readonly ILogger Logger = Log.ForContext(typeof(Config));
-    private static readonly List<string> DefaultWhitelistUrls = ["open.spotify.com", "youtube.com", "www.youtube.com", "music.youtube.com", "youtu.be", "dzr.page.link", "deezer.com", "www.deezer.com", "tidal.com", "bandcamp.com", "music.apple.com", "soundcloud.com"];
+    public static readonly List<string> DefaultWhitelistUrls = [
+        "open.spotify.com",
+        "youtube.com",
+        "www.youtube.com",
+        "music.youtube.com",
+        "youtu.be",
+        "dzr.page.link",
+        "deezer.com",
+        "www.deezer.com",
+        "tidal.com",
+        "listen.tidal.com",
+        "bandcamp.com",
+        "music.apple.com",
+        "soundcloud.com",
+        "www.pandora.com",
+        "pandora.com"
+    ];
 
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
@@ -38,7 +54,7 @@ public static class Config {
             BotLogsChannel = 0,
             ErrorLogsChannel = 0,
             ExtraBangerCount = 0,
-            GuildFeatures = [],
+            // GuildFeatures = [],
             Banger = [],
             PersonalizedMember = [new PersonalizedMember { Guilds = [] }],
             PennysGuildWatcher = new PennysGuildWatcher {
@@ -151,14 +167,14 @@ public static class Config {
     }
 
     // Get guild from guild features
-    public static GuildFeatures GetGuildFeature(ulong id) {
-        // if guild by id doesn't exist, create it
-        if (Base.GuildFeatures.Any(x => x.GuildId == id))
-            return Base.GuildFeatures.First(x => x.GuildId == id);
-
-        var guild = new GuildFeatures { GuildId = id };
-        Base.GuildFeatures!.Add(guild);
-        SaveFile();
-        return guild;
-    }
+    // public static GuildFeatures GetGuildFeature(ulong id) {
+    //     // if guild by id doesn't exist, create it
+    //     if (Base.GuildFeatures.Any(x => x.GuildId == id))
+    //         return Base.GuildFeatures.First(x => x.GuildId == id);
+    //
+    //     var guild = new GuildFeatures { GuildId = id };
+    //     Base.GuildFeatures!.Add(guild);
+    //     SaveFile();
+    //     return guild;
+    // }
 }

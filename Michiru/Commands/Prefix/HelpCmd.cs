@@ -21,10 +21,12 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                 },
                 Timestamp = DateTime.Now
             }
-            .AddField("Basic Commands (prefix: -)", MarkdownUtils.ToCodeBlockMultiline("ping, stats"))
+            .AddField("Basic Commands (prefix: `-`)", MarkdownUtils.ToCodeBlockMultiline("ping, stats"))
             .AddField("Basic Slash Commands", MarkdownUtils.ToCodeBlockMultiline("/serverinfo"));
         if (Context.User.IsBotOwner()) {
-            embed.AddField("Owner Commands", MarkdownUtils.ToCodeBlockMultiline("-exec <command>\n/setapikey") +
+            embed.AddField("Owner Commands", MarkdownUtils.ToCodeBlockMultiline(
+                                                 "-exec <command>\n" +
+                                                 "/setapikey\n") +
                                              "*Only available in Minty Labs guild*\n" +
                                              MarkdownUtils.ToCodeBlockMultiline("/config rotatingstatus <enable/disable/list/next>\n" +
                                                                                     "/config modifyrotatingstatus <add/update/remove> <activityType> <userStatus> <activityText>\n" +
@@ -36,7 +38,7 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
         }
 
         if (Config.Base.Banger.Any(x => x.GuildId == Context.Guild.Id) && Context.User.IsSpecial(Context.Guild) || Context.User.IsBotOwner()) {
-            embed.AddField("Banger Commands", MarkdownUtils.ToCodeBlockMultiline("/banger lookup - YouTube top result of music streaming service share URL\n" +
+            embed.AddField("Banger Commands", MarkdownUtils.ToCodeBlockMultiline("/banger leaderboard - Lists the top guilds with the most bangers\n" +
                                                                                  "/banger getbangercount - Gets the number of bangers submitted in this guild\n"));
             
             // banger admin commands with descriptions
@@ -54,7 +56,7 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                                                                                            "/bangeradmin setcustomdownvote <name> <id> - Sets a custom downvote emoji\n" +
                                                                                            "/bangeradmin speakfreely <true|false> - Allow users to talk freely in the banger channel\n" +
                                                                                            "/bangeradmin listeverything - Lists all URLs and file extensions\n" +
-                                                                                           "/bangeradmin offertoreplace - Automatically offer to replace Spotify track with a YouTube link\n" +
+                                                                                           "/bangeradmin embedsuppression <true|false> - Suppresses the original poster's embed instead of deleting the message\n" +
                                                                                            $"{(Context.User.IsBotOwner() ? "/bangeradmin modifybangercount - Modifies banger count\n" : "")}" +
                                                                                            $"{(Context.User.IsBotOwner() ? "/bangeradmin clearbangerinteractiondata - Clears a select interaction data\n" : "")}"));
         }

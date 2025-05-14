@@ -15,7 +15,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      IntegrationType(ApplicationIntegrationType.GuildInstall),
      CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
-        [SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
+        /*[SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
         public async Task LookupFromAllMusicStreamingServices(
             [Summary("share-link", "Song Share URL")] string mediaUrl,
             [Summary("extra-text", "Express some words of wisdom about this song")] string extraText = "") {
@@ -45,7 +45,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             }
 
             await BangerListener.HandleNewSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
-        }
+        }*/
 
         [SlashCommand("getbangercount", "Gets current guild banger count")]
         public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)

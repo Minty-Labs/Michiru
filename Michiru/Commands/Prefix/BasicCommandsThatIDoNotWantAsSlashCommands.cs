@@ -20,7 +20,7 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
                 CreateNoWindow = true
             }
         };
-        if (command.Equals("pm2 stop 2"))
+        if (command.Equals("pm2 stop 1"))
             await Context.Client.StopAsync();
         process.Start();
         var output = await process.StandardOutput.ReadToEndAsync();
@@ -32,19 +32,23 @@ public class BasicCommandsThatIDoNotWantAsSlashCommands : ModuleBase<SocketComma
     }
     
     [RequireOwner, Command("restartbot"), Alias("rb")]
-    public async Task RestartBot() {
+    public async Task RestartBot(string? anything = "") {
+        var number = string.IsNullOrWhiteSpace(anything) ? 0 : 1;
         var process = new Process {
             StartInfo = new ProcessStartInfo {
                 FileName = "/bin/bash",
-                Arguments = "-c \"pm2 restart 1\"",
+                Arguments = $"-c \"pm2 restart {number}\"",
                 RedirectStandardOutput = false,
                 UseShellExecute = false,
                 CreateNoWindow = true
             }
         };
+        if (number is not 0)
+            await ReplyAsync("Michiru will be restarted.");
         process.Start();
         await process.WaitForExitAsync();
-        await ReplyAsync("GoHP has been restarted.");
+        if (number is 0)
+            await ReplyAsync("GoHP has been restarted.");
     }
 
     [Command("ping")]
