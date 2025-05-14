@@ -279,5 +279,23 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             Config.Save();
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
         }
+        
+        [SlashCommand("embedsuppression", "Configure embed suppression for Banger links in a channel")]
+        public async Task ConfigureBangerEmbedSuppression(
+            [Summary("channel", "The channel to configure for Banger link handling.")] ITextChannel channel,
+            [Summary("suppressEmbed", "True to suppress embeds, False to delete original message (default).")] bool suppressEmbed)
+        {
+            var bangerConfigs = Config.Base.Banger;
+            var bangerConf = bangerConfigs.FirstOrDefault(x => x.ChannelId == channel.Id);
+
+            if (bangerConf == null) {
+                await RespondAsync("No Banger configuration found for this channel. Please set up Banger for this channel first.", ephemeral: true);
+                return;
+            }
+
+            bangerConf.SuppressEmbedInsteadOfDelete = suppressEmbed;
+            Config.Save();
+            await RespondAsync($"Banger embed suppression for channel {channel.Mention} set to {suppressEmbed}.", ephemeral: true);
+        }
     }
 }
