@@ -162,6 +162,25 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
 
             await Context.Interaction.RespondWithModalAsync(modal.Build());
         }
+
+        [SlashCommand("bangerembedsuppression", "Configure embed suppression for Banger links in a channel")]
+        public async Task ConfigureBangerEmbedSuppression(
+            [Summary("channel", "The channel to configure for Banger link handling.")] ITextChannel channel,
+            [Summary("suppressEmbed", "True to suppress embeds, False to delete original message (default).")] bool suppressEmbed)
+        {
+            var bangerConfigs = Config.Base.Banger;
+            var bangerConf = bangerConfigs.FirstOrDefault(x => x.ChannelId == channel.Id);
+
+            if (bangerConf == null)
+            {
+                await RespondAsync("No Banger configuration found for this channel. Please set up Banger for this channel first.", ephemeral: true);
+                return;
+            }
+
+            bangerConf.SuppressEmbedInsteadOfDelete = suppressEmbed;
+            Config.Save();
+            await RespondAsync($"Banger embed suppression for channel {channel.Mention} set to {suppressEmbed}.", ephemeral: true);
+        }
         
         [SlashCommand("save", "Forcibly saves the current configuration values")]
         public async Task Save() {
