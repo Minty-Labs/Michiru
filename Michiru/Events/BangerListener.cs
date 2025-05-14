@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using Discord;
 using Discord.Interactions;
 using Discord.Rest;
@@ -62,7 +62,15 @@ public static class BangerListener {
     private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = Music.GetSubmissionByLink(url);
         var responseMessage = FormatSubmissionMessage(messageArg, songData.Artists, songData.Title, songData.Services);
-        await messageArg.DeleteAsync();
+        if (conf.SuppressEmbedInsteadOfDelete) {
+            if (messageArg is IUserMessage userMessage) {
+                await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+            } else {
+                BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
+            }
+        } else {
+            await messageArg.DeleteAsync();
+        }
         var response = await messageArg.Channel.SendMessageAsync(responseMessage);
         await AddReactions(response, conf, upVote, downVote);
         conf.SubmittedBangers++;
@@ -103,7 +111,15 @@ public static class BangerListener {
             Music.Save();
 
             var responseMessage = FormatSubmissionMessage(messageArg, songArtists, songName, services);
-            await messageArg.DeleteAsync();
+            if (conf.SuppressEmbedInsteadOfDelete) {
+                if (messageArg is IUserMessage userMessage) {
+                    await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+                } else {
+                    BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
+                }
+            } else {
+                await messageArg.DeleteAsync();
+            }
             var response = await messageArg.Channel.SendMessageAsync(responseMessage);
             await AddReactions(response, conf, upVote, downVote);
             conf.SubmittedBangers++;
@@ -197,7 +213,15 @@ public static class BangerListener {
         BangerLogger.Information("Finalizing: {0}", finalizedLink);
         
         var responseMessage = FormatSubmissionMessage(messageArg, songArtists, songName, services, finalizedLink);
-        await messageArg.DeleteAsync();
+        if (conf.SuppressEmbedInsteadOfDelete) {
+            if (messageArg is IUserMessage userMessage) {
+                await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+            } else {
+                BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
+            }
+        } else {
+            await messageArg.DeleteAsync();
+        }
         var response = await messageArg.Channel.SendMessageAsync(responseMessage);
         await AddReactions(response, conf, upVote, downVote);
         conf.SubmittedBangers++;

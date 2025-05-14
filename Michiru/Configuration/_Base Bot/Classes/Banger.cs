@@ -21,4 +21,5 @@ public class Banger {
     public bool UseCustomDownvoteEmoji { get; set; } = false;
     public string CustomDownvoteEmojiName { get; set; } = "downvote";
     public ulong CustomDownvoteEmojiId { get; set; } = 1201639287972696166;
+    public bool SuppressEmbedInsteadOfDelete { get; set; } = false;
 }
