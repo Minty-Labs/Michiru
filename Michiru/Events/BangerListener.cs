@@ -60,7 +60,7 @@ public static class BangerListener {
 
     private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = Music.GetSubmissionByLink(url);
-        var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services);
+        var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services, songData.OthersLink ?? string.Empty);
         RestUserMessage? response = null;
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
@@ -174,17 +174,19 @@ public static class BangerListener {
         BangerLogger.Information("Finalizing: {0}", finalizedLink);
         
         var responseMessage = FormatSubmissionMessage(messageArg, conf, songArtists, songName, services, finalizedLink);
+        RestUserMessage? response = null;
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
                 await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+                response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
             } else {
                 BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
             }
         } else {
             await messageArg.DeleteAsync();
+            response = await messageArg.Channel.SendMessageAsync(responseMessage);
         }
-        var response = await messageArg.Channel.SendMessageAsync(responseMessage);
-        await AddReactions(response, conf, upVote, downVote);
+        await AddReactions(response!, conf, upVote, downVote);
         conf.SubmittedBangers++;
         Config.Save();
         BangerLogger.Information("Finished HandleWebScrapeSubmission");
@@ -358,7 +360,7 @@ public static class BangerListener {
         return "Unknown Format";
     }
 
-    private static string FormatSubmissionMessage(SocketMessage messageArg, Banger conf, string artist, string title, Services services, string othersLink = "") {
+    private static string FormatSubmissionMessage(SocketMessage messageArg, Banger conf, string artist, string title, Services services, string? othersLink = "") {
         var builder = new StringBuilder();
         if (!conf.SuppressEmbedInsteadOfDelete)
             builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
@@ -374,7 +376,7 @@ public static class BangerListener {
         };
         
         if (!string.IsNullOrWhiteSpace(othersLink))
-            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
+            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("song.link \u2197"), othersLink, true));
 
         builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
 
