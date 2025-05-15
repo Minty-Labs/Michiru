@@ -77,15 +77,6 @@ public static class BangerListener {
         conf.SubmittedBangers++;
         Config.Save();
     }
-    
-    // internal static async Task HandleExistingSubmissionCmd(SocketInteractionContext context, Banger conf, string url, Emote upVote, Emote downVote, string extraText = "") {
-    //     var songData = Music.GetSubmissionByLink(url);
-    //     var responseMessage = FormatSubmissionMessageCmd(context, songData.Artists, songData.Title, songData.Services, extraText: extraText);
-    //     var response = await context.Channel.SendMessageAsync(responseMessage);
-    //     await AddReactions(response, conf, upVote, downVote);
-    //     conf.SubmittedBangers++;
-    //     Config.Save();
-    // }
 
     private static async Task HandleNewSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var song = await SongLink.LookupData(url);
@@ -134,41 +125,6 @@ public static class BangerListener {
             await HandleWebScrapeSubmission(messageArg, conf, url, upVote, downVote);
         }
     }
-    
-    // internal static async Task HandleNewSubmissionCmd(SocketInteractionContext context, Banger conf, string url, Emote upVote, Emote downVote, string extraText = "") {
-    //     var song = await SongLink.LookupData(url);
-    //     if (song is not null && SongLink.ToJson(song).AndNotContainsMultiple("entityUniqueId", ":null")) {
-    //         var songArtists = song.entitiesByUniqueId.TIDAL_SONG.artistName;
-    //         var songName = song.entitiesByUniqueId.TIDAL_SONG.title;
-    //         var services = new Services {
-    //             SpotifyTrackUrl = song.linksByPlatform.spotify.url,
-    //             TidalTrackUrl = song.linksByPlatform.tidal.url,
-    //             YoutubeTrackUrl = song.linksByPlatform.youtube.url,
-    //             DeezerTrackUrl = song.linksByPlatform.deezer.url,
-    //             AppleMusicTrackUrl = song.linksByPlatform.appleMusic.url,
-    //             PandoraTrackUrl = song.linksByPlatform.pandora.url
-    //         };
-    //
-    //         Music.Base.MusicSubmissions.Add(new Submission {
-    //             SubmissionId = Music.GetNextSubmissionId(),
-    //             Artists = songArtists,
-    //             Title = songName,
-    //             Services = services,
-    //             OthersLink = "",
-    //             SubmissionDate = DateTime.Now,
-    //         });
-    //         Music.Save();
-    //
-    //         var responseMessage = FormatSubmissionMessageCmd(context, songArtists, songName, services, extraText: extraText);
-    //         var response = await context.Channel.SendMessageAsync(responseMessage);
-    //         await AddReactions(response, conf, upVote, downVote);
-    //         conf.SubmittedBangers++;
-    //         Config.Save();
-    //     }
-    //     else {
-    //         await HandleWebScrapeSubmissionCmd(context, conf, url, upVote, downVote);
-    //     }
-    // }
 
     private static async Task HandleWebScrapeSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         // BangerLogger.Information("Loading: {0}", url);
@@ -233,61 +189,6 @@ public static class BangerListener {
         Config.Save();
         BangerLogger.Information("Finished HandleWebScrapeSubmission");
     }
-    
-    // private static async Task HandleWebScrapeSubmissionCmd(SocketInteractionContext context, Banger conf, string url, Emote upVote, Emote downVote, string extraText = "") {
-    //     // BangerLogger.Information("Loading: {0}", url);
-    //     var songData = await HandleWebExtractionDataOutput(url);
-    //     if (songData is null) {
-    //         await context.Channel.SendMessageAsync("Failed to extract data from the URL.").DeleteAfter(10);
-    //         return;
-    //     }
-    //     
-    //     var services = new Services();
-    //     
-    //     var songName = songData["title"];
-    //     // BangerLogger.Information("Song Name: {0}", songName);
-    //     
-    //     var songArtists = songData["artists"];
-    //     // BangerLogger.Information("Song Artists: {0}", songArtists);
-    //     
-    //     var servicesRaw = songData["services"].Split(',');
-    //     foreach (var s in servicesRaw) {
-    //         // BangerLogger.Information("Service: {0}", s);
-    //         var split = s.Split('`');
-    //         // BangerLogger.Information("Service Split: {0}", split);
-    //         
-    //         switch (split[0]) {
-    //             case "spotify":
-    //                 services.SpotifyTrackUrl = split[1];
-    //                 break;
-    //             case "tidal":
-    //                 services.TidalTrackUrl = split[1];
-    //                 break;
-    //             case "youtube":
-    //                 services.YoutubeTrackUrl = split[1];
-    //                 break;
-    //             case "deezer":
-    //                 services.DeezerTrackUrl = split[1];
-    //                 break;
-    //             case "apple":
-    //                 services.AppleMusicTrackUrl = split[1];
-    //                 break;
-    //             case "pandora":
-    //                 services.PandoraTrackUrl = split[1];
-    //                 break;
-    //         }
-    //     }
-    //     
-    //     var finalizedLink = songData["finalizedLink"];
-    //     // BangerLogger.Information("Finalizing: {0}", finalizedLink);
-    //     
-    //     var responseMessage = FormatSubmissionMessageCmd(context, songArtists, songName, services, finalizedLink);
-    //     var response = await context.Channel.SendMessageAsync(responseMessage);
-    //     await AddReactions(response, conf, upVote, downVote);
-    //     conf.SubmittedBangers++;
-    //     Config.Save();
-    //     BangerLogger.Information("Finished HandleWebScrapeSubmission");
-    // }
 
     private static async Task<Dictionary<string, string>?> HandleWebExtractionDataOutput(string url) {
         var provider = HandleProvider(url);
@@ -489,30 +390,6 @@ public static class BangerListener {
         
         return builder.ToString();
     }
-    
-    // private static string FormatSubmissionMessageCmd(SocketInteractionContext context, string artist, string title, Services services, string othersLink = "", string extraText = "") {
-    //     var builder = new StringBuilder();
-    //     if (!conf.SuppressEmbedInsteadOfDelete)
-    //         builder.AppendLine($"{MarkdownUtils.ToBold(context.User.GlobalName.EscapeTextModifiers())} has posted a song.");
-    //     if (!string.IsNullOrWhiteSpace(extraText))
-    //         builder.AppendLine(MarkdownUtils.ToItalics(extraText));
-    //     builder.AppendLine(MarkdownUtils.ToBoldItalics($"{artist} - {title}"));
-    //
-    //     var links = new List<string> {
-    //         CreateLink("Spotify", services.SpotifyTrackUrl, true),
-    //         CreateLink("Tidal", services.TidalTrackUrl, true),
-    //         CreateLink("YouTube", services.YoutubeTrackUrl, false),
-    //         CreateLink("Deezer", services.DeezerTrackUrl, true),
-    //         CreateLink("Apple Music", services.AppleMusicTrackUrl, true),
-    //         CreateLink("Pandora", services.PandoraTrackUrl, true)
-    //     };
-    //     
-    //     if (!string.IsNullOrWhiteSpace(othersLink))
-    //         links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
-    //
-    //     builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
-    //     return builder.ToString();
-    // }
 
     private static string CreateLink(string serviceName, string url, bool embedHidden)
         => string.IsNullOrWhiteSpace(url) ? string.Empty : MarkdownUtils.MakeLink($"{serviceName} Track \u2197", url, embedHidden);

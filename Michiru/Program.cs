@@ -1,4 +1,3 @@
-using System.Reflection;
 using Discord;
 using Discord.Commands;
 using Discord.Interactions;
@@ -39,7 +38,7 @@ public class Program {
     public static async Task Main(string[] args) {
         Vars.IsWindows = Environment.OSVersion.ToString().Contains("windows", StringComparison.CurrentCultureIgnoreCase);
         Console.Title = $"{Vars.Name} v{Vars.VersionStr} | Starting...";
-        Logger.Information($"{Vars.Name} Bot is starting . . .");
+        Logger.Information("{name} Bot is starting . . .", Vars.Name);
         await new Program().MainAsync();
     }
 
@@ -184,10 +183,7 @@ public class Program {
 
         Client.Ready += ClientOnReady;
         Client.MessageReceived += BangerListener.BangerListenerEventRewrite2ElectricBoogaloo;
-        // Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
-        // Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
-        // Client.UserLeft += MemberUpdated.MemberLeave; // this finally works // nevermind
         Client.GuildAvailable += GuildAvailable.OnGuildAvailable;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
         Client.InteractionCreated += async arg => {
@@ -218,14 +214,10 @@ public class Program {
         await Commands.AddModuleAsync<HelpCmd>(null);
         await Commands.AddModuleAsync<WakeOnLanCmds>(null);
         await Commands.AddModuleAsync<DAndD>(null);
-        // await Commands.AddModuleAsync<Moderation>(null);
 
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
-        // await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
-        // await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
-        // await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
         
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
 
@@ -245,17 +237,17 @@ public class Program {
         var crLogger = Log.ForContext("SourceContext", "ClientReady");
         Vars.StartTime = UtcNow;
         var conf = Config.Base;
-        crLogger.Information("Bot Version        = " + Vars.VersionStr);
-        crLogger.Information("Process ID         = " + Environment.ProcessId);
+        crLogger.Information("Bot Version        = {v}", Vars.VersionStr);
+        crLogger.Information("Process ID         = {p}", Environment.ProcessId);
         // crLogger.Information("Build Date         = " + Vars.BuildDate);
-        crLogger.Information("Current OS         = " + (Vars.IsWindows ? "Windows" : "Linux"));
-        crLogger.Information("Token              = " + conf.BotToken!.Redact());
-        crLogger.Information("ActivityType       = " + $"{conf.ActivityType}");
-        crLogger.Information("Rotating Statuses  = " + $"{conf.RotatingStatus.Enabled}");
+        crLogger.Information("Current OS         = {o}", (Vars.IsWindows ? "Windows" : "Linux"));
+        crLogger.Information("Token              = {t}", conf.BotToken!.Redact());
+        crLogger.Information("ActivityType       = {a}", conf.ActivityType);
+        crLogger.Information("Rotating Statuses  = {s}", conf.RotatingStatus.Enabled);
         if (conf.RotatingStatus.Enabled)
-            crLogger.Information("Statuses =         " + $"{string.Join(" | ", conf.RotatingStatus.Statuses.Select(x => x.ActivityType + " - " + x.UserStatus + " - " + x.ActivityText).ToArray())}");
-        crLogger.Information("Game               = " + $"{conf.ActivityText}");
-        crLogger.Information("Number of Commands = " + $"{GlobalInteractions.SlashCommands.Count + Commands.Commands.Count() + MintyLabsInteractions.SlashCommands.Count}");
+            crLogger.Information("Statuses           = {s}", string.Join(" | ", conf.RotatingStatus.Statuses.Select(x => x.ActivityType + " - " + x.UserStatus + " - " + x.ActivityText).ToArray()));
+        crLogger.Information("Game               = {g}", conf.ActivityText);
+        crLogger.Information("Number of Commands = {c}", GlobalInteractions.SlashCommands.Count + Commands.Commands.Count() + MintyLabsInteractions.SlashCommands.Count);
 
         if (Vars.IsWindows) {
             var temp1 = conf.ActivityText!.Equals("(insert game here)") || string.IsNullOrWhiteSpace(conf.ActivityText!);
