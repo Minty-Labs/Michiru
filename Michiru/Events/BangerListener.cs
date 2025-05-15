@@ -61,17 +61,19 @@ public static class BangerListener {
     private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = Music.GetSubmissionByLink(url);
         var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services);
+        RestUserMessage? response = null;
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
                 await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+                response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
             } else {
                 BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
             }
         } else {
             await messageArg.DeleteAsync();
+            response = await messageArg.Channel.SendMessageAsync(responseMessage);
         }
-        var response = await messageArg.Channel.SendMessageAsync(responseMessage);
-        await AddReactions(response, conf, upVote, downVote);
+        await AddReactions(response!, conf, upVote, downVote);
         conf.SubmittedBangers++;
         Config.Save();
     }
@@ -110,9 +112,11 @@ public static class BangerListener {
             Music.Save();
 
             var responseMessage = FormatSubmissionMessage(messageArg, conf, songArtists, songName, services);
+            RestUserMessage? response = null;
             if (conf.SuppressEmbedInsteadOfDelete) {
                 if (messageArg is IUserMessage userMessage) {
                     await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+                    response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
                 }
                 else {
                     BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
@@ -120,9 +124,9 @@ public static class BangerListener {
             }
             else {
                 await messageArg.DeleteAsync();
+                response = await messageArg.Channel.SendMessageAsync(responseMessage);
             }
-            var response = await messageArg.Channel.SendMessageAsync(responseMessage);
-            await AddReactions(response, conf, upVote, downVote);
+            await AddReactions(response!, conf, upVote, downVote);
             conf.SubmittedBangers++;
             Config.Save();
         }
@@ -469,7 +473,7 @@ public static class BangerListener {
         };
         
         if (!string.IsNullOrWhiteSpace(othersLink))
-            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2219"), othersLink, true));
+            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
 
         builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
 
