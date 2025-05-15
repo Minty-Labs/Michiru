@@ -12,7 +12,7 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
     public async Task ServerInfoCommand() {
         var pmData = Config.GetGuildPersonalizedMember(Context.Guild.Id);
         var bangerData = Config.GetGuildBanger(Context.Guild.Id);
-        var guildFeatures = Config.GetGuildFeature(Context.Guild.Id);
+        // var guildFeatures = Config.GetGuildFeature(Context.Guild.Id);
         var isPennyGuild = Context.Guild.Id == Config.Base.PennysGuildWatcher.GuildId;
         var check = EmojiUtils.GetCustomEmoji("checked_box", 1225518363871023165) ?? Emote.Parse("<:checked_box:1225518363871023165>") ?? Emote.Parse(":white_check_mark:");
         var uncheck = EmojiUtils.GetCustomEmoji("unchecked_box", 1225518365137698817) ?? Emote.Parse("<:unchecked_box:1225518365137698817>") ?? Emote.Parse(":x_checked_box:");
@@ -41,14 +41,14 @@ public class ServerInfo : InteractionModuleBase<SocketInteractionContext> {
                 $"{(bangerData.Enabled ? check.ToString() : uncheck.ToString())} Banger System\n" +
                     $"{transparent} in {(bangerData.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{bangerData.ChannelId}>")}\n" +
                 
-                $"{(guildFeatures.Join.Enable ? check.ToString() : uncheck.ToString())} Member Join Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
-                    $"{transparent} {(guildFeatures.Join.DmWelcomeMessage ? check.ToString() : uncheck.ToString())} DM Message\n" +
-                    $"{transparent} {(guildFeatures.Join.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
-                
-                $"{(guildFeatures.Leave.Enable ? check.ToString() : uncheck.ToString())} Member Leave Watcher\n" +
-                    $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
-                    $"{transparent} {(guildFeatures.Leave.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
+                // $"{(guildFeatures.Join.Enable ? check.ToString() : uncheck.ToString())} Member Join Watcher\n" +
+                //     $"{transparent} in {(guildFeatures.Join.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Join.ChannelId}>")}\n" +
+                //     $"{transparent} {(guildFeatures.Join.DmWelcomeMessage ? check.ToString() : uncheck.ToString())} DM Message\n" +
+                //     $"{transparent} {(guildFeatures.Join.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
+                //
+                // $"{(guildFeatures.Leave.Enable ? check.ToString() : uncheck.ToString())} Member Leave Watcher\n" +
+                //     $"{transparent} in {(guildFeatures.Leave.ChannelId == 0 ? MarkdownUtils.ToCodeBlockSingleLine("(no set channel)") : $"<#{guildFeatures.Leave.ChannelId}>")}\n" +
+                //     $"{transparent} {(guildFeatures.Leave.OverrideAllWithEmbed ? check.ToString() : uncheck.ToString())} Embed Override\n" +
                 
                 $"{(isPennyGuild ? check + " Guild Update Notices" : "")}");
 

@@ -5,32 +5,32 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.12.7</Version>
+        <Version>1.12.11</Version>
         <Title>Commission Discord Bot</Title>
         <Authors>Lily</Authors>
         <Copyright>Minty Labs</Copyright>
         <PackageProjectUrl>https://github.com/Minty-Labs/Michiru</PackageProjectUrl>
         <Company>Minty Labs</Company>
-        <AssemblyVersion>1.12.7</AssemblyVersion>
-        <FileVersion>1.12.7</FileVersion>
+        <AssemblyVersion>1.12.11</AssemblyVersion>
+        <FileVersion>1.12.11</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <LangVersion>latestmajor</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Discord.Net" Version="3.16.0" />
-        <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />
-        <PackageReference Include="Lib.Harmony" Version="2.3.5" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
+        <PackageReference Include="Lib.Harmony" Version="2.3.6" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
         <PackageReference Include="Quartz" Version="3.14.0" />
         <PackageReference Include="RestSharp" Version="112.1.0" />
         <PackageReference Include="Serilog" Version="4.2.0" />
         <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.116.1" />
-        <PackageReference Include="System.Drawing.Common" Version="9.0.3" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" />
+        <PackageReference Include="System.Drawing.Common" Version="9.0.5" />
         <PackageReference Include="YoutubeExplode" Version="6.5.4" />
     </ItemGroup>
 

@@ -1,6 +1,5 @@
-﻿﻿using System.Text;
+﻿using System.Text;
 using Discord;
-using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using HtmlAgilityPack;
@@ -18,7 +17,7 @@ namespace Michiru.Events;
 public static class BangerListener {
     private static readonly ILogger BangerLogger = Log.ForContext("SourceContext", "EVENT:BangerListener");
 
-    internal static bool IsUrlWhitelisted(string url, ICollection<string> list) {
+    private static bool IsUrlWhitelisted(string url, ICollection<string> list) {
         if (!Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri)) return false;
         return list?.Contains(uri.Host) ?? throw new ArgumentNullException(nameof(list));
     }
@@ -51,28 +50,30 @@ public static class BangerListener {
         await HandleNewSubmission(messageArg, conf, theActualUrl, upVote, downVote);
     }
 
-    internal static string? ExtractUrl(string content) {
+    private static string? ExtractUrl(string content) {
         var _1 = content.Split(' ').FirstOrDefault(str => str.Contains("http"));
         return !string.IsNullOrWhiteSpace(_1) && _1.Contains('?') ? _1.Split('?')[0] : _1;
     }
 
-    internal static Emote GetEmoji(string name, ulong id, string fallback)
+    private static Emote GetEmoji(string name, ulong id, string fallback)
         => (id != 0 ? EmojiUtils.GetCustomEmoji(name, id) : Emote.Parse(name) ?? Emote.Parse(fallback))!;
 
     private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = Music.GetSubmissionByLink(url);
-        var responseMessage = FormatSubmissionMessage(messageArg, songData.Artists, songData.Title, songData.Services);
+        var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services);
+        RestUserMessage? response = null;
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
                 await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
+                response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
             } else {
                 BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
             }
         } else {
             await messageArg.DeleteAsync();
+            response = await messageArg.Channel.SendMessageAsync(responseMessage);
         }
-        var response = await messageArg.Channel.SendMessageAsync(responseMessage);
-        await AddReactions(response, conf, upVote, downVote);
+        await AddReactions(response!, conf, upVote, downVote);
         conf.SubmittedBangers++;
         Config.Save();
     }
@@ -109,18 +110,22 @@ public static class BangerListener {
             });
             Music.Save();
 
-            var responseMessage = FormatSubmissionMessage(messageArg, songArtists, songName, services);
+            var responseMessage = FormatSubmissionMessage(messageArg, conf, songArtists, songName, services);
+            RestUserMessage? response = null;
             if (conf.SuppressEmbedInsteadOfDelete) {
                 if (messageArg is IUserMessage userMessage) {
                     await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
-                } else {
+                    response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
+                }
+                else {
                     BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
                 }
-            } else {
-                await messageArg.DeleteAsync();
             }
-            var response = await messageArg.Channel.SendMessageAsync(responseMessage);
-            await AddReactions(response, conf, upVote, downVote);
+            else {
+                await messageArg.DeleteAsync();
+                response = await messageArg.Channel.SendMessageAsync(responseMessage);
+            }
+            await AddReactions(response!, conf, upVote, downVote);
             conf.SubmittedBangers++;
             Config.Save();
         }
@@ -210,7 +215,7 @@ public static class BangerListener {
         var finalizedLink = songData["finalizedLink"];
         BangerLogger.Information("Finalizing: {0}", finalizedLink);
         
-        var responseMessage = FormatSubmissionMessage(messageArg, songArtists, songName, services, finalizedLink);
+        var responseMessage = FormatSubmissionMessage(messageArg, conf, songArtists, songName, services, finalizedLink);
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
                 await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
@@ -449,9 +454,10 @@ public static class BangerListener {
         return "Unknown Format";
     }
 
-    private static string FormatSubmissionMessage(SocketMessage messageArg, string artist, string title, Services services, string othersLink = "") {
+    private static string FormatSubmissionMessage(SocketMessage messageArg, Banger conf, string artist, string title, Services services, string othersLink = "") {
         var builder = new StringBuilder();
-        builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
+        if (!conf.SuppressEmbedInsteadOfDelete)
+            builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
         builder.AppendLine(MarkdownUtils.ToBold($"{artist} - {title}"));
 
         var links = new List<string> {
@@ -464,7 +470,7 @@ public static class BangerListener {
         };
         
         if (!string.IsNullOrWhiteSpace(othersLink))
-            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others"), othersLink, true));
+            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
 
         builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
 
@@ -481,28 +487,29 @@ public static class BangerListener {
         return builder.ToString();
     }
     
-    private static string FormatSubmissionMessageCmd(SocketInteractionContext context, string artist, string title, Services services, string othersLink = "", string extraText = "") {
-        var builder = new StringBuilder();
-        builder.AppendLine($"{MarkdownUtils.ToBold(context.User.GlobalName.EscapeTextModifiers())} has posted a song.");
-        if (!string.IsNullOrWhiteSpace(extraText))
-            builder.AppendLine(MarkdownUtils.ToItalics(extraText));
-        builder.AppendLine(MarkdownUtils.ToBoldItalics($"{artist} - {title}"));
-
-        var links = new List<string> {
-            CreateLink("Spotify", services.SpotifyTrackUrl, true),
-            CreateLink("Tidal", services.TidalTrackUrl, true),
-            CreateLink("YouTube", services.YoutubeTrackUrl, false),
-            CreateLink("Deezer", services.DeezerTrackUrl, true),
-            CreateLink("Apple Music", services.AppleMusicTrackUrl, true),
-            CreateLink("Pandora", services.PandoraTrackUrl, true)
-        };
-        
-        if (!string.IsNullOrWhiteSpace(othersLink))
-            links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
-
-        builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
-        return builder.ToString();
-    }
+    // private static string FormatSubmissionMessageCmd(SocketInteractionContext context, string artist, string title, Services services, string othersLink = "", string extraText = "") {
+    //     var builder = new StringBuilder();
+    //     if (!conf.SuppressEmbedInsteadOfDelete)
+    //         builder.AppendLine($"{MarkdownUtils.ToBold(context.User.GlobalName.EscapeTextModifiers())} has posted a song.");
+    //     if (!string.IsNullOrWhiteSpace(extraText))
+    //         builder.AppendLine(MarkdownUtils.ToItalics(extraText));
+    //     builder.AppendLine(MarkdownUtils.ToBoldItalics($"{artist} - {title}"));
+    //
+    //     var links = new List<string> {
+    //         CreateLink("Spotify", services.SpotifyTrackUrl, true),
+    //         CreateLink("Tidal", services.TidalTrackUrl, true),
+    //         CreateLink("YouTube", services.YoutubeTrackUrl, false),
+    //         CreateLink("Deezer", services.DeezerTrackUrl, true),
+    //         CreateLink("Apple Music", services.AppleMusicTrackUrl, true),
+    //         CreateLink("Pandora", services.PandoraTrackUrl, true)
+    //     };
+    //     
+    //     if (!string.IsNullOrWhiteSpace(othersLink))
+    //         links.Add(MarkdownUtils.MakeLink(MarkdownUtils.ToBold("Others \u2197"), othersLink, true));
+    //
+    //     builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
+    //     return builder.ToString();
+    // }
 
     private static string CreateLink(string serviceName, string url, bool embedHidden)
         => string.IsNullOrWhiteSpace(url) ? string.Empty : MarkdownUtils.MakeLink($"{serviceName} Track \u2197", url, embedHidden);

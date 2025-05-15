@@ -1,4 +1,4 @@
-﻿namespace Michiru.Configuration._Base_Bot.Classes;
+﻿/*namespace Michiru.Configuration._Base_Bot.Classes;
 
 public class GuildFeatures {
     public ulong GuildId { get; set; } = 0;
@@ -23,4 +23,4 @@ public class Leave {
     public string? LeaveMessageText { get; set; } = "";
     public bool ShowDetailedEmbed { get; set; } = false;
     public bool OverrideAllWithEmbed { get; set; } = false;
-}
+}*/

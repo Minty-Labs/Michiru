@@ -186,8 +186,9 @@ public class Program {
         Client.MessageReceived += BangerListener.BangerListenerEventRewrite2ElectricBoogaloo;
         // Client.ButtonExecuted += BangerListener.SpotifyToYouTubeSongLookupButtons;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
-        Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
-        Client.UserLeft += MemberUpdated.MemberLeave; // this finally works
+        // Client.UserJoined += MemberUpdated.MemberJoin; // I'm just glad
+        // Client.UserLeft += MemberUpdated.MemberLeave; // this finally works // nevermind
+        Client.GuildAvailable += GuildAvailable.OnGuildAvailable;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);
         Client.InteractionCreated += async arg => {
             var interactionLogger = Log.ForContext("SourceContext", "Interaction");
@@ -217,14 +218,14 @@ public class Program {
         await Commands.AddModuleAsync<HelpCmd>(null);
         await Commands.AddModuleAsync<WakeOnLanCmds>(null);
         await Commands.AddModuleAsync<DAndD>(null);
-        await Commands.AddModuleAsync<Moderation>(null);
+        // await Commands.AddModuleAsync<Moderation>(null);
 
         await GlobalInteractions.AddModuleAsync<Banger>(null);
         await GlobalInteractions.AddModuleAsync<Personalization>(null);
         await GlobalInteractions.AddModuleAsync<ServerInfo>(null);
         // await GlobalInteractions.AddModuleAsync<MessageFindBanger>(null);
         // await GlobalInteractions.AddModuleAsync<LookupSpotifyForYouTube>(null);
-        await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
+        // await GlobalInteractions.AddModuleAsync<ServerMemberUpdated>(null);
         
         await MintyLabsInteractions.AddModuleAsync<BotConfigControlCmds>(null);
 

@@ -1,4 +1,4 @@
-﻿using Discord;
+﻿/*using Discord;
 using Discord.WebSocket;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
@@ -85,4 +85,4 @@ public static class MemberUpdated {
         }
         await channel.SendMessageAsync(config.Leave.LeaveMessageText?.ParseMessageTextModifiers(user, guild, Config.GetGuildPersonalizedMember(guild.Id)));
     }
-}
+}*/

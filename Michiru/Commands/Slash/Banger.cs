@@ -15,7 +15,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      IntegrationType(ApplicationIntegrationType.GuildInstall),
      CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
-        [SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
+        /*[SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
         public async Task LookupFromAllMusicStreamingServices(
             [Summary("share-link", "Song Share URL")] string mediaUrl,
             [Summary("extra-text", "Express some words of wisdom about this song")] string extraText = "") {
@@ -45,7 +45,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             }
 
             await BangerListener.HandleNewSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
-        }
+        }*/
 
         [SlashCommand("getbangercount", "Gets current guild banger count")]
         public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
@@ -278,6 +278,24 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             banger.SubmittedBangers += number;
             Config.Save();
             await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
+        }
+        
+        [SlashCommand("embedsuppression", "Configure embed suppression for Banger links in a channel")]
+        public async Task ConfigureBangerEmbedSuppression(
+            [Summary("channel", "The channel to configure for Banger link handling.")] ITextChannel channel,
+            [Summary("suppressEmbed", "True to suppress embeds, False to delete original message (default).")] bool suppressEmbed)
+        {
+            var bangerConfigs = Config.Base.Banger;
+            var bangerConf = bangerConfigs.FirstOrDefault(x => x.ChannelId == channel.Id);
+
+            if (bangerConf == null) {
+                await RespondAsync("No Banger configuration found for this channel. Please set up Banger for this channel first.", ephemeral: true);
+                return;
+            }
+
+            bangerConf.SuppressEmbedInsteadOfDelete = suppressEmbed;
+            Config.Save();
+            await RespondAsync($"Banger embed suppression for channel {channel.Mention} set to {suppressEmbed}.", ephemeral: true);
         }
     }
 }

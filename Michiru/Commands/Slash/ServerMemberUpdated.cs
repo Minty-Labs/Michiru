@@ -1,4 +1,4 @@
-﻿using Discord;
+﻿/*using Discord;
 using Discord.Interactions;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Utils;
@@ -116,4 +116,4 @@ public class ServerMemberUpdated : InteractionModuleBase<SocketInteractionContex
             await RespondAsync($"{(value ? "Enabled" : "Disabled")} Leave Detailed Embed");
         }
     }
-}
+}*/
