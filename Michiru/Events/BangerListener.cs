@@ -79,9 +79,8 @@ public static class BangerListener {
     
     internal static async Task HandleExistingSubmissionCmd(SocketInteractionContext context, Banger conf, string url, Emote upVote, Emote downVote, string extraText = "") {
         var songData = Music.GetSubmissionByLink(url);
-        var responseMessage = FormatSubmissionMessageCmd(context, songData.Artists, songData.Title, songData.Services, extraText: extraText);
-        var response = await context.Channel.SendMessageAsync(responseMessage);
-        await AddReactions(response, conf, upVote, downVote);
+        var responseMessageText = FormatSubmissionMessageCmd(context, songData.Artists, songData.Title, songData.Services, extraText: extraText);
+        await SendBangerResponseAndReactAsync(context, conf, responseMessageText, upVote, downVote);
         conf.SubmittedBangers++;
         Config.Save();
     }
@@ -154,9 +153,8 @@ public static class BangerListener {
             });
             Music.Save();
 
-            var responseMessage = FormatSubmissionMessageCmd(context, songArtists, songName, services, extraText: extraText);
-            var response = await context.Channel.SendMessageAsync(responseMessage);
-            await AddReactions(response, conf, upVote, downVote);
+            var responseMessageText = FormatSubmissionMessageCmd(context, songArtists, songName, services, extraText: extraText);
+            await SendBangerResponseAndReactAsync(context, conf, responseMessageText, upVote, downVote);
             conf.SubmittedBangers++;
             Config.Save();
         }
@@ -276,9 +274,8 @@ public static class BangerListener {
         var finalizedLink = songData["finalizedLink"];
         // BangerLogger.Information("Finalizing: {0}", finalizedLink);
         
-        var responseMessage = FormatSubmissionMessageCmd(context, songArtists, songName, services, finalizedLink);
-        var response = await context.Channel.SendMessageAsync(responseMessage);
-        await AddReactions(response, conf, upVote, downVote);
+        var responseMessageText = FormatSubmissionMessageCmd(context, songArtists, songName, services, finalizedLink, extraText);
+        await SendBangerResponseAndReactAsync(context, conf, responseMessageText, upVote, downVote);
         conf.SubmittedBangers++;
         Config.Save();
         BangerLogger.Information("Finished HandleWebScrapeSubmission");
@@ -516,5 +513,29 @@ public static class BangerListener {
         await Task.Delay(500);
         if (conf.AddDownvoteEmoji)
             await message.AddReactionAsync(downVote);
+    }
+    
+    private static async Task SendBangerResponseAndReactAsync(SocketInteractionContext context, Banger conf, string responseMessageText, Emote upVote, Emote downVote)
+    {
+        RestUserMessage? sentMessage = null;
+        if (conf.SuppressEmbedInsteadOfDelete)
+        {
+            await context.Interaction.RespondAsync(responseMessageText, allowedMentions: AllowedMentions.None);
+            var interactionResponse = await context.Interaction.GetOriginalResponseAsync();
+            sentMessage = interactionResponse as RestUserMessage;
+        }
+        else
+        {
+            sentMessage = await context.Channel.SendMessageAsync(responseMessageText);
+        }
+
+        if (sentMessage != null)
+        {
+            await AddReactions(sentMessage, conf, upVote, downVote);
+        }
+        else
+        {
+            BangerLogger.Warning("Could not obtain sent message to add reactions. SuppressEmbed: {SuppressFlag}", conf.SuppressEmbedInsteadOfDelete);
+        }
     }
 }
