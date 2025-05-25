@@ -168,5 +168,36 @@ public class BotConfigControlCmds : InteractionModuleBase<SocketInteractionConte
             Config.SaveFile();
             await RespondAsync("Configuration Saved", ephemeral: true);
         }
+        
+        
+
+        [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies banger count")]
+        public async Task ModifyBangerCount(
+            [Summary("guild-id", "Guild ID to modify banger count for")] ulong guildId,
+            [Summary("number", "Number of bangers to add or remove")] int number,
+            [Summary("ephemeral", "Ephemeral response")] bool ephemeral = false) {
+            var guild = Context.Client.GetGuild(guildId);
+            if (guild is null) {
+                await RespondAsync($"Guild with ID {guildId} not found.", ephemeral: true);
+                return;
+            }
+            if (Config.Base.Banger!.All(b => b.GuildId != guildId)) {
+                await RespondAsync($"No banger configuration found for guild {guild.Name} ({guild.Id}).", ephemeral: true);
+                return;
+            }
+            if (number == 0) {
+                await RespondAsync("Number must be non-zero.", ephemeral: true);
+                return;
+            }
+            if (number < 0 && Config.GetGuildBanger(guildId).SubmittedBangers + number < 0) {
+                await RespondAsync("Cannot reduce banger count below zero.", ephemeral: true);
+                return;
+            }
+            
+            var banger = Config.GetGuildBanger(guildId);
+            banger.SubmittedBangers += number;
+            Config.Save();
+            await RespondAsync($"Banger count for {guild.Name} has been modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
+        }
     }
 }

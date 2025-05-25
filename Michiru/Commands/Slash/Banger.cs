@@ -194,18 +194,6 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             Config.Save();
             await RespondAsync($"Users {(enabled ? "can" : "cannot")} speak freely in the banger channel.");
         }
-
-        [SlashCommand("modifybangercount", "(Bot Owner Only) Modifies banger count"), RequireOwner]
-        public async Task ModifyBangerCount(
-            [Summary("number", "Number of bangers to add or remove")]
-            int number,
-            [Summary("ephemeral", "Ephemeral response")]
-            bool ephemeral = false) {
-            var banger = Config.GetGuildBanger(Context.Guild.Id);
-            banger.SubmittedBangers += number;
-            Config.Save();
-            await RespondAsync($"Banger count modified by {number}. New count: {banger.SubmittedBangers}", ephemeral: ephemeral);
-        }
         
         [SlashCommand("embedsuppression", "Configure embed suppression for Banger links in a channel")]
         public async Task ConfigureBangerEmbedSuppression(
