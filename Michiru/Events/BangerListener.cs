@@ -52,7 +52,7 @@ public static class BangerListener {
 
     private static string? ExtractUrl(string content) {
         var _1 = content.Split(' ').FirstOrDefault(str => str.Contains("http"));
-        return !string.IsNullOrWhiteSpace(_1) && _1.Contains('?') ? _1.Split('?')[0] : _1;
+        return !string.IsNullOrWhiteSpace(_1) && _1.Contains('&') ? _1.Split('&')[0] : _1;
     }
 
     private static Emote GetEmoji(string name, ulong id, string fallback)
@@ -325,10 +325,11 @@ public static class BangerListener {
             return part.Split('?')[0];
         }
         
-        if (url.OrContainsMultiple("youtube.com/watch?v=", "music.youtube.com/watch?v=")) { // Kanskje YouTube-lenkene faktisk fungerer denne gangen.
-            var idx = url.IndexOf("v=", StringComparison.Ordinal);
-            if (idx != -1)
-                return url[(idx + 2)..].Split('&')[0];
+        if (url.Contains("youtube.com/watch")) { // Kanskje YouTube-lenkene faktisk fungerer denne gangen.
+            BangerLogger.Information("Handling YouTube URL: {0}", url);
+            var uri = new Uri(url);
+            var queryParams = HttpUtility.ParseQueryString(uri.Query);
+            return queryParams["v"] ?? "Unknown Format";
         }
         
         return "Unknown Format";
