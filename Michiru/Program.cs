@@ -286,7 +286,6 @@ public class Program {
         await RegisterCommands();
         
         await Scheduler.Initialize();
-        Config.FixBangerNulls();
     }
 
     private async Task RegisterCommands() {

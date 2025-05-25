@@ -35,7 +35,7 @@ public static class BangerListener {
         var downVote = GetEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId, ":thumbsdown:");
 
         BangerLogger.Information("Checking message for URL: {0}", theActualUrl);
-        if (!IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!)) {
+        if (!IsUrlWhitelisted(theActualUrl, Config.DefaultWhitelistUrls)) {
             if (!conf.SpeakFreely)
                 await messageArg.Channel.SendMessageAsync("Message does not contain a valid whitelisted URL.");
             return;

@@ -119,93 +119,20 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         private static bool _doesItExist(string value, IEnumerable<string> list) => list.Any(x => x.Equals(value, StringComparison.OrdinalIgnoreCase));
 
         [SlashCommand("addurl", "Adds a URL to the whitelist")]
-        public async Task AddUrl([Summary("url", "URL to whitelist")] string url) {
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedUrls ??= [];
-
-            string finalUrl;
-            if (url.Contains("https"))
-                finalUrl = url.Replace("https://", "");
-            else if (url.Contains("http"))
-                finalUrl = url.Replace("http://", "");
-            else if (url.Contains('/'))
-                finalUrl = url.Replace("/", "");
-            else if (url.Contains("www."))
-                finalUrl = url.Replace("www.", "");
-            else
-                finalUrl = url;
-            
-            if (_doesItExist(finalUrl ?? url, configBanger.WhitelistedUrls)) {
-                await RespondAsync("URL already exists in the whitelist.", ephemeral: true);
-                return;
-            }
-
-            configBanger.WhitelistedUrls.Add(url);
-            Config.Save();
-            await RespondAsync($"Added {url} to the whitelist.");
-        }
+        public async Task AddUrl([Summary("url", "URL to whitelist")] string url)
+            => await RespondAsync("Whitelisting URLs are disabled, please contact Lily to remove a file extension from the whitelist.", ephemeral: true);
 
         [SlashCommand("removeurl", "Removes a URL from the whitelist")]
-        public async Task RemoveUrl([Summary("url", "URL to remove from the whitelist")] string url) {
-            // await RespondAsync("This command is disabled, please contact Lily to remove a URL from the whitelist.", ephemeral: true);
-
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedUrls ??= [];
-            if (!_doesItExist(url, configBanger.WhitelistedUrls)) {
-                await RespondAsync("URL does not exist in the whitelist.", ephemeral: true);
-                return;
-            }
-
-            configBanger.WhitelistedUrls.Remove(url);
-            Config.Save();
-            await RespondAsync($"Removed {url} from the whitelist.");
-        }
+        public async Task RemoveUrl([Summary("url", "URL to remove from the whitelist")] string url)
+            => await RespondAsync("Whitelisting URLs are disabled, please contact Lily to remove a file extension from the whitelist.", ephemeral: true);
 
         [SlashCommand("addext", "Adds a file extension to the whitelist")]
-        public async Task AddExt([Summary("extension", "File extension to whitelist")] string ext) {
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedFileExtensions ??= [];
-            if (ext.StartsWith('.'))
-                ext = ext[1..];
-            if (_doesItExist(ext, configBanger.WhitelistedFileExtensions)) {
-                await RespondAsync("File extension already exists in the whitelist.", ephemeral: true);
-                return;
-            }
-
-            configBanger.WhitelistedFileExtensions.Add(ext);
-            Config.Save();
-            await RespondAsync($"Added {ext} to the whitelist.");
-        }
+        public async Task AddExt([Summary("extension", "File extension to whitelist")] string ext)
+            => await RespondAsync("Whitelisting file extensions is disabled, please contact Lily to remove a file extension from the whitelist.", ephemeral: true);
 
         [SlashCommand("removeext", "Removes a file extension from the whitelist")]
-        public async Task RemoveExt([Summary("extension", "File extension to remove from the whitelist")] string ext) {
-            var configBanger = Config.GetGuildBanger(Context.Guild.Id);
-            configBanger.WhitelistedFileExtensions ??= [];
-            if (ext.StartsWith('.'))
-                ext = ext[1..];
-            if (!_doesItExist(ext, configBanger.WhitelistedFileExtensions)) {
-                await RespondAsync("File extension does not exist in the whitelist.", ephemeral: true);
-                return;
-            }
-
-            configBanger.WhitelistedFileExtensions.Remove(ext);
-            Config.Save();
-            await RespondAsync($"Removed {ext} from the whitelist.");
-        }
-
-        [SlashCommand("listeverything", "Lists all URLs and file extens"), RequireUserPermission(GuildPermission.SendMessages)]
-        public async Task ListUrls([Summary("ephemeral", "Ephemeral response")] bool ephemeral = true) {
-            var sb = new StringBuilder();
-            sb.AppendLine("```");
-            sb.AppendLine("Whitelisted URLs (Plain form):");
-            Config.GetGuildBanger(Context.Guild.Id).WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
-            // BangerListener.WhitelistedUrls!.ForEach(s => sb.AppendLine($"- {s}"));
-            sb.AppendLine();
-            sb.AppendLine("Whitelisted File Extensions:");
-            Config.GetGuildBanger(Context.Guild.Id).WhitelistedFileExtensions!.ForEach(s => sb.AppendLine($"- .{s}"));
-            sb.AppendLine("```");
-            await RespondAsync(sb.ToString(), ephemeral: ephemeral);
-        }
+        public async Task RemoveExt([Summary("extension", "File extension to remove from the whitelist")] string ext)
+            => await RespondAsync("Whitelisting file extensions is disabled, please contact Lily to remove a file extension from the whitelist.", ephemeral: true);
 
         [SlashCommand("addupvote", "Adds an upvote emoji to a banger post")]
         public async Task AddUpvote([Summary("toggle", "Enable or disable")] bool enabled) {

@@ -14,8 +14,6 @@ public class GuildAvailable {
             Enabled = false,
             GuildId = guild.Id,
             ChannelId = 0,
-            WhitelistedUrls = Config.DefaultWhitelistUrls,
-            WhitelistedFileExtensions = ["mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma"],
             UrlErrorResponseMessage = "This URL is not whitelisted.",
             FileErrorResponseMessage = "This file type is not whitelisted.",
             SpeakFreely = false,

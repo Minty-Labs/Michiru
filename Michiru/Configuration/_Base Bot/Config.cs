@@ -24,6 +24,10 @@ public static class Config {
         "www.pandora.com",
         "pandora.com"
     ];
+    
+    public static readonly List<string> DefaultWhitelistFileExtensions = [
+        "mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma"
+    ];
 
     public static void Initialize() {
         const string file = "Michiru.Bot.config.json";
@@ -154,17 +158,6 @@ public static class Config {
     /// </summary>
     /// <returns></returns>
     public static int GetPersonalizedMemberCount() => Base.PersonalizedMember.SelectMany(member => member.Guilds!).Sum(guild => guild.Members!.Count);
-
-    public static void FixBangerNulls() {
-        foreach (var banger in Base.Banger!) {
-            banger.WhitelistedUrls ??= DefaultWhitelistUrls;
-            banger.WhitelistedFileExtensions ??= ["mp3", "flac", "wav", "ogg", "m4a", "alac", "aac", "aiff", "wma"];
-            banger.UrlErrorResponseMessage ??= "This URL is not whitelisted.";
-            banger.FileErrorResponseMessage ??= "This file type is not whitelisted.";
-        }
-
-        SaveFile();
-    }
 
     // Get guild from guild features
     // public static GuildFeatures GetGuildFeature(ulong id) {
