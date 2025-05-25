@@ -339,7 +339,8 @@ public static class BangerListener {
                 return url[(index + 3)..].Split('&')[0];
         }
         
-        if (url.OrContainsMultiple("spotify.com/track/", "tidal.com/track/", "youtu.be/")) {
+        if (url.OrContainsMultiple("spotify.com/track/", "tidal.com/track/", "tidal.com/browse/track/", "youtu.be/")) {
+            BangerLogger.Information("Handling Spotify, Tidal, or YouTu.be URL: {0}", url);
             var part = url[(url.LastIndexOf('/') + 1)..];
             return part.Split('?')[0];
         }
