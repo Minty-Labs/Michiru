@@ -16,7 +16,6 @@ public class Music {
             Version = Vars.TargetMusicConfigVersion,
             MusicSubmissions = [
                 new Submission {
-                    SubmissionId = 0,
                     Artists = "",
                     Title = "",
                     Services = new Services {
@@ -27,7 +26,7 @@ public class Music {
                         AppleMusicTrackUrl = "",
                         PandoraTrackUrl = ""
                     },
-                    OthersLink = "",
+                    SongLinkUrl = "",
                     SubmissionDate = new DateTime()
                 }
             ]
@@ -57,8 +56,6 @@ public class Music {
         File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "Michiru.Bot.MusicSubmissions.db.json"), JsonSerializer.Serialize(Base, new JsonSerializerOptions { WriteIndented = true }));
         ShouldUpdateConfigFile = false;
     }
-
-    public static int GetNextSubmissionId() => Base.MusicSubmissions.Count + 1;
 
     public static bool SearchForMatchingSubmissions(string url) =>
         Base.MusicSubmissions.Where(x =>

@@ -60,7 +60,7 @@ public static class BangerListener {
 
     private static async Task HandleExistingSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = Music.GetSubmissionByLink(url);
-        var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services, songData.OthersLink ?? string.Empty);
+        var responseMessage = FormatSubmissionMessage(messageArg, conf, songData.Artists, songData.Title, songData.Services, songData.SongLinkUrl ?? string.Empty);
         RestUserMessage? response = null;
         if (conf.SuppressEmbedInsteadOfDelete) {
             if (messageArg is IUserMessage userMessage) {
@@ -93,11 +93,10 @@ public static class BangerListener {
             };
 
             Music.Base.MusicSubmissions.Add(new Submission {
-                SubmissionId = Music.GetNextSubmissionId(),
                 Artists = songArtists,
                 Title = songName,
                 Services = services,
-                OthersLink = "",
+                SongLinkUrl = "",
                 SubmissionDate = DateTime.Now,
             });
             Music.Save();
@@ -384,7 +383,7 @@ public static class BangerListener {
             Artists = artist,
             Title = title,
             Services = services,
-            OthersLink = othersLink,
+            SongLinkUrl = othersLink,
             SubmissionDate = DateTime.Now
         };
         Music.Base.MusicSubmissions.Add(data);
