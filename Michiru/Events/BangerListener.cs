@@ -31,7 +31,7 @@ public static class BangerListener {
         if (conf is null || !conf.Enabled || messageArg.Author.IsBot || messageArg.Content.StartsWith('.')) return;
 
         var messageContent = messageArg.Content;
-        var theActualUrl = ExtractUrl(messageContent) ?? messageContent;
+        var theActualUrl = ExtractUrl(messageContent.Replace("\n", " ").Replace("\r", " ")) ?? messageContent;
         var upVote = GetEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId, ":thumbsup:");
         var downVote = GetEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId, ":thumbsdown:");
 
