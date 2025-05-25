@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Web;
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
@@ -47,7 +48,16 @@ public static class BangerListener {
             return;
         }
 
-        await HandleNewSubmission(messageArg, conf, theActualUrl, upVote, downVote);
+        try {
+            await HandleNewSubmission(messageArg, conf, theActualUrl, upVote, downVote);
+        }
+        catch (Exception ex) {
+            var errorMessage = $"An error occurred while processing the banger submission: {ex.Message}\n" + MarkdownUtils.ToSubText("Error has been sent to Lily.");
+            var guild = (messageArg.Channel as SocketGuildChannel)?.Guild;
+            var channel = (messageArg.Channel as SocketGuildChannel)?.Guild.GetTextChannel(conf.ChannelId);
+            channel?.SendMessageAsync(errorMessage);
+            await ErrorSending.SendErrorToLoggingChannelAsync($"<@167335587488071682>\nGuild: {guild.Name}\nChannel: {channel.Mention}\nError: BangerListenerEventRewrite2ElectricBoogaloo:", null, ex);
+        }
     }
 
     private static string? ExtractUrl(string content) {
@@ -79,7 +89,7 @@ public static class BangerListener {
     }
 
     private static async Task HandleNewSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
-        var song = await SongLink.LookupData(url);
+        /*var song = await SongLink.LookupData(url);
         if (song is not null && SongLink.ToJson(song).AndNotContainsMultiple("entityUniqueId", ":null")) {
             var songArtists = song.entitiesByUniqueId.TIDAL_SONG.artistName;
             var songName = song.entitiesByUniqueId.TIDAL_SONG.title;
@@ -120,9 +130,9 @@ public static class BangerListener {
             conf.SubmittedBangers++;
             Config.Save();
         }
-        else {
+        else {*/
             await HandleWebScrapeSubmission(messageArg, conf, url, upVote, downVote);
-        }
+        //}
     }
 
     private static async Task HandleWebScrapeSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
@@ -311,10 +321,19 @@ public static class BangerListener {
     }
     
     private static string HandleUrlId(string url) {
-        if (url.OrContainsMultiple("deezer.com/track/", "deezer.page.link/", "pandora.com/"))
+        BangerLogger.Information("Target URL: {0}", url);
+        // if (url.Contains("song.link/")) {
+        //     BangerLogger.Information("Handling song.link URL: {0}", url);
+        //     var parts = url.Split('/');
+        //     return parts.Length > 3 ? parts[3] : "Unknown Format";
+        // }
+        if (url.OrContainsMultiple("deezer.com/track/", "deezer.page.link/", "pandora.com/")) {
+            BangerLogger.Information("Handling Deezer or Pandora URL: {0}", url);
             return url[(url.LastIndexOf('/') + 1)..];
+        }
         
         if (url.Contains("music.apple.com")) {
+            BangerLogger.Information("Handling Apple Music URL: {0}", url);
             var index = url.IndexOf("?i=", StringComparison.Ordinal);
             if (index != -1)
                 return url[(index + 3)..].Split('&')[0];
