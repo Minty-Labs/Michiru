@@ -251,7 +251,7 @@ public static class BangerListener {
                 links.TryAdd("spotify", href);
             else if (href.Contains("tidal"))
                 links.TryAdd("tidal", href);
-            else if (href.Contains("youtube"))
+            else if (href.Contains("youtu"))
                 links.TryAdd("youtube", href);
             else if (href.Contains("deezer"))
                 links.TryAdd("deezer", href);
@@ -328,7 +328,7 @@ public static class BangerListener {
             provider = "p";
         else if (url.Contains("tidal"))
             provider = "t";
-        else if (url.Contains("youtube"))
+        else if (url.Contains("youtu"))
             provider = "y";
         else
             provider = "null";
@@ -346,14 +346,15 @@ public static class BangerListener {
                 return url[(index + 3)..].Split('&')[0];
         }
         
-        if (url.OrContainsMultiple("spotify.com/track/", "tidal.com/track/")) {
+        if (url.OrContainsMultiple("spotify.com/track/", "tidal.com/track/", "youtu.be/")) {
             var part = url[(url.LastIndexOf('/') + 1)..];
             return part.Split('?')[0];
         }
         
-        if (url.OrContainsMultiple("youtube.com/watch?v=", "music.youtube.com/watch?v=", "youtu.be/")) {
-            var part = url[(url.IndexOf("?v=", StringComparison.Ordinal) + 3)..];
-            return part.Split('?')[0];
+        if (url.OrContainsMultiple("youtube.com/watch?v=", "music.youtube.com/watch?v=")) { // Kanskje YouTube-lenkene faktisk fungerer denne gangen.
+            var idx = url.IndexOf("v=", StringComparison.Ordinal);
+            if (idx != -1)
+                return url[(idx + 2)..].Split('&')[0];
         }
         
         return "Unknown Format";
