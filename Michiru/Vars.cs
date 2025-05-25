@@ -13,9 +13,7 @@ public static class Vars {
     public const int TargetMusicConfigVersion = 2;
 
     public static readonly string VersionStr = VersionObj.ToString(3) + (IsDebug ? "-dev" : "");
-    // public static readonly DateTime BuildTime = IsDebug ? DateTime.UtcNow : new DateTime(2025, 1, 4, 0/*( 19 + 5 )*/, 06, 00);
     public const bool IsDebug = false;
-    // public static string BuildDate => $"{BuildTime:F}";
     public static DateTime StartTime { get; set; }
     public static bool IsWindows { get; set; }
     public const string SupportServer = "https://discord.gg/Qg9eVB34sq";

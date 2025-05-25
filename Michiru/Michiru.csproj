@@ -38,4 +38,21 @@
       <ProjectReference Include="..\WakeOnLanCSharp\WakeOnLanCSharp.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Utils\MusicProviderApis\Deezer\**" />
+      <Compile Remove="Utils\MusicProviderApis\Spotify\**" />
+      <Compile Remove="Utils\MusicProviderApis\Tidal\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Utils\MusicProviderApis\Deezer\**" />
+      <EmbeddedResource Remove="Utils\MusicProviderApis\Spotify\**" />
+      <EmbeddedResource Remove="Utils\MusicProviderApis\Tidal\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Utils\MusicProviderApis\Deezer\**" />
+      <None Remove="Utils\MusicProviderApis\Spotify\**" />
+      <None Remove="Utils\MusicProviderApis\Tidal\**" />
+    </ItemGroup>
 </Project>

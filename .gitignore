@@ -7,3 +7,6 @@ riderModule.iml
 Builds/
 WakeOnLanCSharp/obj/
 WakeOnLanCSharp/bin/
+Michiru/Utils/MusicProviderApis/Deezer/
+Michiru/Utils/MusicProviderApis/Spotify/
+Michiru/Utils/MusicProviderApis/Tidal/

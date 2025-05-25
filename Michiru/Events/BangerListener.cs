@@ -126,7 +126,6 @@ public static class BangerListener {
     }
 
     private static async Task HandleWebScrapeSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
-        // BangerLogger.Information("Loading: {0}", url);
         var songData = await HandleWebExtractionDataOutput(url);
         if (songData is null) {
             await messageArg.Channel.SendMessageAsync("Failed to extract data from the URL.").DeleteAfter(10);
@@ -134,18 +133,12 @@ public static class BangerListener {
         }
         
         var services = new Services();
-        
         var songName = songData["title"];
-        // BangerLogger.Information("Song Name: {0}", songName);
-        
         var songArtists = songData["artists"];
-        // BangerLogger.Information("Song Artists: {0}", songArtists);
-        
         var servicesRaw = songData["services"].Split(',');
+        
         foreach (var s in servicesRaw) {
-            // BangerLogger.Information("Service: {0}", s);
             var split = s.Split('`');
-            // BangerLogger.Information("Service Split: {0}", split);
             
             switch (split[0]) {
                 case "spotify":
@@ -208,13 +201,13 @@ public static class BangerListener {
         BangerLogger.Information("Attempting to extract data from the finalized URL: {0}", finalizedLink);
         
         var doc = await new HtmlWeb().LoadFromWebAsync(finalizedLink);
-        if (doc is null) {
-            BangerLogger.Information("Failed to load the HTML document from the URL: {0}", finalizedLink);
-            return null;
-        }
+        // if (doc is null) {
+        //     BangerLogger.Information("Failed to load the HTML document from the URL: {0}", finalizedLink);
+        //     return null;
+        // }
         
         var nodes = doc.DocumentNode.Descendants("a").Where(a
-            => a.Attributes["href"].Value is not null && a.Attributes["class"].Value is "css-1spf6ft").ToList();
+            => /*a.Attributes["href"].Value is not null && */a.Attributes["class"].Value is "css-1spf6ft").ToList();
         if (nodes.Count is 0) {
             BangerLogger.Information("Failed to find the nodes in the HTML document from the URL: {0}", finalizedLink);
             return null;
@@ -266,51 +259,32 @@ public static class BangerListener {
             done = true;
         }
 
-        // BangerLogger.Information("RAW Title: {0}", tempTitle);
         var splitTitle = tempTitle.Split(" by ");
         var songName = splitTitle[0];
         if (songName.StartsWith("Listen to "))
             songName = songName.Replace("Listen to ", "");
-        // BangerLogger.Information("Found Song Name: {0}", songName);
         var songArtists = splitTitle[1];
-        // BangerLogger.Information("Found Artists: {0}", songArtists);
         
         var list = new List<string>();
         
-        if (links.TryGetValue("spotify", out var linkS)) {
-            // BangerLogger.Information("Adding Spotify: {0}", linkS);
+        if (links.TryGetValue("spotify", out var linkS))
             list.Add("spotify`" + linkS);
-        }
-        if (links.TryGetValue("tidal", out var linkT)) {
-            // BangerLogger.Information("Adding Tidal: {0}", linkT);
+        if (links.TryGetValue("tidal", out var linkT)) 
             list.Add("tidal`" + linkT);
-        }
-        if (links.TryGetValue("youtube", out var linkY)) {
-            // BangerLogger.Information("Adding YouTube: {0}", linkY);
+        if (links.TryGetValue("youtube", out var linkY))
             list.Add("youtube`" + linkY);
-        }
-        if (links.TryGetValue("deezer", out var linkD)) {
-            // BangerLogger.Information("Adding Deezer: {0}", linkD);
+        if (links.TryGetValue("deezer", out var linkD))
             list.Add("deezer`" + linkD);
-        }
-        if (links.TryGetValue("apple", out var linkA)) {
-            // BangerLogger.Information("Adding Apple Music: {0}", linkA);
+        if (links.TryGetValue("apple", out var linkA))
             list.Add("apple`" + linkA);
-        }
-        if (links.TryGetValue("pandora", out var linkP)) {
-            // BangerLogger.Information("Adding Pandora: {0}", linkP);
+        if (links.TryGetValue("pandora", out var linkP))
             list.Add("pandora`" + linkP);
-        }
 
         var dic = new Dictionary<string, string>();
         dic.TryAdd("artists", songArtists);
-        // BangerLogger.Information("Added Artists: {0}", songArtists);
         dic.TryAdd("title", songName);
-        // BangerLogger.Information("Added Title: {0}", songName);
         dic.TryAdd("finalizedLink", finalizedLink);
-        // BangerLogger.Information("Added Finalized Link: {0}", finalizedLink);
         dic.TryAdd("services", string.Join(',', list));
-        // BangerLogger.Information("Added Services: {0}", string.Join(',', list));
 
         return dic;
     }
