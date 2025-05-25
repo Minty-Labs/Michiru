@@ -338,7 +338,7 @@ public static class BangerListener {
         var builder = new StringBuilder();
         if (!conf.SuppressEmbedInsteadOfDelete)
             builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
-        builder.AppendLine(MarkdownUtils.ToBold($"{artist} - {title}"));
+        builder.AppendLine(MarkdownUtils.ToBold($"{artist} - {title.Replace("&#x27;", "'").Replace("&amp;", "&")}"));
 
         var links = new List<string> {
             CreateLink("Spotify", services.SpotifyTrackUrl, true),
@@ -356,7 +356,7 @@ public static class BangerListener {
 
         var data = new Submission {
             Artists = artist,
-            Title = title,
+            Title = title.Replace("&#x27;", "'").Replace("&amp;", "&"),
             Services = services,
             SongLinkUrl = othersLink,
             SubmissionDate = DateTime.Now
