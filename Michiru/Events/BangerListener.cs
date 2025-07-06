@@ -320,6 +320,83 @@ public static class BangerListener {
         return provider;
     }
     
+    public static async Task<Dictionary<string, string>?> RegatherBangerData(string songLinkUrl) {
+        var doc = await new HtmlWeb().LoadFromWebAsync(songLinkUrl);
+        // if (doc is null) {
+        //     BangerLogger.Information("Failed to load the HTML document from the URL: {0}", finalizedLink);
+        //     return null;
+        // }
+        
+        var nodes = doc.DocumentNode.Descendants("a").Where(a
+            => /*a.Attributes["href"].Value is not null && */a.Attributes["class"].Value is "css-1spf6ft").ToList();
+        if (nodes.Count is 0) {
+            BangerLogger.Information("Failed to find the nodes in the HTML document from the URL: {0}", songLinkUrl);
+            return null;
+        }
+        
+        Dictionary<string, string> links = new();
+        var tempTitle = string.Empty;
+        var done = false;
+        foreach (var node in nodes) {
+            var href = node.Attributes["href"].Value;
+            var titleRaw = node.Attributes["aria-label"].Value;
+            if (titleRaw.Contains("Listen on"))
+                titleRaw = titleRaw.Replace("Listen on ", "");
+            if (titleRaw.Contains("Purchase and download"))
+                titleRaw = titleRaw.Replace("Purchase and download ", "");
+            
+            BangerLogger.Information("Found: {0} - {1}", titleRaw, href);
+            var title = titleRaw.CleanProviderName();
+            
+            if (href.Contains("spotify"))
+                links.TryAdd("spotify", href);
+            else if (href.Contains("tidal"))
+                links.TryAdd("tidal", href);
+            else if (href.Contains("youtu"))
+                links.TryAdd("youtube", href);
+            else if (href.Contains("deezer"))
+                links.TryAdd("deezer", href);
+            else if (href.Contains("music.apple"))
+                links.TryAdd("apple", href);
+            else if (href.Contains("pandora"))
+                links.TryAdd("pandora", href);
+            
+            if (done) continue;
+            if (title.Contains("iTunes")) continue;
+            tempTitle = title;
+            done = true;
+        }
+
+        var splitTitle = tempTitle.Split(" by ");
+        var songName = splitTitle[0];
+        if (songName.StartsWith("Listen to "))
+            songName = songName.Replace("Listen to ", "");
+        var songArtists = splitTitle[1];
+        
+        var list = new List<string>();
+        
+        if (links.TryGetValue("spotify", out var linkS))
+            list.Add("spotify`" + linkS);
+        if (links.TryGetValue("tidal", out var linkT)) 
+            list.Add("tidal`" + linkT);
+        if (links.TryGetValue("youtube", out var linkY))
+            list.Add("youtube`" + linkY);
+        if (links.TryGetValue("deezer", out var linkD))
+            list.Add("deezer`" + linkD);
+        if (links.TryGetValue("apple", out var linkA))
+            list.Add("apple`" + linkA);
+        if (links.TryGetValue("pandora", out var linkP))
+            list.Add("pandora`" + linkP);
+
+        var dic = new Dictionary<string, string>();
+        dic.TryAdd("artists", songArtists);
+        dic.TryAdd("title", songName);
+        dic.TryAdd("finalizedLink", songLinkUrl);
+        dic.TryAdd("services", string.Join(',', list));
+
+        return dic;
+    }
+    
     private static string HandleUrlId(string url) {
         BangerLogger.Information("Target URL: {0}", url);
         // if (url.Contains("song.link/")) {

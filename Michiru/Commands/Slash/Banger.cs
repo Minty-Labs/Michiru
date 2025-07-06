@@ -4,7 +4,9 @@ using Discord;
 using Michiru.Commands.Preexecution;
 using Michiru.Configuration._Base_Bot;
 using Michiru.Configuration.Music;
+using Michiru.Configuration.Music.Classes;
 using Michiru.Events;
+using Michiru.Utils;
 using Serilog;
 
 namespace Michiru.Commands.Slash;
@@ -211,6 +213,79 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             bangerConf.SuppressEmbedInsteadOfDelete = suppressEmbed;
             Config.Save();
             await RespondAsync($"Banger embed suppression for channel {channel.Mention} set to {suppressEmbed}.", ephemeral: true);
+        }
+
+        [SlashCommand("regather", "Regathers song data from entry")]
+        public async Task RegatherSongData([Summary("song", "Song Link Url")] string songLinkUrl) {
+            // check if the songLinkUrl is valid
+            if (!songLinkUrl.Contains("song.link")) {
+                await RespondAsync("Please provide a valid song link URL.", ephemeral: true);
+                return;
+            }
+            
+            // find entry in the database and remove it
+            var songData = Music.Base.MusicSubmissions.FirstOrDefault(x => x.SongLinkUrl == songLinkUrl);
+            if (songData == null) {
+                await RespondAsync("No song data found for the provided link.", ephemeral: true);
+                return;
+            }
+            
+            // remove the entry from the database
+            Music.Base.MusicSubmissions.Remove(songData);
+            
+            // re-gather the song data
+            var newSongData = await BangerListener.RegatherBangerData(songLinkUrl);
+            if (newSongData is null) {
+                await RespondAsync("Failed to extract data from the URL.", ephemeral: true);
+                return;
+            }
+        
+            var services = new Services();
+            var songName = newSongData["title"];
+            var songArtists = newSongData["artists"];
+            var servicesRaw = newSongData["services"].Split(',');
+        
+            foreach (var s in servicesRaw) {
+                var split = s.Split('`');
+            
+                switch (split[0]) {
+                    case "spotify":
+                        services.SpotifyTrackUrl = split[1];
+                        break;
+                    case "tidal":
+                        services.TidalTrackUrl = split[1];
+                        break;
+                    case "youtube":
+                        services.YoutubeTrackUrl = split[1];
+                        break;
+                    case "deezer":
+                        services.DeezerTrackUrl = split[1];
+                        break;
+                    case "apple":
+                        services.AppleMusicTrackUrl = split[1];
+                        break;
+                    case "pandora":
+                        services.PandoraTrackUrl = split[1];
+                        break;
+                }
+            }
+            
+            var data = new Submission {
+                Artists = songArtists,
+                Title = songName.Replace("&#x27;", "'").Replace("&amp;", "&"),
+                Services = services,
+                SongLinkUrl = songLinkUrl,
+                SubmissionDate = DateTime.Now
+            };
+            Music.Base.MusicSubmissions.Add(data);
+            Music.Save();
+            
+            var dataAsJson = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            await RespondAsync($"Successfully re-gathered song data for: **{songName}** by **{songArtists}**.\n" +
+                               MarkdownUtils.ToSubText($"First submitted: {songData.SubmissionDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}") +
+                               "\nFull Data:\n" +
+                               MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
+            
         }
     }
 }
