@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using Discord;
 using Discord.Rest;
@@ -88,53 +89,6 @@ public static class BangerListener {
     }
 
     private static async Task HandleNewSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
-        /*var song = await SongLink.LookupData(url);
-        if (song is not null && SongLink.ToJson(song).AndNotContainsMultiple("entityUniqueId", ":null")) {
-            var songArtists = song.entitiesByUniqueId.TIDAL_SONG.artistName;
-            var songName = song.entitiesByUniqueId.TIDAL_SONG.title;
-            var services = new Services {
-                SpotifyTrackUrl = song.linksByPlatform.spotify.url,
-                TidalTrackUrl = song.linksByPlatform.tidal.url,
-                YoutubeTrackUrl = song.linksByPlatform.youtube.url,
-                DeezerTrackUrl = song.linksByPlatform.deezer.url,
-                AppleMusicTrackUrl = song.linksByPlatform.appleMusic.url,
-                PandoraTrackUrl = song.linksByPlatform.pandora.url
-            };
-
-            Music.Base.MusicSubmissions.Add(new Submission {
-                Artists = songArtists,
-                Title = songName,
-                Services = services,
-                SongLinkUrl = "",
-                SubmissionDate = DateTime.Now,
-            });
-            Music.Save();
-
-            var responseMessage = FormatSubmissionMessage(messageArg, conf, songArtists, songName, services);
-            RestUserMessage? response = null;
-            if (conf.SuppressEmbedInsteadOfDelete) {
-                if (messageArg is IUserMessage userMessage) {
-                    await userMessage.ModifyAsync(m => m.Flags = MessageFlags.SuppressEmbeds);
-                    response = await messageArg.Channel.SendMessageAsync(responseMessage, messageReference: new MessageReference(messageArg.Id, messageArg.Channel.Id, referenceType: MessageReferenceType.Default));
-                }
-                else {
-                    BangerLogger.Warning("Message {MessageId} in channel {ChannelId} could not be modified to suppress embeds as it is not an IUserMessage. Message was not deleted.", messageArg.Id, messageArg.Channel.Id);
-                }
-            }
-            else {
-                await messageArg.DeleteAsync();
-                response = await messageArg.Channel.SendMessageAsync(responseMessage);
-            }
-            await AddReactions(response!, conf, upVote, downVote);
-            conf.SubmittedBangers++;
-            Config.Save();
-        }
-        else {*/
-            await HandleWebScrapeSubmission(messageArg, conf, url, upVote, downVote);
-        //}
-    }
-
-    private static async Task HandleWebScrapeSubmission(SocketMessage messageArg, Banger conf, string url, Emote upVote, Emote downVote) {
         var songData = await HandleWebExtractionDataOutput(url);
         if (songData is null) {
             await messageArg.Channel.SendMessageAsync("Failed to extract data from the URL.").DeleteAfter(10);
@@ -234,20 +188,7 @@ public static class BangerListener {
                 titleRaw = titleRaw.Replace("Purchase and download ", "");
             
             BangerLogger.Information("Found: {0} - {1}", titleRaw, href);
-            var title = string.Empty;
-            
-            if (titleRaw.Contains("Spotify"))
-                title = titleRaw.Replace(" on Spotify", "");
-            else if (titleRaw.Contains("Tidal"))
-                title = titleRaw.Replace(" on Tidal", "");
-            else if (titleRaw.Contains("YouTube"))
-                title = titleRaw.Replace(" on YouTube", "");
-            else if (titleRaw.Contains("Deezer"))
-                title = titleRaw.Replace(" on Deezer", "");
-            else if (titleRaw.Contains("iTunes"))
-                title = titleRaw.Replace(" on iTunes", "");
-            else if (titleRaw.Contains("Pandora"))
-                title = titleRaw.Replace(" on Pandora", "");
+            var title = titleRaw.CleanProviderName();
             
             if (href.Contains("spotify"))
                 links.TryAdd("spotify", href);
@@ -267,36 +208,79 @@ public static class BangerListener {
             tempTitle = title;
             done = true;
         }
+        
+        if (string.IsNullOrWhiteSpace(tempTitle)) {
+            BangerLogger.Information("Song title is empty after processing the HTML document from the URL: {0}", finalizedLink);
+            return null;
+        }
 
         var splitTitle = tempTitle.Split(" by ");
         var songName = splitTitle[0];
+        if (string.IsNullOrWhiteSpace(songName)) {
+            BangerLogger.Information("Song name is empty after splitting the title: {0}", tempTitle);
+            return null;
+        }
         if (songName.StartsWith("Listen to "))
             songName = songName.Replace("Listen to ", "");
         var songArtists = splitTitle[1];
+        if (string.IsNullOrWhiteSpace(songArtists)) {
+            BangerLogger.Information("Song artists are empty after splitting the title: {0}", tempTitle);
+            return null;
+        }
         
         var list = new List<string>();
         
+        BangerLogger.Information("Attempting to add Spotify link to temp list");
         if (links.TryGetValue("spotify", out var linkS))
             list.Add("spotify`" + linkS);
+        BangerLogger.Information("Attempting to add Tidal link to temp list");
         if (links.TryGetValue("tidal", out var linkT)) 
             list.Add("tidal`" + linkT);
+        BangerLogger.Information("Attempting to add YouTube link to temp list");
         if (links.TryGetValue("youtube", out var linkY))
             list.Add("youtube`" + linkY);
+        BangerLogger.Information("Attempting to add Deezer link to temp list");
         if (links.TryGetValue("deezer", out var linkD))
             list.Add("deezer`" + linkD);
+        BangerLogger.Information("Attempting to add Apple Music link to temp list");
         if (links.TryGetValue("apple", out var linkA))
             list.Add("apple`" + linkA);
+        BangerLogger.Information("Attempting to add Pandora link to temp list");
         if (links.TryGetValue("pandora", out var linkP))
             list.Add("pandora`" + linkP);
+        
+        if (list.Count is 0) {
+            BangerLogger.Information("No valid links found in the HTML document from the URL: {0}", finalizedLink);
+            return null;
+        }
 
         var dic = new Dictionary<string, string>();
+        BangerLogger.Information("Attempting to add artists to the dictionary");
         dic.TryAdd("artists", songArtists);
+        BangerLogger.Information("Attempting to add title to the dictionary");
         dic.TryAdd("title", songName);
+        BangerLogger.Information("Attempting to add finalized link to the dictionary");
         dic.TryAdd("finalizedLink", finalizedLink);
+        BangerLogger.Information("Attempting to add services to the dictionary");
         dic.TryAdd("services", string.Join(',', list));
+        
+        BangerLogger.Information("Extracted data: {0}", string.Join("; ", dic.Select(kv => $"{kv.Key}: {kv.Value}")));
 
         return dic;
     }
+
+    private static string CleanProviderName(this string text) {
+        string[] providers = ["Spotify", "Tidal", "TIDAL", "YouTube", "Deezer", "iTunes", "Pandora"];
+        
+        foreach (var provider in providers) {
+            var suffix = $" on {provider}";
+            if (text.Contains(provider))
+                return text.Replace(suffix, "");
+        }
+
+        return text;
+    }
+
 
     private static string HandleProvider(string url) {
         string provider;
@@ -415,8 +399,8 @@ public static class BangerListener {
                 return url[(index + 3)..].Split('&')[0];
         }
         
-        if (url.OrContainsMultiple("spotify.com/track/", "tidal.com/track/", "tidal.com/browse/track/", "youtu.be/")) {
-            BangerLogger.Information("Handling Spotify, Tidal, or YouTu.be URL: {0}", url);
+        if (url.OrContainsMultiple("spotify.com/track/", "youtu.be/")) {
+            BangerLogger.Information("Handling Spotify or YouTu.be URL: {0}", url);
             var part = url[(url.LastIndexOf('/') + 1)..];
             return part.Split('?')[0];
         }
@@ -427,15 +411,23 @@ public static class BangerListener {
             var queryParams = HttpUtility.ParseQueryString(uri.Query);
             return queryParams["v"] ?? "Unknown Format";
         }
+
+        if (url.OrContainsMultiple("tidal.com/track/", "tidal.com/browse/track/")) {
+            BangerLogger.Information("Handling Tidal URL: {0}", url);
+            var match = Regex.Match(url, @"(?:listen\.)?tidal\.com/(?:browse/)?track/(\d+)", RegexOptions.IgnoreCase);
+            if (match is { Success: true, Groups.Count: > 1 })
+                return match.Groups[1].Value;
+        }
         
         return "Unknown Format";
     }
 
     private static string FormatSubmissionMessage(SocketMessage messageArg, Banger conf, string artist, string title, Services services, string? othersLink = "") {
+        BangerLogger.Information("Formatting submission message for: {0} - {1}", artist, title);
         var builder = new StringBuilder();
         if (!conf.SuppressEmbedInsteadOfDelete)
             builder.AppendLine($"{MarkdownUtils.ToBold(messageArg.Author.GlobalName.EscapeTextModifiers())} has posted a song.");
-        builder.AppendLine(MarkdownUtils.ToBold($"{artist} - {title.Replace("&#x27;", "'").Replace("&amp;", "&")}"));
+        builder.AppendLine(MarkdownUtils.ToBold($"{artist.Replace("&#x27;", "'").Replace("&amp;", "&")} - {title.Replace("&#x27;", "'").Replace("&amp;", "&")}"));
 
         var links = new List<string> {
             CreateLink("Spotify", services.SpotifyTrackUrl, true),
@@ -452,7 +444,7 @@ public static class BangerListener {
         builder.Append(MarkdownUtils.ToSubText(string.Join(" \u2219 ", links.Where(l => !string.IsNullOrWhiteSpace(l)))));
 
         var data = new Submission {
-            Artists = artist,
+            Artists = artist.Replace("&#x27;", "'").Replace("&amp;", "&"),
             Title = title.Replace("&#x27;", "'").Replace("&amp;", "&"),
             Services = services,
             SongLinkUrl = othersLink,
