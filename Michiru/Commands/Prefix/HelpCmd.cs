@@ -37,7 +37,7 @@ public class HelpCmd : ModuleBase<SocketCommandContext> {
                                                                                     "-remove <deviceIdentifier>"));
         }
 
-        if (Config.Base.Banger.Any(x => x.GuildId == Context.Guild.Id) && Context.User.IsSpecial(Context.Guild) || Context.User.IsBotOwner()) {
+        if (Config.Base.Banger.Any(x => x.GuildId == Context.Guild.Id) || Context.User.IsBotOwner()) {
             embed.AddField("Banger Commands", MarkdownUtils.ToCodeBlockMultiline("/banger leaderboard - Lists the top guilds with the most bangers\n" +
                                                                                  "/banger getbangercount - Gets the number of bangers submitted in this guild\n"));
             

@@ -182,7 +182,7 @@ public class Program {
         };
 
         Client.Ready += ClientOnReady;
-        Client.MessageReceived += BangerListener.BangerListenerEventRewrite2ElectricBoogaloo;
+        Client.MessageReceived += BangerListener.BangerListenerEvent;
         Client.GuildUpdated += GuildUpdated.OnGuildUpdated;
         Client.GuildAvailable += GuildAvailable.OnGuildAvailable;
         Client.ModalSubmitted += async arg => await ModalProcessor.ProcessModal(arg);

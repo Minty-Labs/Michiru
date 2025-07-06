@@ -10,7 +10,6 @@ using Michiru.Configuration.Music;
 using Michiru.Configuration.Music.Classes;
 using Michiru.Managers;
 using Michiru.Utils;
-using Michiru.Utils.MusicProviderApis.SongLink;
 using Serilog;
 
 namespace Michiru.Events;
@@ -26,7 +25,7 @@ public static class BangerListener {
     private static bool IsFileExtWhitelisted(string extension, ICollection<string> list)
         => list?.Contains(extension) ?? throw new ArgumentNullException(nameof(list));
     
-    internal static async Task BangerListenerEventRewrite2ElectricBoogaloo(SocketMessage messageArg) {
+    internal static async Task BangerListenerEvent(SocketMessage messageArg) {
         var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == messageArg.Channel.Id);
         if (conf is null || !conf.Enabled || messageArg.Author.IsBot || messageArg.Content.StartsWith('.')) return;
 
@@ -56,7 +55,7 @@ public static class BangerListener {
             var guild = (messageArg.Channel as SocketGuildChannel)?.Guild;
             var channel = (messageArg.Channel as SocketGuildChannel)?.Guild.GetTextChannel(conf.ChannelId);
             channel?.SendMessageAsync(errorMessage);
-            await ErrorSending.SendErrorToLoggingChannelAsync($"<@167335587488071682>\nGuild: {guild.Name}\nChannel: {channel.Mention}\nError: BangerListenerEventRewrite2ElectricBoogaloo:", null, ex);
+            await ErrorSending.SendErrorToLoggingChannelAsync($"<@167335587488071682>\nGuild: {guild.Name}\nChannel: {channel.Mention}\nError: BangerListenerEvent:", null, ex);
         }
     }
 
