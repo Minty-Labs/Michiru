@@ -10,6 +10,10 @@ public class GuildAvailable {
 
     internal static Task OnGuildAvailable(SocketGuild guild) {
         Logger.Information("Guild available for {GuildName} ({GuildId})", guild.Name, guild.Id);
+        if (Config.Base.Banger.Any(x => x.GuildId == guild.Id)) {
+            Logger.Information("Guild {GuildName} ({GuildId}) already exists in config, skipping", guild.Name, guild.Id);
+            return Task.CompletedTask;
+        }
         var banger = new Banger {
             Enabled = false,
             GuildId = guild.Id,
