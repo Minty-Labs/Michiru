@@ -47,6 +47,51 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
             embed.WithDescription(sb.ToString());
             await RespondAsync(embed: embed.Build());
         }
+
+        [SlashCommand("search", "Searches for a song in the database")]
+        public async Task SearchSong([Summary("song-url", "URL of a song")] string songUrl) {
+            Submission songData;
+            
+            songData = Music.Base.MusicSubmissions.FirstOrDefault(x => {
+                if (!string.IsNullOrWhiteSpace(x.SongLinkUrl))
+                    return x.SongLinkUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.AppleMusicTrackUrl))
+                    return x.Services.AppleMusicTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.DeezerTrackUrl))
+                    return x.Services.DeezerTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.PandoraTrackUrl))
+                    return x.Services.PandoraTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.SpotifyTrackUrl))
+                    return x.Services.SpotifyTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.TidalTrackUrl))
+                    return x.Services.TidalTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.YoutubeTrackUrl))
+                    return x.Services.YoutubeTrackUrl.Contains(songUrl);
+                return false;
+            })!;
+            
+            var dataAsJson = System.Text.Json.JsonSerializer.Serialize(songData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            var sb = new StringBuilder();
+            sb.AppendLine($"{MarkdownUtils.ToBold("Artists:")} {songData.Artists}");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Title:")} {songData.Title}");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Song Link URL:")} <{songData.SongLinkUrl}>");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Submission Date:")} {songData.SubmissionDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}");
+            sb.AppendLine(MarkdownUtils.ToBold("Services:"));
+            if (!string.IsNullOrWhiteSpace(songData.Services.SpotifyTrackUrl))
+                sb.AppendLine($"- Spotify: <{songData.Services.SpotifyTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.TidalTrackUrl))
+                sb.AppendLine($"- Tidal: <{songData.Services.TidalTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.YoutubeTrackUrl))
+                sb.AppendLine($"- Youtube: <{songData.Services.YoutubeTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.DeezerTrackUrl))
+                sb.AppendLine($"- Deezer: <{songData.Services.DeezerTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.AppleMusicTrackUrl))
+                sb.AppendLine($"- Apple: <{songData.Services.AppleMusicTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.PandoraTrackUrl))
+                sb.AppendLine($"- Pandora: <{songData.Services.PandoraTrackUrl}>");
+            
+            await RespondAsync(sb + "\n\n" + MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
+        }
     }
 
     [Group("bangeradmin", "Admin Banger Commands"),
@@ -258,51 +303,6 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                                "\nFull Data:\n" +
                                MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
             
-        }
-
-        [SlashCommand("search", "Searches for a song in the database")]
-        public async Task SearchSong([Summary("song-url", "URL of a song")] string songUrl) {
-            Submission songData;
-            
-            songData = Music.Base.MusicSubmissions.FirstOrDefault(x => {
-                if (!string.IsNullOrWhiteSpace(x.SongLinkUrl))
-                    return x.SongLinkUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.AppleMusicTrackUrl))
-                    return x.Services.AppleMusicTrackUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.DeezerTrackUrl))
-                    return x.Services.DeezerTrackUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.PandoraTrackUrl))
-                    return x.Services.PandoraTrackUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.SpotifyTrackUrl))
-                    return x.Services.SpotifyTrackUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.TidalTrackUrl))
-                    return x.Services.TidalTrackUrl.Contains(songUrl);
-                if (!string.IsNullOrWhiteSpace(x.Services.YoutubeTrackUrl))
-                    return x.Services.YoutubeTrackUrl.Contains(songUrl);
-                return false;
-            })!;
-            
-            var dataAsJson = System.Text.Json.JsonSerializer.Serialize(songData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            var sb = new StringBuilder();
-            sb.AppendLine($"{MarkdownUtils.ToBold("Artists:")} {songData.Artists}");
-            sb.AppendLine($"{MarkdownUtils.ToBold("Title:")} {songData.Title}");
-            sb.AppendLine($"{MarkdownUtils.ToBold("Song Link URL:")} <{songData.SongLinkUrl}>");
-            sb.AppendLine($"{MarkdownUtils.ToBold("Submission Date:")} {songData.SubmissionDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}");
-            sb.AppendLine(MarkdownUtils.ToBold("Services:"));
-            if (!string.IsNullOrWhiteSpace(songData.Services.SpotifyTrackUrl))
-                sb.AppendLine($"- Spotify: <{songData.Services.SpotifyTrackUrl}>");
-            if (!string.IsNullOrWhiteSpace(songData.Services.TidalTrackUrl))
-                sb.AppendLine($"- Tidal: <{songData.Services.TidalTrackUrl}>");
-            if (!string.IsNullOrWhiteSpace(songData.Services.YoutubeTrackUrl))
-                sb.AppendLine($"- Youtube: <{songData.Services.YoutubeTrackUrl}>");
-            if (!string.IsNullOrWhiteSpace(songData.Services.DeezerTrackUrl))
-                sb.AppendLine($"- Deezer: <{songData.Services.DeezerTrackUrl}>");
-            if (!string.IsNullOrWhiteSpace(songData.Services.AppleMusicTrackUrl))
-                sb.AppendLine($"- Apple: <{songData.Services.AppleMusicTrackUrl}>");
-            if (!string.IsNullOrWhiteSpace(songData.Services.PandoraTrackUrl))
-                sb.AppendLine($"- Pandora: <{songData.Services.PandoraTrackUrl}>");
-            
-            await RespondAsync(sb + "\n\n" + MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
         }
         
         [SlashCommand("edit", "Edit a banger submission")]
