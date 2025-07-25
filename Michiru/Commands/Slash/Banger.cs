@@ -17,38 +17,6 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
      IntegrationType(ApplicationIntegrationType.GuildInstall),
      CommandContextType(InteractionContextType.Guild)]
     public class Commands : InteractionModuleBase<SocketInteractionContext> {
-        /*[SlashCommand("lookup", "Displays multi-service links from a single link"), RateLimit(60, 10)]
-        public async Task LookupFromAllMusicStreamingServices(
-            [Summary("share-link", "Song Share URL")] string mediaUrl,
-            [Summary("extra-text", "Express some words of wisdom about this song")] string extraText = "") {
-            var logger = Log.ForContext("SourceContext", "COMMAND::Banger");
-            var conf = Config.Base.Banger.FirstOrDefault(x => x.ChannelId == Context.Channel.Id);
-            if (conf is null || !conf.Enabled) return;
-            
-            var theActualUrl = BangerListener.ExtractUrl(mediaUrl);
-            if (string.IsNullOrWhiteSpace(theActualUrl)) {
-                await RespondAsync("Invalid URL.", ephemeral: true);
-                return;
-            }
-            var upVote = BangerListener.GetEmoji(conf.CustomUpvoteEmojiName, conf.CustomUpvoteEmojiId, ":thumbsup:");
-            var downVote = BangerListener.GetEmoji(conf.CustomDownvoteEmojiName, conf.CustomDownvoteEmojiId, ":thumbsdown:");
-
-            logger.Information("Checking mediaUrl for URL: {0}", theActualUrl);
-            if (!BangerListener.IsUrlWhitelisted(theActualUrl, conf.WhitelistedUrls!)) {
-                if (!conf.SpeakFreely)
-                    await RespondAsync("Message does not contain a valid whitelisted URL.", ephemeral: true);
-                return;
-            }
-
-            var hasBeenSubmittedBefore = Music.SearchForMatchingSubmissions(theActualUrl);
-            if (hasBeenSubmittedBefore) {
-                await BangerListener.HandleExistingSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
-                return;
-            }
-
-            await BangerListener.HandleNewSubmissionCmd(Context, conf, theActualUrl, upVote, downVote, extraText);
-        }*/
-
         [SlashCommand("getbangercount", "Gets current guild banger count")]
         public async Task GetBangerCount([Summary("ephemeral", "Ephemeral response")] bool ephemeral = false)
             => await RespondAsync($"There are {Config.GetGuildBanger(Context.Guild.Id).SubmittedBangers} bangers in this guild.", ephemeral: ephemeral);
@@ -231,6 +199,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 await RespondAsync("No song data found for the provided link.", ephemeral: true);
                 return;
             }
+
             var oldDate = songData.SubmissionDate;
             
             // remove the entry from the database
@@ -290,6 +259,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                                MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
             
         }
+
         [SlashCommand("search", "Searches for a song in the database")]
         public async Task SearchSong([Summary("song-url", "URL of a song")] string songUrl) {
             Submission songData;
