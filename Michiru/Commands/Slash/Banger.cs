@@ -221,7 +221,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
         public async Task RegatherSongData([Summary("song", "Song Link Url")] string songLinkUrl) {
             // check if the songLinkUrl is valid
             if (!songLinkUrl.Contains("song.link")) {
-                await RespondAsync("Please provide a valid song link URL.", ephemeral: true);
+                await RespondAsync("Please provide a valid song.link URL.", ephemeral: true);
                 return;
             }
             
@@ -231,6 +231,7 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 await RespondAsync("No song data found for the provided link.", ephemeral: true);
                 return;
             }
+            var oldDate = songData.SubmissionDate;
             
             // remove the entry from the database
             Music.Base.MusicSubmissions.Remove(songData);
@@ -277,14 +278,14 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 Title = songName.Replace("&#x27;", "'").Replace("&amp;", "&"),
                 Services = services,
                 SongLinkUrl = songLinkUrl,
-                SubmissionDate = DateTime.Now
+                SubmissionDate = oldDate
             };
             Music.Base.MusicSubmissions.Add(data);
             Music.Save();
             
             var dataAsJson = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             await RespondAsync($"Successfully re-gathered song data for: **{songName}** by **{songArtists}**.\n" +
-                               MarkdownUtils.ToSubText($"First submitted: {songData.SubmissionDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}") +
+                               MarkdownUtils.ToSubText($"First submitted: {oldDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}") +
                                "\nFull Data:\n" +
                                MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
             
