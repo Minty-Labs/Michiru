@@ -5,14 +5,14 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.12.15</Version>
+        <Version>1.12.16</Version>
         <Title>Commission Discord Bot</Title>
         <Authors>Lily</Authors>
         <Copyright>Minty Labs</Copyright>
         <PackageProjectUrl>https://github.com/Minty-Labs/Michiru</PackageProjectUrl>
         <Company>Minty Labs</Company>
-        <AssemblyVersion>1.12.15</AssemblyVersion>
-        <FileVersion>1.12.15</FileVersion>
+        <AssemblyVersion>1.12.16</AssemblyVersion>
+        <FileVersion>1.12.16</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <LangVersion>latestmajor</LangVersion>
         <Product>Michiru Discord App</Product>
