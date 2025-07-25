@@ -27,9 +27,16 @@ public class Music {
                         PandoraTrackUrl = ""
                     },
                     SongLinkUrl = "",
-                    SubmissionDate = new DateTime()
+                    SubmissionDate = new DateTime(),
+                    LastUpdatedBy = [
+                        new LastUpdatedBy {
+                            Username = "",
+                            LastUpdated = new DateTime()
+                        }
+                    ]
                 }
-            ]
+            ],
+            UsersNotAllowedToEdit = []
         };
 
         bool update;

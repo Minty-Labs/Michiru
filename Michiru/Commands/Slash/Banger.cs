@@ -322,6 +322,11 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 await RespondAsync("No submission found with the provided song link.", ephemeral: true);
                 return;
             }
+
+            if (Music.Base.UsersNotAllowedToEdit.Contains(Context.User.Id)) {
+                await RespondAsync("You are not allowed to edit banger submissions.", ephemeral: true);
+                return;
+            }
             
             var finalTitle = (isEditingTitle ? newTitle : submission.Title)![..48];
             var finalArtists = (isEditingArtists ? newArtists : submission.Artists)![..48];
@@ -331,8 +336,18 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 Title = finalTitle,
                 SongLinkUrl = submission.SongLinkUrl,
                 Services = submission.Services,
-                SubmissionDate = submission.SubmissionDate
+                SubmissionDate = submission.SubmissionDate,
+                LastUpdatedBy = [
+                    new LastUpdatedBy {
+                        Username = Context.User.Username,
+                        LastUpdated = DateTime.Now
+                    }
+                ]
             };
+            
+            if (submission.LastUpdatedBy.Count is not 0)
+                newSubmission.LastUpdatedBy.AddRange(submission.LastUpdatedBy);
+            
             Music.Base.MusicSubmissions.Remove(submission);
             await Task.Delay(TimeSpan.FromSeconds(1));
             Music.Base.MusicSubmissions.Add(newSubmission);
