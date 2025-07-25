@@ -71,7 +71,9 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                 var guild = Context.Client.GetGuild(orderedBangers[i].GuildId);
                 if (guild is null) continue;
                 var order = i + 1;
-                sb.AppendLine($"{order}. {(order is 1 ? "**" : "")}{guild.Name} - Bangers: {orderedBangers[i].SubmittedBangers}{(order is 1 ? "**" : "")}");
+                var bangerAmount = orderedBangers[i].SubmittedBangers;
+                if (bangerAmount == 0) continue;
+                sb.AppendLine($"{order}. {(order is 1 ? "**" : "")}{guild.Name} - Bangers: {bangerAmount}{(order is 1 ? "**" : "")}");
             }
 
             embed.WithDescription(sb.ToString());
