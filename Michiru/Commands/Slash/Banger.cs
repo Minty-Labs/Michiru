@@ -290,5 +290,87 @@ public class Banger : InteractionModuleBase<SocketInteractionContext> {
                                MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
             
         }
+        [SlashCommand("search", "Searches for a song in the database")]
+        public async Task SearchSong([Summary("song-url", "URL of a song")] string songUrl) {
+            Submission songData;
+            
+            songData = Music.Base.MusicSubmissions.FirstOrDefault(x => {
+                if (!string.IsNullOrWhiteSpace(x.SongLinkUrl))
+                    return x.SongLinkUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.AppleMusicTrackUrl))
+                    return x.Services.AppleMusicTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.DeezerTrackUrl))
+                    return x.Services.DeezerTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.PandoraTrackUrl))
+                    return x.Services.PandoraTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.SpotifyTrackUrl))
+                    return x.Services.SpotifyTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.TidalTrackUrl))
+                    return x.Services.TidalTrackUrl.Contains(songUrl);
+                if (!string.IsNullOrWhiteSpace(x.Services.YoutubeTrackUrl))
+                    return x.Services.YoutubeTrackUrl.Contains(songUrl);
+                return false;
+            })!;
+            
+            var dataAsJson = System.Text.Json.JsonSerializer.Serialize(songData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            var sb = new StringBuilder();
+            sb.AppendLine($"{MarkdownUtils.ToBold("Artists:")} {songData.Artists}");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Title:")} {songData.Title}");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Song Link URL:")} <{songData.SongLinkUrl}>");
+            sb.AppendLine($"{MarkdownUtils.ToBold("Submission Date:")} {songData.SubmissionDate.ConvertToDiscordTimestamp(TimestampFormat.LongDateTime)}");
+            sb.AppendLine(MarkdownUtils.ToBold("Services:"));
+            if (!string.IsNullOrWhiteSpace(songData.Services.SpotifyTrackUrl))
+                sb.AppendLine($"- Spotify: <{songData.Services.SpotifyTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.TidalTrackUrl))
+                sb.AppendLine($"- Tidal: <{songData.Services.TidalTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.YoutubeTrackUrl))
+                sb.AppendLine($"- Youtube: <{songData.Services.YoutubeTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.DeezerTrackUrl))
+                sb.AppendLine($"- Deezer: <{songData.Services.DeezerTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.AppleMusicTrackUrl))
+                sb.AppendLine($"- Apple: <{songData.Services.AppleMusicTrackUrl}>");
+            if (!string.IsNullOrWhiteSpace(songData.Services.PandoraTrackUrl))
+                sb.AppendLine($"- Pandora: <{songData.Services.PandoraTrackUrl}>");
+            
+            await RespondAsync(sb + "\n\n" + MarkdownUtils.ToCodeBlockMultiline(dataAsJson, CodingLanguages.json), ephemeral: true);
+        }
+        
+        [SlashCommand("edit", "Edit a banger submission")]
+        public async Task EditBangerSubmission(
+            [Summary("song-link", "The song link to edit")] string songLinkUrl,
+            [Summary("new-title", "The new title of the song")] string? newTitle = "",
+            [Summary("new-artists", "The new artists of the song")] string? newArtists = "") {
+            var isEditingTitle = !string.IsNullOrWhiteSpace(newTitle);
+            var isEditingArtists = !string.IsNullOrWhiteSpace(newArtists);
+            if (!isEditingTitle && !isEditingArtists) {
+                await RespondAsync("You must provide at least one field to edit (title or artists).", ephemeral: true);
+                return;
+            }
+            
+            var submission = Music.Base.MusicSubmissions.FirstOrDefault(x => x.SongLinkUrl == songLinkUrl);
+            if (submission is null) {
+                await RespondAsync("No submission found with the provided song link.", ephemeral: true);
+                return;
+            }
+            
+            var finalTitle = (isEditingTitle ? newTitle : submission.Title)![..48];
+            var finalArtists = (isEditingArtists ? newArtists : submission.Artists)![..48];
+
+            var newSubmission = new Submission {
+                Artists = finalArtists,
+                Title = finalTitle,
+                SongLinkUrl = submission.SongLinkUrl,
+                Services = submission.Services,
+                SubmissionDate = submission.SubmissionDate
+            };
+            Music.Base.MusicSubmissions.Remove(submission);
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            Music.Base.MusicSubmissions.Add(newSubmission);
+            Music.Save();
+            
+            await RespondAsync($"Successfully updated the banger submission:\n" +
+                               $"{MarkdownUtils.ToBold("New Title:")} {finalTitle}\n" +
+                               $"{MarkdownUtils.ToBold("New Artists:")} {finalArtists}", ephemeral: true);
+        }
     }
 }
